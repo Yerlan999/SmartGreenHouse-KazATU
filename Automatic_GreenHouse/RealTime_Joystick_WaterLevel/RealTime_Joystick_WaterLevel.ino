@@ -1,37 +1,59 @@
+// Rotary Encoder Inputs
 #define CLK 5
 #define DT 4
-#define SW 3
 
-#include "GyverEncoder.h"
-Encoder enc1(CLK, DT, SW);  // для работы c кнопкой
+int counter = 0;
+int currentStateCLK;
+int lastStateCLK;
+String currentDir ="";
 
 void setup() {
+  
+  // Set encoder pins as inputs
+  pinMode(CLK,INPUT);
+  pinMode(DT,INPUT);
+
+  // Setup Serial Monitor
   Serial.begin(9600);
-  enc1.setType(TYPE2);
+
+  // Read the initial state of CLK
+  lastStateCLK = digitalRead(CLK);
+  
+  // Call updateEncoder() when any high/low changed seen
+  // on interrupt 0 (pin 2), or interrupt 1 (pin 3)
+  attachInterrupt(0, updateEncoder, CHANGE);
+  attachInterrupt(1, updateEncoder, CHANGE);
 }
 
 void loop() {
-  // обязательная функция отработки. Должна постоянно опрашиваться
-  enc1.tick();
-  
-  if (enc1.isTurn()) {     // если был совершён поворот (индикатор поворота в любую сторону)
-    // ваш код
+  //Do some useful stuff here
+}
+
+void updateEncoder(){
+  // Read the current state of CLK
+  currentStateCLK = digitalRead(CLK);
+
+  // If last and current state of CLK are different, then pulse occurred
+  // React to only 1 state change to avoid double count
+  if (currentStateCLK != lastStateCLK  && currentStateCLK == 1){
+
+    // If the DT state is different than the CLK state then
+    // the encoder is rotating CCW so decrement
+    if (digitalRead(DT) != currentStateCLK) {
+      counter --;
+      currentDir ="CCW";
+    } else {
+      // Encoder is rotating CW so increment
+      counter ++;
+      currentDir ="CW";
+    }
+
+    Serial.print("Direction: ");
+    Serial.print(currentDir);
+    Serial.print(" | Counter: ");
+    Serial.println(counter);
   }
-  
-  if (enc1.isRight()) Serial.println("Right");         // если был поворот
-  if (enc1.isLeft()) Serial.println("Left");
-  
-  if (enc1.isRightH()) Serial.println("Right holded"); // если было удержание + поворот
-  if (enc1.isLeftH()) Serial.println("Left holded");
-  
-  //if (enc1.isPress()) Serial.println("Press");         // нажатие на кнопку (+ дебаунс)
-  //if (enc1.isRelease()) Serial.println("Release");     // то же самое, что isClick
-  
-  if (enc1.isClick()) Serial.println("Click");         // одиночный клик
-  if (enc1.isSingle()) Serial.println("Single");       // одиночный клик (с таймаутом для двойного)
-  if (enc1.isDouble()) Serial.println("Double");       // двойной клик
-  
-  
-  if (enc1.isHolded()) Serial.println("Holded");       // если была удержана и энк не поворачивался
-  //if (enc1.isHold()) Serial.println("Hold");         // возвращает состояние кнопки
+
+  // Remember last CLK state
+  lastStateCLK = currentStateCLK;
 }
