@@ -58,10 +58,20 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print(DHT.humidity); lcd.print(" "); lcd.print(DHT.temperature); lcd.print(" "); lcd.print(lux);
 
+  // WRITING ON THE SECOND PAGE OF THE DISPLAY
+  delay(5000);
+  lcd.clear();
 
+  // FIRST ROW
+  lcd.setCursor(0, 0);
+  lcd.print("Уровень воды: ");
+  // SECOND ROW
+  lcd.setCursor(0, 1);
+  lcd.print(water_level);
+  
   // OVERHEAD GROWING LED CONTROL
   for (int i = 0; i <= 29; i++) {
-    leds[i] = CRGB ( 0, 0, 15);
+    leds[i] = CRGB ( 5, 0, 5);
     FastLED.show();
   }
 

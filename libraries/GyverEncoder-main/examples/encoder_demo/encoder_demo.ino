@@ -1,9 +1,19 @@
-#define CLK 5
-#define DT 4
-#define SW 3
+#define CLK 2
+#define DT 3
+#define SW 4
 
 #include "GyverEncoder.h"
+//Encoder enc1(CLK, DT);      // для работы без кнопки
 Encoder enc1(CLK, DT, SW);  // для работы c кнопкой
+//Encoder enc1(CLK, DT, SW, TYPE2);  // для работы c кнопкой и сразу выбираем тип
+//Encoder enc1(CLK, DT, ENC_NO_BUTTON, TYPE2);  // для работы без кнопки и сразу выбираем тип
+
+// Варианты инициализации:
+// Encoder enc;									// не привязан к пину
+// Encoder enc(пин CLK, пин DT);				// энкодер без кнопки (ускоренный опрос)
+// Encoder enc(пин CLK, пин DT, пин SW);		// энкодер с кнопкой
+// Encoder enc(пин CLK, пин DT, пин SW, тип);	// энкодер с кнопкой и указанием типа
+// Encoder enc(пин CLK, пин DT, ENC_NO_BUTTON, тип);	// энкодер без кнопкой и с указанием типа
 
 void setup() {
   Serial.begin(9600);
@@ -11,7 +21,7 @@ void setup() {
 }
 
 void loop() {
-  // обязательная функция отработки. Должна постоянно опрашиваться
+	// обязательная функция отработки. Должна постоянно опрашиваться
   enc1.tick();
   
   if (enc1.isTurn()) {     // если был совершён поворот (индикатор поворота в любую сторону)
