@@ -14,7 +14,7 @@ CRGB leds[NUM_LEDS];
 
 dht DHT;
 BH1750 GY30; // instantiate a sensor event object
-LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F/0x23 for a 16/20 chars and 4 line display
+LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F for a 16/20 chars and 4 line display
 
 #define dht_apin A0 // Analog Pin sensor is connected to
 
@@ -40,30 +40,36 @@ void setup() {
 }
 void loop() {
 
+  
+  // READING FROM SENSORS
   float lux = GY30.readLightLevel(); // read the light level from the sensor and store it in a variable
-
+  int water_level = analogRead(A1);
   DHT.read11(dht_apin);
   delay(2000);//Wait 5 seconds before accessing sensor again.
 
+
+  // WRITING ON LCD DISPLAY
+  // FIRST ROW
   lcd.setCursor(0, 0);
-  lcd.print("Hum: ");
-  lcd.print(" ");
-  lcd.print("Tem: ");
-  lcd.print(" ");
-  lcd.print("Lux: ");
-
+  lcd.print("Hum: "); lcd.print(" "); lcd.print("Tem: "); lcd.print(" "); lcd.print("Lux: ");
+  // SECOND ROW
   lcd.setCursor(0, 1);
-  lcd.print(DHT.humidity);
-  lcd.print(" ");
-  lcd.print(DHT.temperature);
-  lcd.print(" ");
-  lcd.print(lux);
+  lcd.print(DHT.humidity); lcd.print(" "); lcd.print(DHT.temperature); lcd.print(" "); lcd.print(lux);
 
 
+  // OVERHEAD GROWING LED CONTROL
   for (int i = 0; i <= 29; i++) {
-    leds[i] = CRGB ( 23, 0, 25);
+    leds[i] = CRGB ( 0, 0, 15);
     FastLED.show();
   }
+
+  // PUMP CONTROL BY WATER LEVEL
+  if (water_level > 200){
+    digitalWrite(relay_control_pin, LOW);
+    };
+  else{
+    digitalWrite(relay_control_pin, HIGH);
+    };
+   
   
-  digitalWrite(relay_control_pin, HIGH);
 }
