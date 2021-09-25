@@ -3,6 +3,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <dht.h>
 #include <FastLED.h>
+#include <LCD_1602_RUS.h>
 
 
 int relay_control_pin = 2;
@@ -14,7 +15,8 @@ CRGB leds[NUM_LEDS];
 
 dht DHT;
 BH1750 GY30; // instantiate a sensor event object
-LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F for a 16/20 chars and 4 line display
+LCD_1602_RUS lcd(0x3F, 16, 2);
+// LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F for a 16/20 chars and 4 line display
 
 #define dht_apin A0 // Analog Pin sensor is connected to
 
@@ -51,7 +53,7 @@ void loop() {
   // WRITING ON LCD DISPLAY
   // FIRST ROW
   lcd.setCursor(0, 0);
-  lcd.print("Hum: "); lcd.print(" "); lcd.print("Tem: "); lcd.print(" "); lcd.print("Lux: ");
+  lcd.print("Вла: "); lcd.print(" "); lcd.print("Тем: "); lcd.print(" "); lcd.print("Осв: ");
   // SECOND ROW
   lcd.setCursor(0, 1);
   lcd.print(DHT.humidity); lcd.print(" "); lcd.print(DHT.temperature); lcd.print(" "); lcd.print(lux);
@@ -66,8 +68,8 @@ void loop() {
   // PUMP CONTROL BY WATER LEVEL
   if (water_level > 200){
     digitalWrite(relay_control_pin, LOW);
-    };
-  else{
+    }
+  else {
     digitalWrite(relay_control_pin, HIGH);
     };
    
