@@ -3,7 +3,6 @@
 #include <LiquidCrystal_I2C.h>
 #include <dht.h>
 #include <FastLED.h>
-#include <IRremote.h>
 
 
 int relay_control_pin = 2;
@@ -20,10 +19,6 @@ void RGB_color(int red_light_value, int green_light_value, int blue_light_value)
   analogWrite(blue_light_pin, blue_light_value);
 }
 
-const int RECV_PIN = 5;
-IRrecv irrecv(RECV_PIN);
-decode_results results;
-
 #define LED_PIN     6
 #define NUM_LEDS    30
 
@@ -31,7 +26,7 @@ CRGB leds[NUM_LEDS];
  
 dht DHT; 
 BH1750 GY30; // instantiate a sensor event object
-LiquidCrystal_I2C lcd(0x3F,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 #define dht_apin A0 // Analog Pin sensor is connected to
 
@@ -44,7 +39,7 @@ void setup(){
   pinMode(green_light_pin, OUTPUT);
   pinMode(blue_light_pin, OUTPUT);
 
-  Serial.begin(19200); // launch the serial monitor
+  Serial.begin(9600); // launch the serial monitor
   Wire.begin(); // Initialize the I2C bus for use by the BH1750 library  
   GY30.begin(); // Initialize the sensor object
 
@@ -57,8 +52,7 @@ void setup(){
 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
 
-  irrecv.enableIRIn();
-  irrecv.blink13(true);
+
 }
 void loop() {
 
@@ -81,39 +75,13 @@ void loop() {
   lcd.print(" ");
   lcd.print(lux);
   
-  
-  if (irrecv.decode(&results)){
-      
-      Serial.println(results.value);
-      
-      if (results.value == 16724175){
-        for (int i = 0; i <= 29; i++) {
-          leds[i] = CRGB ( 255, 65, 0);
-          FastLED.show();
-        }
-      }
-      else if (results.value == 16718055){
-        for (int i = 0; i <= 29; i++) {
-          leds[i] = CRGB ( 255, 0, 0);
-          FastLED.show();
-        }
-      }
-      else if (results.value == 16743045){
-        for (int i = 0; i <= 29; i++) {
-          leds[i] = CRGB ( 255, 255, 0);
-          FastLED.show();
-        }
-      }
-      else{
-        for (int i = 0; i <= 29; i++) {
-          leds[i] = CRGB ( 0, 0, 255);
-          FastLED.show();
-        }
-      }
-  
-  
-  irrecv.resume();
+
+  for (int i = 0; i <= 29; i++) {
+    leds[i] = CRGB ( 255, 0, 255);
+    FastLED.show();
   }
+      
+  
 
   if (DHT.humidity < 25){
     RGB_color(255, 0, 0); // Red
