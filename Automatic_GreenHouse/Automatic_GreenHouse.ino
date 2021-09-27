@@ -15,7 +15,7 @@ CRGB leds[NUM_LEDS];
 
 dht DHT;
 BH1750 GY30; // instantiate a sensor event object
-LCD_1602_RUS lcd(0x3F, 16, 2);
+LCD_1602_RUS lcd(0x3F, 20, 4);
 // LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F for a 16/20 chars and 4 line display
 
 #define dht_apin A0 // Analog Pin sensor is connected to
@@ -71,7 +71,7 @@ void loop() {
   
   // OVERHEAD GROWING LED CONTROL
   for (int i = 0; i <= 29; i++) {
-    leds[i] = CRGB ( 5, 0, 5);
+    leds[i] = CRGB ( 250, 0, 255);
     FastLED.show();
   }
 
