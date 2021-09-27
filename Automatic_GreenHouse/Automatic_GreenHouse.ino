@@ -1,27 +1,86 @@
+// Example sketch for interfacing with the DS1302 timekeeping chip.
+//
+// Copyright (c) 2009, Matt Sparks
+// All rights reserved.
+//
+// http://quadpoint.org/projects/arduino-ds1302
 #include <Wire.h>  // include the standard Wire library
 #include <BH1750.h> // include the BH1750 library
 #include <LiquidCrystal_I2C.h>
 #include <dht.h>
 #include <FastLED.h>
 #include <LCD_1602_RUS.h>
+#include <stdio.h>
+#include <DS1302.h>
+
+namespace {
+
+// Set the appropriate digital I/O pin connections. These are the pin
+// assignments for the Arduino as well for as the DS1302 chip. See the DS1302
+// datasheet:
+//
+//   http://datasheets.maximintegrated.com/en/ds/DS1302.pdf
+const int kCePin   = 5;  // Chip Enable
+const int kIoPin   = 6;  // Input/Output
+const int kSclkPin = 7;  // Serial Clock
+
+// Create a DS1302 object.
+DS1302 rtc(kCePin, kIoPin, kSclkPin);
+
+String dayAsString(const Time::Day day) {
+  switch (day) {
+    case Time::kSunday: return "Воскресенье";
+    case Time::kMonday: return "Понедельник";
+    case Time::kTuesday: return "Вторник";
+    case Time::kWednesday: return "Среда";
+    case Time::kThursday: return "Четверг";
+    case Time::kFriday: return "Пятница";
+    case Time::kSaturday: return "Суббота";
+  }
+  return "(unknown day)";
+}
+
+
+Time printTime() {
+  // Get the current time and date from the chip.
+  Time t = rtc.time();
+
+  // Name the day of the week.
+  const String day = dayAsString(t.day);
+
+  // Format the time and date and insert into the temporary buffer.
+  char buf[50];
+  snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d %02d:%02d:%02d",
+           day.c_str(),
+           t.yr, t.mon, t.date,
+           t.hr, t.min, t.sec);
+
+  // Print the formatted string to serial so we can see the time.
+  return t;
+}
+
+}  // namespace
 
 
 int relay_control_pin = 2;
 
 #define LED_PIN     9
 #define NUM_LEDS    30
+#define dht_apin A0 // Analog Pin sensor is connected to
 
-CRGB leds[NUM_LEDS];
 
 dht DHT;
+CRGB leds[NUM_LEDS];
 BH1750 GY30; // instantiate a sensor event object
 LCD_1602_RUS lcd(0x3F, 20, 4);
 // LiquidCrystal_I2C lcd(0x3F, 16, 2); // set the LCD address to 0x27/0x3F for a 16/20 chars and 4 line display
 
-#define dht_apin A0 // Analog Pin sensor is connected to
 
 
 void setup() {
+
+  rtc.writeProtect(false);
+  rtc.halt(false);
 
   pinMode(relay_control_pin, OUTPUT);
   
@@ -72,6 +131,28 @@ void loop() {
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print("Уровень воды: ");
   lcd.setCursor(0, 1); lcd.print(water_level);
+
+  // WRITING ON THE FIFTH PAGE OF THE DISPLAY
+  delay(3000);
+  lcd.clear();
+  
+  Time test = printTime();
+  int year = test.yr; int month = test.mon; int date = test.date;
+  int hour = test.hr; int minute = test.min; int second = test.sec;
+  const String week_day = dayAsString(test.day);
+  
+  lcd.setCursor(0, 0);
+  lcd.print(date); lcd.print("/");
+  lcd.print(month); lcd.print("/");
+  lcd.print(year);
+  
+  lcd.setCursor(0, 1);
+  lcd.print(hour); lcd.print(":");
+  lcd.print(minute); lcd.print(":");
+  lcd.print(second);
+
+
+
 
 
   
