@@ -47,27 +47,34 @@ void loop() {
   float lux = GY30.readLightLevel(); // read the light level from the sensor and store it in a variable
   int water_level = analogRead(A1);
   DHT.read11(dht_apin);
-  delay(2000);//Wait 5 seconds before accessing sensor again.
-
 
   // WRITING ON LCD DISPLAY
-  // FIRST ROW
-  lcd.setCursor(0, 0);
-  lcd.print("Вла: "); lcd.print(" "); lcd.print("Тем: "); lcd.print(" "); lcd.print("Осв: ");
-  // SECOND ROW
-  lcd.setCursor(0, 1);
-  lcd.print(DHT.humidity); lcd.print(" "); lcd.print(DHT.temperature); lcd.print(" "); lcd.print(lux);
+  // WRITING ON THE FIRST PAGE OF THE DISPLAY
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("Температура воздуха: ");
+  lcd.setCursor(0, 1); lcd.print(DHT.temperature);
 
   // WRITING ON THE SECOND PAGE OF THE DISPLAY
-  delay(5000);
+  delay(3000);
   lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("Влажность воздуха: ");
+  lcd.setCursor(0, 1); lcd.print(DHT.humidity);
 
-  // FIRST ROW
-  lcd.setCursor(0, 0);
-  lcd.print("Уровень воды: ");
-  // SECOND ROW
-  lcd.setCursor(0, 1);
-  lcd.print(water_level);
+  // WRITING ON THE THIRD PAGE OF THE DISPLAY
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("Уровень освященности: ");
+  lcd.setCursor(0, 1); lcd.print(lux);
+
+  // WRITING ON THE FOURTH PAGE OF THE DISPLAY
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("Уровень воды: ");
+  lcd.setCursor(0, 1); lcd.print(water_level);
+
+
+  
   
   // OVERHEAD GROWING LED CONTROL
   for (int i = 0; i <= 29; i++) {

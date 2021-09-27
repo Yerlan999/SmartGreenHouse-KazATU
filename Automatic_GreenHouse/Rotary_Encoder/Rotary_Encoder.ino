@@ -1,0 +1,62 @@
+#define outputC 3
+#define outputA 4
+#define outputB 5
+
+
+int counter = 0; 
+int aState;
+int aLastState;
+int bPress;
+
+
+void setup() { 
+  
+    pinMode (outputA,INPUT);
+    pinMode (outputB,INPUT);
+    pinMode (outputC,INPUT);
+
+    Serial.begin (9600);
+    // Reads the initial state of the outputA
+    aLastState = digitalRead(outputA);       
+} 
+
+
+void loop() { 
+
+    bPress = digitalRead(outputC);
+     
+    aState = digitalRead(outputA); // Reads the "current" state of the outputA
+    // If the previous and the current state of the outputA are different, that means a Pulse has occured
+    if (bPress == 0){
+        if (aState != aLastState){     
+            // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+            if (digitalRead(outputB) != aState) { 
+                counter ++;
+            } else {
+                counter --;
+            };
+        
+            if (counter%2 ==0){
+                Serial.print("Position + Press: ");
+                Serial.println(counter/2);
+            };
+        };
+         
+    }
+    else {
+        if (aState != aLastState){     
+            // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+            if (digitalRead(outputB) != aState) { 
+                counter ++;
+            } else {
+                counter --;
+            };
+
+            if (counter%2 ==0){
+                Serial.print("Position: ");
+                Serial.println(counter/2);
+            };      
+        };        
+    };
+    aLastState = aState; // Updates the previous state of the outputA with the current state
+};
