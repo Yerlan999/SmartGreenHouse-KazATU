@@ -1,14 +1,14 @@
 /*********
   Rui Santos
-  Complete project details at http://randomnerdtutorials.com  
+  Complete project details at https://randomnerdtutorials.com  
 *********/
 
 // Load Wi-Fi library
 #include <WiFi.h>
 
 // Replace with your network credentials
-const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* ssid     = "Le petit dejeuner 2";
+const char* password = "";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -24,12 +24,14 @@ String output27State = "off";
 const int output26 = 26;
 const int output27 = 27;
 
-// Current time
-unsigned long currentTime = millis();
-// Previous time
-unsigned long previousTime = 0; 
-// Define timeout time in milliseconds (example: 2000ms = 2s)
-const long timeoutTime = 2000;
+// Set your Static IP address
+IPAddress local_IP(192, 168, 43, 229);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 1, 1);
+
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);   //optional
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 void setup() {
   Serial.begin(115200);
@@ -40,6 +42,11 @@ void setup() {
   digitalWrite(output26, LOW);
   digitalWrite(output27, LOW);
 
+  // Configures static IP address
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
+  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -60,12 +67,9 @@ void loop(){
   WiFiClient client = server.available();   // Listen for incoming clients
 
   if (client) {                             // If a new client connects,
-    currentTime = millis();
-    previousTime = currentTime;
     Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
-      currentTime = millis();
+    while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out the serial monitor
@@ -115,7 +119,7 @@ void loop(){
             client.println("<body><h1>ESP32 Web Server</h1>");
             
             // Display current state, and ON/OFF buttons for GPIO 26  
-            client.println("<p>GREEN LED - State " + output26State + "</p>");
+            client.println("<p>GPIO 26 - State " + output26State + "</p>");
             // If the output26State is off, it displays the ON button       
             if (output26State=="off") {
               client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
@@ -124,7 +128,7 @@ void loop(){
             } 
                
             // Display current state, and ON/OFF buttons for GPIO 27  
-            client.println("<p>YELLOW LED - State " + output27State + "</p>");
+            client.println("<p>GPIO 27 - State " + output27State + "</p>");
             // If the output27State is off, it displays the ON button       
             if (output27State=="off") {
               client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
