@@ -36,8 +36,8 @@ void loop() {
 // *************** БЛОК ПРИЕМА ЗНАЧЕНИИИ АКТУАТОРОВ ОТ ESP32 ***************
 
   // Прием СТРОКИ от ESP32(Значения актуаторов).
-    from_ESP32 = Serial.readString();
-    Serial.println(from_ESP32);       // Вывод всей СТРОКИ.
+//    from_ESP32 = Serial.readString();
+//    Serial.println(from_ESP32);       // Вывод всей СТРОКИ.
   
     // Парсинг(Разделение) значении через ",".
 //    for(int i=0; i<from_ESP32.length(); i++){

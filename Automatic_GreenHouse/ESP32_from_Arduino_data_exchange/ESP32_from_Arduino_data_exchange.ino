@@ -22,13 +22,13 @@ void loop() {
 // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ АКТУАТОРОВ НА ARDUINO ***************
 
   // Конвертация значении актуаторов в СТРОКУ!!! для последующей отпавки.
-  for(int i=0; i<sizeof(Actuators)/sizeof(float); i++){
-    to_Arduino += String(Actuators[i])+String(",");  // Разделение значении через ","
-  };
-
-  Serial1.println(to_Arduino);       // Отправка данных на Arduino через "Serial Port"
-  to_Arduino = "";
-  delay(600);
+//  for(int i=0; i<sizeof(Actuators)/sizeof(float); i++){
+//    to_Arduino += String(Actuators[i])+String(",");  // Разделение значении через ","
+//  };
+//
+//  Serial1.println(to_Arduino);       // Отправка данных на Arduino через "Serial Port"
+//  to_Arduino = "";
+//  delay(600);
   
 // *************************************************************************
 
