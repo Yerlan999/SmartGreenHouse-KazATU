@@ -11,6 +11,7 @@
 
 #include "DHT.h"
 #include <WiFi.h>
+#include <Arduino.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
@@ -31,6 +32,9 @@ AsyncEventSource events("/events");
 // Timer variables
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 30000;
+
+const char* PARAM_INPUT_1 = "input1";
+String button_state = "on";
 
 // Create a sensor object
 DHT dht(DHTPIN, DHTTYPE);
@@ -70,6 +74,15 @@ String processor(const String& var){
   else if(var == "PRESSURE"){
     return String(pressure);
   }
+  else if (var == "BUTTON_STATE"){
+    if (button_state == "on"){
+      return String("buttonON");
+    }
+    else{
+      return String("buttonOFF");
+    }
+    return String(button_state);
+  };
   return String();
 }
 
@@ -80,6 +93,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
+  
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
     p { font-size: 1.2rem;}
@@ -89,25 +103,89 @@ const char index_html[] PROGMEM = R"rawliteral(
     .card { background-color: white; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .cards { max-width: 800px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .reading { font-size: 1.4rem; }
+    .buttonON {
+        padding: 10px 20px;
+        font-size: 24px;
+        text-align: center;
+        outline: none;
+        color: #fff;
+        background-color: #2f4468;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 6px #999;
+        cursor: pointer;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+      }  
+    .buttonON:hover {background-color: #1f2e45}
+    .buttonON:active {
+        background-color: #1f2e45;
+        box-shadow: 0 4px #666;
+        transform: translateY(2px);
+      }  
+
+    .buttonOFF {
+        padding: 10px 20px;
+        font-size: 24px;
+        text-align: center;
+        outline: none;
+        color: #fff;
+        background-color: #dc143c;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 6px #999;
+        cursor: pointer;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+      }  
+    .buttonOFF:hover {background-color: #b8d113}
+    .buttonOFF:active {
+        background-color: #b8d113;
+        box-shadow: 0 4px #666;
+        transform: translateY(2px);
+      }  
+  
   </style>
 </head>
+
 <body>
   <div class="topnav">
-    <h1>BME280 WEB SERVER (SSE)</h1>
+    <h1>SMART FARM KAZATU</h1>
   </div>
+ 
   <div class="content">
+  
     <div class="cards">
-      <div class="card">
-        <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
-      </div>
-      <div class="card">
-        <p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
-      </div>
-      <div class="card">
-        <p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE</p><p><span class="reading"><span id="pres">%PRESSURE%</span> hPa</span></p>
-      </div>
+        <div class="card">
+          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
+        </div>
+        <div class="card">
+          <p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
+        </div>
+        <div class="card">
+          <p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE</p><p><span class="reading"><span id="pres">%PRESSURE%</span> hPa</span></p>
+        </div>
     </div>
+    
+    <br><br>
+    
+    <form class=%BUTTON_STATE% action="/get">
+        input1: <input type="text" name="input1">
+    <input id="input" type="submit" value="Submit">
+    </form>
+  
   </div>
+
 <script>
 if (!!window.EventSource) {
  var source = new EventSource('/events');
@@ -140,21 +218,51 @@ if (!!window.EventSource) {
   document.getElementById("pres").innerHTML = e.data;
  }, false);
 }
+
 </script>
 </body>
 </html>)rawliteral";
+
+
+void notFound(AsyncWebServerRequest *request) {
+  request->send(404, "text/plain", "Not found");
+}
+
 
 void setup() {
   Serial.begin(115200);
   initWiFi();
   dht.begin();
-
+  
 
   // Handle Web Server
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", index_html, processor);
   });
 
+  
+  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
+  server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request){
+      String message;
+      // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
+      if (request->hasParam(PARAM_INPUT_1)) {
+          message = request->getParam(PARAM_INPUT_1)->value();
+      } else {
+          message = "No message sent";
+      }
+      
+      if (button_state == "on"){
+        button_state = "of";
+        }
+      else{
+        button_state = "on";
+        }
+      Serial.println(button_state);
+      Serial.println("HEEEYY!!! POST REQUEST FROM BUTTON!! " + message);
+      request->send_P(200, "text/html", index_html, processor);
+  });
+
+    
   // Handle Web Server Events
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
@@ -165,6 +273,7 @@ void setup() {
     client->send("hello!", NULL, millis(), 10000);
   });
   server.addHandler(&events);
+  server.onNotFound(notFound);
   server.begin();
 }
 
