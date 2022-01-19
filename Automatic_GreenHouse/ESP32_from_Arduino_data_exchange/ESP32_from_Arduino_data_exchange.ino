@@ -3,18 +3,21 @@
 #define RXD2 16
 #define TXD2 17
 
-String from_Arduino;
-String to_Arduino;
-String a_SensorValue;  
-int start_s = 0;
-int end_s = 0;
+String from_Arduino;      // Для хранения СТРОКИ со значениями датчиков от Arduino
+String to_Arduino;        // Для хранения данных для Отпавки на Arduino в виде СТРОКИ
+String a_SensorValue;     // Для хранения значения отдельного датчика перед конвертацией
+int start_s = 0;          // Для парсинга (разбора) СТРОКИ 
+int end_s = 0;            // Для парсинга (разбора) СТРОКИ
+int comma_Counter = 0;    // Для подчета количества запятых в получаемой от Arduino строке
+int found = 5;            // Отражает количество значении переменных получаемых от Arduino
 
 // Тестовые данные для актуаторов.
 float Actuators[5] = {1, -1, 1.99, -1.77, 1};
+float Sensors[5];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
 
 void setup() {
-  Serial.begin(9600);
-  Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);
+  Serial.begin(9600);                           // Для вывода на монитор                          
+  Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
 }
 
 void loop() {
@@ -37,17 +40,30 @@ void loop() {
 
     // Прием СТРОКИ от Arduino(Значения датчиков).
     from_Arduino = Serial1.readString();
-    Serial.println(from_Arduino);       // Вывод всей СТРОКИ.
     
+    // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
+    for(int i=0; i<from_Arduino.length(); i++){
+      if(String(from_Arduino.charAt(i))==String(",")){
+        comma_Counter += 1;    
+      };
+    };
+      
+
     // Парсинг(Разделение) значении через ",".
-//    for(int i=0; i<from_Arduino.length(); i++){
-//       if(String(from_Arduino.charAt(i))==String(",")){
-//         end_s = i;
-//         a_SensorValue = from_Arduino.substring(start_s, end_s);
-//         start_s = end_s+1;
-//         Serial.println(a_SensorValue);  // !!! Вывод значении каждого датчика.
-//       };   
-//    };
+    if(comma_Counter == found){      
+//        Serial.println(from_Arduino);       // Вывод всей СТРОКИ.
+      for(int i=0; i<from_Arduino.length(); i++){
+         if(String(from_Arduino.charAt(i))==String(",")){
+           end_s = i;
+           a_SensorValue = from_Arduino.substring(start_s, end_s);   // Получение значения как строки
+           start_s = end_s + 1;
+           Sensors[comma_Counter - found] = a_SensorValue.toFloat();   // Конвертация и Составление списка
+           found -= 1;
+         };                         
+      }; start_s = 0; end_s = 0;      
+    }; comma_Counter = 0; found = 5;
+
+    // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
 
 // *************************************************************************
 

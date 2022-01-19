@@ -3,17 +3,20 @@
 #define RXD2 0
 #define TXD2 1
 
-String from_ESP32;
-String to_ESP32;
-String a_ActuatorValue;  
-int start_s = 0;
-int end_s = 0;
+String from_ESP32;          // Для хранения СТРОКИ со значениями актуаторов от ESP32
+String to_ESP32;            // Для хранения данных для Отпавки на ESP32 в виде СТРОКИ
+String a_ActuatorValue;     // Для хранения значения отдельного актуатора перед конвертацией
+int start_s = 0;            // Для парсинга (разбора) СТРОКИ 
+int end_s = 0;              // Для парсинга (разбора) СТРОКИ 
+int comma_Counter = 0;      // Для подчета количества запятых в получаемой от ESP32 строке
+int found = 5;              // Отражает количество значении переменных получаемых от ESP32
 
 // Тестовые данные датчиков.
 float Sensors[5] = {1, -5, 10.99, -230.77, 17};
+float Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600);        // Для вывода на монитор и прием/отправка на ESP32
   Serial1.begin(9600, SERIAL_8N1);
 }
 
@@ -22,11 +25,12 @@ void loop() {
 // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ ДАТЧИКОВ НА ESP32 ***************
 
   // Конвертация значении датчиков в СТРОКУ!!! для последующей отпавки.
+
   for(int i=0; i<sizeof(Sensors)/sizeof(float); i++){
     to_ESP32 += String(Sensors[i])+String(",");  // Разделение значении через ","
   };
- 
-  Serial.println(to_ESP32);   // Отправка данных на ESP32 через "Serial Port"
+  
+  Serial.print(to_ESP32);   // Отправка данных на ESP32 через "Serial Port"
   to_ESP32 = "";              // Стирание данных.
   delay(1500);
   
