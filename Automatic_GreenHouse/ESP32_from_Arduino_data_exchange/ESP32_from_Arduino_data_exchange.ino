@@ -58,6 +58,7 @@ void loop() {
            a_SensorValue = from_Arduino.substring(start_s, end_s);   // Получение значения как строки
            start_s = end_s + 1;
            Sensors[comma_Counter - found] = a_SensorValue.toFloat();   // Конвертация и Составление списка
+           Serial.println(Sensors[comma_Counter - found]);
            found -= 1;
          };                         
       }; start_s = 0; end_s = 0;      
