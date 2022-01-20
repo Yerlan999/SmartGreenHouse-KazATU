@@ -21,7 +21,7 @@
 
 // Replace with your network credentials
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "";
+const char* password = "DoesGodReallyExist404";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -33,21 +33,27 @@ AsyncEventSource events("/events");
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 30000;
 
-const char* PARAM_INPUT_1 = "input1";
-String button_state = "on";
+const char* TEMP_PARAM_INPUT1 = "new-temp-value";
+const char* TEMP_PARAM_INPUT2 = "new-temp-value-tog";
+const char* LIGHT_PARAM_INPUT1 = "new-light-value-time";
+const char* LIGHT_PARAM_INPUT2 = "new-light-value-duration";
+const char* LIGHT_PARAM_INPUT3 = "new-light-value";
+
+String temp_button_state = "of";
+String light_button_state = "of";
 
 // Create a sensor object
 DHT dht(DHTPIN, DHTTYPE);
 
 float temperature;
 float humidity;
-float pressure;
+float light;
 
 
 void getSensorReadings(){
     humidity = dht.readHumidity();
     temperature = dht.readTemperature();
-    pressure = 100;
+    light = 100;
 }
 
 // Initialize WiFi
@@ -71,17 +77,26 @@ String processor(const String& var){
   else if(var == "HUMIDITY"){
     return String(humidity);
   }
-  else if(var == "PRESSURE"){
-    return String(pressure);
+  else if(var == "LIGHT"){
+    return String(light);
   }
-  else if (var == "BUTTON_STATE"){
-    if (button_state == "on"){
+  else if (var == "TEMP_BUTTON_STATE"){
+    if (temp_button_state == "on"){
       return String("buttonON");
     }
     else{
       return String("buttonOFF");
     }
-    return String(button_state);
+    return String(temp_button_state);
+  }
+  else if (var == "LIGHT_BUTTON_STATE"){
+    if (light_button_state == "on"){
+      return String("buttonON");
+    }
+    else{
+      return String("buttonOFF");
+    }
+    return String(light_button_state);
   };
   return String();
 }
@@ -91,6 +106,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <head>
   <title>ESP Web Server</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
   
@@ -103,7 +119,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     .card { background-color: white; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .cards { max-width: 800px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .reading { font-size: 1.4rem; }
-    .buttonON {
+    .buttonOFF {
         padding: 10px 20px;
         font-size: 24px;
         text-align: center;
@@ -122,14 +138,14 @@ const char index_html[] PROGMEM = R"rawliteral(
         user-select: none;
         -webkit-tap-highlight-color: rgba(0,0,0,0);
       }  
-    .buttonON:hover {background-color: #1f2e45}
-    .buttonON:active {
+    .buttonOFF:hover {background-color: #1f2e45}
+    .buttonOFF:active {
         background-color: #1f2e45;
         box-shadow: 0 4px #666;
         transform: translateY(2px);
       }  
 
-    .buttonOFF {
+    .buttonON {
         padding: 10px 20px;
         font-size: 24px;
         text-align: center;
@@ -148,41 +164,119 @@ const char index_html[] PROGMEM = R"rawliteral(
         user-select: none;
         -webkit-tap-highlight-color: rgba(0,0,0,0);
       }  
-    .buttonOFF:hover {background-color: #b8d113}
-    .buttonOFF:active {
-        background-color: #b8d113;
+    .buttonON:hover {background-color: #a61b36}
+    .buttonON:active {
+        background-color: #a61b36;
         box-shadow: 0 4px #666;
         transform: translateY(2px);
-      }  
-  
-  </style>
+    }
+    
+.button-submmit {
+  appearance: none;
+  background-color: #FAFBFC;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+  box-sizing: border-box;
+  color: #24292E;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  list-style: none;
+  padding: 6px 16px;
+  position: relative;
+  transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  white-space: nowrap;
+  word-wrap: break-word;
+}
+
+.button-submmit:hover {
+  background-color: #F3F4F6;
+  text-decoration: none;
+  transition-duration: 0.1s;
+}
+
+.button-submmit:disabled {
+  background-color: #FAFBFC;
+  border-color: rgba(27, 31, 35, 0.15);
+  color: #959DA5;
+  cursor: default;
+}
+
+.button-submmit:active {
+  background-color: #EDEFF2;
+  box-shadow: rgba(225, 228, 232, 0.2) 0 1px 0 inset;
+  transition: none 0s;
+}
+
+.button-submmit:focus {
+  outline: 1px transparent;
+}
+
+.button-submmit:before {
+  display: none;
+}
+
+.button-submmit:-webkit-details-marker {
+  display: none;
+}
+
+</style>
 </head>
 
 <body>
   <div class="topnav">
-    <h1>SMART FARM KAZATU</h1>
+    <h1>ФИТОФЕРМА КАЗАТУ</h1>
   </div>
  
   <div class="content">
   
     <div class="cards">
         <div class="card">
-          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
+          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> ТЕМПЕРАТУРА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
         </div>
         <div class="card">
-          <p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
+          <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
         </div>
         <div class="card">
-          <p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE</p><p><span class="reading"><span id="pres">%PRESSURE%</span> hPa</span></p>
+          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
         </div>
     </div>
     
     <br><br>
     
-    <form class=%BUTTON_STATE% action="/get">
-        input1: <input type="text" name="input1">
-    <input id="input" type="submit" value="Submit">
+    <form id="temp-form" class=%TEMP_BUTTON_STATE% action="/gettemp">
+      Температура на : <input type="text" name="new-temp-value">
+      <input id="temp-value" class="button-submmit" type="submit" value="Следить">
     </form>
+    <form id="temp-form-on" class=%TEMP_BUTTON_STATE% action="/gettemp">
+      <input type="hidden" name="new-temp-value-tog" value="toggle-temp">
+      <input id="temp-on" class="button-submmit" type="submit" value="Включить">
+    </form>
+    
+    <br><br>
+
+    <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
+      Начиная с : <input type="time" name="new-light-value-time">
+      продолжительность : <input type="number" name="new-light-value-duration">
+      <input id="light-value" class="button-submmit" type="submit" value="Начать">
+    </form>
+    <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlight">
+      <input type="hidden" name="new-light-value" value="toggle-light">
+      <input id="light-on" class="button-submmit" type="submit" value="Включить">
+    </form>
+    
+    <br><br>
+    
+    <button type="button" class="button-submmit"><a href="/hard-control">Настройки</a></button>
+
   
   </div>
 
@@ -217,6 +311,7 @@ if (!!window.EventSource) {
   console.log("pressure", e.data);
   document.getElementById("pres").innerHTML = e.data;
  }, false);
+
 }
 
 </script>
@@ -240,25 +335,76 @@ void setup() {
     request->send_P(200, "text/html", index_html, processor);
   });
 
-  
-  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
-  server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request){
-      String message;
-      // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
-      if (request->hasParam(PARAM_INPUT_1)) {
-          message = request->getParam(PARAM_INPUT_1)->value();
-      } else {
-          message = "No message sent";
+  // Handle Web Server
+  server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
+    String light_message;
+      
+      // Контроль ОСВЯЩЕНИЯ
+      Serial.println(request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2));
+      if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
+          light_message = request->getParam(LIGHT_PARAM_INPUT1)->value();
+          light_message += request->getParam(LIGHT_PARAM_INPUT2)->value();
+          if (light_button_state == "of"){
+            light_button_state = "on";
+          }
+          // HAVING SET VALUE FOR LIGHTENING   
+      }
+
+      if (request->hasParam(LIGHT_PARAM_INPUT3)) {
+          light_message = request->getParam(LIGHT_PARAM_INPUT3)->value();
       }
       
-      if (button_state == "on"){
-        button_state = "of";
+      if(light_message = "toggle-light"){
+        if (light_button_state == "on"){
+            light_button_state = "of";
         }
-      else{
-        button_state = "on";
+        else{
+          light_button_state = "on";
         }
-      Serial.println(button_state);
-      Serial.println("HEEEYY!!! POST REQUEST FROM BUTTON!! " + message);
+      }
+      
+      else {
+          light_message = "No message sent";
+      }
+  
+      Serial.println("POST REQUEST: " + light_message);   
+      request->send_P(200, "text/html", index_html, processor);
+  });
+
+  
+  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
+  server.on("/gettemp", HTTP_GET, [](AsyncWebServerRequest *request){
+      String temp_message;
+      
+      // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
+      
+      // Контроль ТЕМПЕРАТУРЫ
+      if (request->hasParam(TEMP_PARAM_INPUT1)) {
+          temp_message = request->getParam(TEMP_PARAM_INPUT1)->value();
+          if (temp_button_state == "of"){
+          temp_button_state = "on";
+          }
+          // HAVING SET VALUE ON TEMPERATURE
+      }
+          
+      else if (request->hasParam(TEMP_PARAM_INPUT2)) {
+          temp_message = request->getParam(TEMP_PARAM_INPUT2)->value();
+      };
+      
+      if (temp_message == "toggle-temp"){     
+        if (temp_button_state == "on"){
+          temp_button_state = "of";
+        }
+        else{
+          temp_button_state = "on";
+        }
+      }      
+            
+      else {
+          temp_message = "No message sent";
+      }
+   
+      Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -282,14 +428,14 @@ void loop() {
     getSensorReadings();
     Serial.printf("Temperature = %.2f ºC \n", temperature);
     Serial.printf("Humidity = %.2f \n", humidity);
-    Serial.printf("Pressure = %.2f hPa \n", pressure);
+    Serial.printf("Light = %.2f hPa \n", light);
     Serial.println();
 
     // Send Events to the Web Server with the Sensor Readings
     events.send("ping",NULL,millis());
     events.send(String(temperature).c_str(),"temperature",millis());
     events.send(String(humidity).c_str(),"humidity",millis());
-    events.send(String(pressure).c_str(),"pressure",millis());
+    events.send(String(light).c_str(),"light",millis());
     
     lastTime = millis();
   }

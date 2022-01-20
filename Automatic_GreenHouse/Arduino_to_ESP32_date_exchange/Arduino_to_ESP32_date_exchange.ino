@@ -24,6 +24,11 @@ int found = 5;              // Отражает количество значе�
 float Sensors[5];
 float Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных
 
+// Эмулятор состояния актуаторов
+int ten = 0;
+int mix_fans = 0;
+int light = 0;
+
 float temperature;
 float humidity;
 float pressure;
@@ -32,7 +37,9 @@ float water_level;
     
 DHT dht(DHTPIN, DHTTYPE);
 
+// Функция для получения всех значении датчиков
 void getSensorReadings(){
+  
     humidity = dht.readHumidity();
     temperature = dht.readTemperature();
     pressure = 100.00;
@@ -69,7 +76,7 @@ void loop() {
   };
   
   Serial.print(to_ESP32);   // Отправка данных на ESP32 через "Serial Port"
-  to_ESP32 = "";              // Стирание данных.
+  to_ESP32 = "";            // Стирание данных.
   delay(1500);
   
 // *************************************************************************
