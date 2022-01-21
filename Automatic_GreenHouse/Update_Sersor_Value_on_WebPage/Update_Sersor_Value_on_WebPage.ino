@@ -1,14 +1,4 @@
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-web-server-sent-events-sse/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
-
+// Импортирование необходимых библиотек
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <Arduino.h>
@@ -17,51 +7,65 @@
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
 
-// Replace with your network credentials
+// Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
 const char* password = "";
 
-// Define NTP Client to get time
+// Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 
-// Create AsyncWebServer object on port 80
+// Создание AsyncWebServer объекта на порте 80
 AsyncWebServer server(80);
 
-// Create an Event Source on /events
+// Создание Event Source объекта
 AsyncEventSource events("/events");
 
-// Timer variables
+// Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 30000;
 
-// Variables to save date and time
+// Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
 String dayStamp;
 String timeStamp;
 String DateTimeStamp;
 
+const char* FAN_PARAM_INPUT = "new-fan-value";
 const char* TEMP_PARAM_INPUT1 = "new-temp-value";
 const char* TEMP_PARAM_INPUT2 = "new-temp-value-tog";
 const char* LIGHT_PARAM_INPUT1 = "new-light-value-time";
 const char* LIGHT_PARAM_INPUT2 = "new-light-value-duration";
 const char* LIGHT_PARAM_INPUT3 = "new-light-value";
 
-String temp_button_state = "of";
-String light_button_state = "of";
+// Состояния кнопок контроля
+bool temp_button_state = false;
+bool light_button_state = false;
+bool fan_button_state = false;
 
+// Состояние карточек отображения показании
+bool is_temp_set = false;
+bool is_hum_set = false;
+bool is_light_set = false;
+
+// Заданные значения для системы
+int temp_set_value;
+int hum_set_value;
+int light_set_value;
+
+// Для хранения значении с датчиков
 float temperature;
 float humidity;
 float light;
 
-
+// ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ
 void getSensorReadings(){
     humidity = 10;
     temperature = 22;
     light = 100;
 }
 
-// Initialize WiFi
+// ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
@@ -75,6 +79,7 @@ void initWiFi() {
     timeClient.setTimeOffset(21600);   // 21600 GMT +6 for Astana
 }
 
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ ДАТЫ И ВРЕМЕНИ
 void getDateTime(){
 
   while(!timeClient.update()) {
@@ -93,11 +98,12 @@ void getDateTime(){
   DateTimeStamp = dayStamp + " // " + timeStamp;
 }
 
+// ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
   getSensorReadings();
   getDateTime();
   
-  //Serial.println(var);
+  // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
     return String(temperature);
   }
@@ -110,8 +116,10 @@ String processor(const String& var){
   else if(var == "LIGHT"){
     return String(light);
   }
+  
+  // Состояния кнопок задатчиков
   else if (var == "TEMP_BUTTON_STATE"){
-    if (temp_button_state == "on"){
+    if (temp_button_state){
       return String("buttonON");
     }
     else{
@@ -119,24 +127,63 @@ String processor(const String& var){
     }
     return String(temp_button_state);
   }
+  else if (var == "FAN_BUTTON_STATE"){
+    if (fan_button_state){
+      return String("buttonON");
+    }
+    else{
+      return String("buttonOFF");
+    }
+    return String(fan_button_state);
+  }
   else if (var == "LIGHT_BUTTON_STATE"){
-    if (light_button_state == "on"){
+    if (light_button_state){
       return String("buttonON");
     }
     else{
       return String("buttonOFF");
     }
     return String(light_button_state);
+  }
+  
+  // Состояния карточек отоброжения значении датчиков
+  else if (var == "IS_LIGHT_SET"){
+    if (is_light_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_light_set);
+  }  
+  else if (var == "IS_HUM_SET"){
+    if (is_hum_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_hum_set);
+  }
+  else if (var == "IS_TEMP_SET"){
+    if (is_temp_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_temp_set);
   };
   return String();
 }
 
+// !!! HTML СТРАНИЦА !!!
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
   <title>ESP Web Server</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />  
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
   
@@ -147,6 +194,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     .topnav { overflow: hidden; background-color: #50B8B4; color: white; font-size: 1rem; }
     .content { padding: 20px; }
     .card { background-color: white; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
+    .card-set { background-color: #f7c3c3; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .cards { max-width: 800px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .reading { font-size: 1.4rem; }
     .buttonOFF {
@@ -263,29 +311,32 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 <body>
   <div class="topnav">
-    <h1>ФИТОФЕРМА КАЗАТУ</h1>
-    <p style="display:inline;"><i class="far fa-clock" style="color:#e1e437;"></i> Bремя: </p><p style="display:inline;"><span class="reading"><span id="time">%DATETIME%</span></span></p>
+    <h1>ФИТОКАМЕРА КАЗАТУ</h1>
+    <p style="display:inline;"><i class="far fa-clock" style="color:#e1e437;"></i> Bремя: </p><p style="display:inline;"><span class="reading"><span id="datetime">%DATETIME%</span></span></p>
   </div>
  
   <div class="content">
   
+    <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ --> 
     <div class="cards">
-        <div class="card">
+        <div class=%IS_TEMP_SET%>
           <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> ТЕМПЕРАТУРА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
         </div>
-        <div class="card">
+        <div class=%IS_HUM_SET%>
           <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
         </div>
-        <div class="card">
+        <div class=%IS_LIGHT_SET%>
           <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
         </div>
     </div>
     
     <br><br>
+
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОТОПЛЕНИЯ -->
     
     <form id="temp-form" class=%TEMP_BUTTON_STATE% action="/gettemp">
-      Температура на : <input type="text" name="new-temp-value">
-      <input id="temp-value" class="button-submmit" type="submit" value="Следить">
+      Температура на : <input type="number" name="new-temp-value">
+      <input id="temp-value" class="button-submmit" type="submit" value="Задать">
     </form>
     <form id="temp-form-on" class=%TEMP_BUTTON_STATE% action="/gettemp">
       <input type="hidden" name="new-temp-value-tog" value="toggle-temp">
@@ -293,20 +344,32 @@ const char index_html[] PROGMEM = R"rawliteral(
     </form>
     
     <br><br>
-
+    
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЯЩЕНИЯ -->
+    
     <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
-      Начиная с : <input type="time" name="new-light-value-time">
+      Начиная с : <input type="time" id="time" name="new-light-value-time">
       продолжительность : <input type="number" name="new-light-value-duration">
-      <input id="light-value" class="button-submmit" type="submit" value="Начать">
+      <input id="light-value" class="button-submmit" type="submit" value="Задать">
     </form>
-    <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlight">
+    <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
       <input type="hidden" name="new-light-value" value="toggle-light">
       <input id="light-on" class="button-submmit" type="submit" value="Включить">
     </form>
     
     <br><br>
+
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ВЕНТИЛЯЦИИ -->
     
-    <button type="button" class="button-submmit"><a href="/hard-control">Настройки</a></button>
+    <form id="fan-form-on" class=%FAN_BUTTON_STATE% action="/getfan">
+      Вентилятор:<br>
+      <input type="hidden" name="new-fan-value" value="toggle-fan">
+      <input id="fan-on" class="button-submmit" type="submit" value="Включить">
+    </form>
+    
+    <br><br>
+    
+    <button type="button" class="button-submmit"><a href="/settings">Настройки</a></button>
 
   
   </div>
@@ -329,7 +392,7 @@ if (!!window.EventSource) {
  }, false);
 
  source.addEventListener('datetime', function(e) {
-  console.log("date", e.data);
+  console.log("datetime", e.data);
   document.getElementById("datetime").innerHTML = e.data;
  }, false);
 
@@ -347,7 +410,7 @@ if (!!window.EventSource) {
   console.log("pressure", e.data);
   document.getElementById("pres").innerHTML = e.data;
  }, false);
-
+ 
 }
 
 </script>
@@ -364,57 +427,72 @@ void setup() {
   Serial.begin(115200);
   initWiFi();  
 
-  // Handle Web Server
+  // Главная страница
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", index_html, processor);
   });
-
-  // Handle Web Server
+  
+  // Страница настроек
+  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/html", index_html, processor);
+  });
+  
+  // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ  -- ЗАДАТЧИК
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_time;
     String light_message_duration;
-    String light_message_toggle;
       
-      // Контроль ОСВЯЩЕНИЯ
-      if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
-          light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
-          light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
-          if (light_message_time != "" && light_message_duration != ""){
-            Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration);
-            // HAVING SET VALUE FOR LIGHTENING
-            
-            if (light_button_state == "of"){
-              light_button_state = "on";
-            }
-            
-          }   
-      }
-      
-      if (light_message_time == "" && light_message_duration == ""){
-        if (request->hasParam(LIGHT_PARAM_INPUT3)) {
-            light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
-        }
+    // Контроль ОСВЯЩЕНИЯ
+    if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
+        light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
+        light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
         
-        if(light_message_toggle = "toggle-light"){
-          if (light_button_state == "on"){
-              light_button_state = "of";
+        if (light_message_time != "" && light_message_duration != ""){
+          Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration);
+          // HAVING SET VALUE FOR LIGHTENING
+          
+          if (!light_button_state){
+            light_button_state = true;
           }
-          else{
-            light_button_state = "on";
+          if (!is_light_set){
+            is_light_set = true;
           }
-          Serial.println("POST REQUEST: " + light_message_toggle);
-        }
-      }
-         
-      request->send_P(200, "text/html", index_html, processor);
+          
+        }   
+    };
+          
+    request->send_P(200, "text/html", index_html, processor);
   });
 
+  // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ -- ВКЛ/ВЫКЛ
+  server.on("/getlighttog", HTTP_GET, [](AsyncWebServerRequest *request){
+    String light_message_toggle;
+              
+    if (request->hasParam(LIGHT_PARAM_INPUT3)) {
+        light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
+    }
+    
+    if(light_message_toggle = "toggle-light"){
+      if (light_button_state){
+          light_button_state = false;
+          is_light_set = false;
+      }
+      else{
+        light_button_state = true;
+      }
+      Serial.println("POST REQUEST: " + light_message_toggle);
+    }
+         
+    request->send_P(200, "text/html", index_html, processor);
+  });
+
+
+
   
-  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
+  
+  // Задание значения для СИСТЕМЫ ОТОПЛЕНИЯ
   server.on("/gettemp", HTTP_GET, [](AsyncWebServerRequest *request){
       String temp_message;
-      
-      // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
       
       // Контроль ТЕМПЕРАТУРЫ
       if (request->hasParam(TEMP_PARAM_INPUT1)) {
@@ -423,8 +501,11 @@ void setup() {
             
             // HAVING SET VALUE ON TEMPERATURE
             
-            if (temp_button_state == "of"){
-              temp_button_state = "on";
+            if (!temp_button_state){
+              temp_button_state = true;
+            }
+            if (!is_temp_set){
+              is_temp_set = true;  
             }  
           }
           
@@ -435,11 +516,12 @@ void setup() {
       };
       
       if (temp_message == "toggle-temp"){     
-        if (temp_button_state == "on"){
-          temp_button_state = "of";
+        if (temp_button_state){
+          temp_button_state = false;
+          is_temp_set = false;
         }
         else{
-          temp_button_state = "on";
+          temp_button_state = true;
         }
       }      
    
@@ -447,14 +529,32 @@ void setup() {
       request->send_P(200, "text/html", index_html, processor);
   });
 
+  // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА
+  server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
+      String fan_message;
+      
+      // Контроль ВЕНТИЛЯТОРА          
+      if (request->hasParam(FAN_PARAM_INPUT)) {
+          fan_message = request->getParam(FAN_PARAM_INPUT)->value();
+      }
+      
+      if (fan_message == "toggle-fan"){     
+        if (fan_button_state){
+          fan_button_state = false;
+        }
+        else{
+          fan_button_state = true;
+        }
+      }      
+   
+      Serial.println("POST REQUEST: " + fan_message);
+      request->send_P(200, "text/html", index_html, processor);
+  });
     
-  // Handle Web Server Events
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
       Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
     }
-    // send event with message "hello!", id current millis
-    // and set reconnect delay to 1 second
     client->send("hello!", NULL, millis(), 10000);
   });
   server.addHandler(&events);
@@ -462,21 +562,21 @@ void setup() {
   server.begin();
 }
 
+// Главный цикл 
 void loop() {
   if ((millis() - lastTime) > timerDelay) {
 
-    //  !!! GETTING VALUES FROM ARDUINO !!!
+    //  !!! Получение даннах от Arduino !!!
     getSensorReadings();
     getDateTime();
     
-//    Serial.printf("Date: ", dayStamp);
-//    Serial.printf("Time: ", timeStamp);
+    Serial.printf("DateTime: ", DateTimeStamp);
     Serial.printf("Temperature = %.2f ºC \n", temperature);
     Serial.printf("Humidity = %.2f \n", humidity);
     Serial.printf("Light = %.2f hPa \n", light);
     Serial.println();
 
-    // Send Events to the Web Server with the Sensor Readings
+    // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());
     
     events.send(String(DateTimeStamp).c_str(),"datetime",millis());
