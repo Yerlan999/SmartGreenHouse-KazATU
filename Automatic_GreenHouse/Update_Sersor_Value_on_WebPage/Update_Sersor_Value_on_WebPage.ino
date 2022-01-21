@@ -9,19 +9,21 @@
   copies or substantial portions of the Software.
 *********/
 
-#include "DHT.h"
 #include <WiFi.h>
+#include <WiFiUdp.h>
 #include <Arduino.h>
 #include <AsyncTCP.h>
+#include <NTPClient.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
 
-#define DHTPIN 4     
-#define DHTTYPE DHT11
-
 // Replace with your network credentials
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* password = "";
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -33,6 +35,12 @@ AsyncEventSource events("/events");
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 30000;
 
+// Variables to save date and time
+String formattedDate;
+String dayStamp;
+String timeStamp;
+String DateTimeStamp;
+
 const char* TEMP_PARAM_INPUT1 = "new-temp-value";
 const char* TEMP_PARAM_INPUT2 = "new-temp-value-tog";
 const char* LIGHT_PARAM_INPUT1 = "new-light-value-time";
@@ -42,17 +50,14 @@ const char* LIGHT_PARAM_INPUT3 = "new-light-value";
 String temp_button_state = "of";
 String light_button_state = "of";
 
-// Create a sensor object
-DHT dht(DHTPIN, DHTTYPE);
-
 float temperature;
 float humidity;
 float light;
 
 
 void getSensorReadings(){
-    humidity = dht.readHumidity();
-    temperature = dht.readTemperature();
+    humidity = 10;
+    temperature = 22;
     light = 100;
 }
 
@@ -66,13 +71,38 @@ void initWiFi() {
         delay(1000);
     }
     Serial.println(WiFi.localIP());
+    timeClient.begin();
+    timeClient.setTimeOffset(21600);   // 21600 GMT +6 for Astana
+}
+
+void getDateTime(){
+
+  while(!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
+  // The formattedDate comes with the following format:
+  // 2018-05-28T16:00:13Z
+  // We need to extract date and time
+  formattedDate = timeClient.getFormattedDate();
+  
+  // Extract date
+  int splitT = formattedDate.indexOf("T");
+  dayStamp = formattedDate.substring(0, splitT);
+  // Extract time
+  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
+  DateTimeStamp = dayStamp + " // " + timeStamp;
 }
 
 String processor(const String& var){
   getSensorReadings();
+  getDateTime();
+  
   //Serial.println(var);
   if(var == "TEMPERATURE"){
     return String(temperature);
+  }
+  else if(var == "DATETIME"){
+    return String(DateTimeStamp);
   }
   else if(var == "HUMIDITY"){
     return String(humidity);
@@ -234,6 +264,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
   <div class="topnav">
     <h1>ФИТОФЕРМА КАЗАТУ</h1>
+    <p style="display:inline;"><i class="far fa-clock" style="color:#e1e437;"></i> Bремя: </p><p style="display:inline;"><span class="reading"><span id="time">%DATETIME%</span></span></p>
   </div>
  
   <div class="content">
@@ -296,7 +327,12 @@ if (!!window.EventSource) {
  source.addEventListener('message', function(e) {
   console.log("message", e.data);
  }, false);
- 
+
+ source.addEventListener('datetime', function(e) {
+  console.log("date", e.data);
+  document.getElementById("datetime").innerHTML = e.data;
+ }, false);
+
  source.addEventListener('temperature', function(e) {
   console.log("temperature", e.data);
   document.getElementById("temp").innerHTML = e.data;
@@ -326,9 +362,7 @@ void notFound(AsyncWebServerRequest *request) {
 
 void setup() {
   Serial.begin(115200);
-  initWiFi();
-  dht.begin();
-  
+  initWiFi();  
 
   // Handle Web Server
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -337,37 +371,41 @@ void setup() {
 
   // Handle Web Server
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
-    String light_message;
+    String light_message_time;
+    String light_message_duration;
+    String light_message_toggle;
       
       // Контроль ОСВЯЩЕНИЯ
-      Serial.println(request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2));
       if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
-          light_message = request->getParam(LIGHT_PARAM_INPUT1)->value();
-          light_message += request->getParam(LIGHT_PARAM_INPUT2)->value();
-          if (light_button_state == "of"){
+          light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
+          light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
+          if (light_message_time != "" && light_message_duration != ""){
+            Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration);
+            // HAVING SET VALUE FOR LIGHTENING
+            
+            if (light_button_state == "of"){
+              light_button_state = "on";
+            }
+            
+          }   
+      }
+      
+      if (light_message_time == "" && light_message_duration == ""){
+        if (request->hasParam(LIGHT_PARAM_INPUT3)) {
+            light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
+        }
+        
+        if(light_message_toggle = "toggle-light"){
+          if (light_button_state == "on"){
+              light_button_state = "of";
+          }
+          else{
             light_button_state = "on";
           }
-          // HAVING SET VALUE FOR LIGHTENING   
-      }
-
-      if (request->hasParam(LIGHT_PARAM_INPUT3)) {
-          light_message = request->getParam(LIGHT_PARAM_INPUT3)->value();
-      }
-      
-      if(light_message = "toggle-light"){
-        if (light_button_state == "on"){
-            light_button_state = "of";
-        }
-        else{
-          light_button_state = "on";
+          Serial.println("POST REQUEST: " + light_message_toggle);
         }
       }
-      
-      else {
-          light_message = "No message sent";
-      }
-  
-      Serial.println("POST REQUEST: " + light_message);   
+         
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -381,10 +419,15 @@ void setup() {
       // Контроль ТЕМПЕРАТУРЫ
       if (request->hasParam(TEMP_PARAM_INPUT1)) {
           temp_message = request->getParam(TEMP_PARAM_INPUT1)->value();
-          if (temp_button_state == "of"){
-          temp_button_state = "on";
+          if (temp_message != ""){
+            
+            // HAVING SET VALUE ON TEMPERATURE
+            
+            if (temp_button_state == "of"){
+              temp_button_state = "on";
+            }  
           }
-          // HAVING SET VALUE ON TEMPERATURE
+          
       }
           
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
@@ -399,10 +442,6 @@ void setup() {
           temp_button_state = "on";
         }
       }      
-            
-      else {
-          temp_message = "No message sent";
-      }
    
       Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
@@ -425,7 +464,13 @@ void setup() {
 
 void loop() {
   if ((millis() - lastTime) > timerDelay) {
+
+    //  !!! GETTING VALUES FROM ARDUINO !!!
     getSensorReadings();
+    getDateTime();
+    
+//    Serial.printf("Date: ", dayStamp);
+//    Serial.printf("Time: ", timeStamp);
     Serial.printf("Temperature = %.2f ºC \n", temperature);
     Serial.printf("Humidity = %.2f \n", humidity);
     Serial.printf("Light = %.2f hPa \n", light);
@@ -433,6 +478,9 @@ void loop() {
 
     // Send Events to the Web Server with the Sensor Readings
     events.send("ping",NULL,millis());
+    
+    events.send(String(DateTimeStamp).c_str(),"datetime",millis());
+    
     events.send(String(temperature).c_str(),"temperature",millis());
     events.send(String(humidity).c_str(),"humidity",millis());
     events.send(String(light).c_str(),"light",millis());
