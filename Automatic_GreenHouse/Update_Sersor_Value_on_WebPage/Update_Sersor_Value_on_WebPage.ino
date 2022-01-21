@@ -49,9 +49,10 @@ bool is_hum_set = false;
 bool is_light_set = false;
 
 // Заданные значения для системы
-int temp_set_value;
-int hum_set_value;
-int light_set_value;
+String to = " >>> ";
+String temp_set_value;
+String hum_set_value;
+String light_set_value;
 
 // Для хранения значении с датчиков
 float temperature;
@@ -116,7 +117,33 @@ String processor(const String& var){
   else if(var == "LIGHT"){
     return String(light);
   }
-  
+
+  // Вывод заданных значении
+  else if(var == "TEMP_SET_VALUE"){
+    if(is_temp_set){
+      return String(to + temp_set_value);
+    }
+    else{
+      return String("");
+    };
+  } 
+  else if(var == "HUM_SET_VALUE"){
+    if(is_hum_set){
+      return String(to + hum_set_value);
+    }
+    else{
+      return String("");
+    };  
+  }
+  else if(var == "LIGHT_SET_VALUE"){
+    if(is_light_set){
+      return String(light_set_value);
+    }
+    else{
+      return String("");
+    };
+  }
+   
   // Состояния кнопок задатчиков
   else if (var == "TEMP_BUTTON_STATE"){
     if (temp_button_state){
@@ -320,12 +347,13 @@ const char index_html[] PROGMEM = R"rawliteral(
     <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ --> 
     <div class="cards">
         <div class=%IS_TEMP_SET%>
-          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> ТЕМПЕРАТУРА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
+          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> ТЕМПЕРАТУРА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span><span>%TEMP_SET_VALUE%</span> &deg;C</span></p>
         </div>
         <div class=%IS_HUM_SET%>
-          <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
+          <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ</p><p><span class="reading"><span id="hum">%HUMIDITY%</span><span>%HUM_SET_VALUE%</span> &percnt;</span></p>
         </div>
         <div class=%IS_LIGHT_SET%>
+          <p>%LIGHT_SET_VALUE%</p>
           <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
         </div>
     </div>
@@ -349,7 +377,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
       Начиная с : <input type="time" id="time" name="new-light-value-time">
-      продолжительность : <input type="number" name="new-light-value-duration">
+      продолжительность (ч.): <input type="number" name="new-light-value-duration">
       <input id="light-value" class="button-submmit" type="submit" value="Задать">
     </form>
     <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
@@ -449,7 +477,9 @@ void setup() {
         
         if (light_message_time != "" && light_message_duration != ""){
           Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration);
+          
           // HAVING SET VALUE FOR LIGHTENING
+          light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов";
           
           if (!light_button_state){
             light_button_state = true;
@@ -487,9 +517,6 @@ void setup() {
   });
 
 
-
-  
-  
   // Задание значения для СИСТЕМЫ ОТОПЛЕНИЯ
   server.on("/gettemp", HTTP_GET, [](AsyncWebServerRequest *request){
       String temp_message;
@@ -500,6 +527,7 @@ void setup() {
           if (temp_message != ""){
             
             // HAVING SET VALUE ON TEMPERATURE
+            temp_set_value = temp_message;
             
             if (!temp_button_state){
               temp_button_state = true;
