@@ -41,6 +41,8 @@ void collectActuatrosSetValues(){
 
 // ФУНКЦИЯ ДЛЯ ОТПРАВКИ ЗНАЧЕНИИ АКТУАТОРОВ НА ARDUINO
 void sendToArduino(){
+
+  collectActuatrosSetValues();
   
   // Конвертация значении актуаторов в СТРОКУ!!! для последующей отпавки.
   to_Arduino += "<";
@@ -50,52 +52,54 @@ void sendToArduino(){
   to_Arduino += ">";
 
   Serial1.print(to_Arduino);       // Отправка данных на Arduino через "Serial Port"
+
+  Serial.print("Sent: ");
+  Serial.println(to_Arduino);
   to_Arduino = "";
-  delay(600);  
+  delay(600);
+  
 }
+
 
 // ФУНКЦИЯ ДЛЯ ПРИЕМА ЗНАЧЕНИИ ДАТЧИКОВ ОТ ARDUINO
-void getFromArduino(){
+void recieveFromArduino(){
 
     // Прием СТРОКИ от Arduino(Значения датчиков).
-//    if (Serial1.available() > 0) {
-      from_Arduino = Serial1.readString();
-      
-      // Проверка правильности полученных данных (Определение начала и конца)
-      if (from_Arduino.startsWith("<") && from_Arduino.endsWith(">")){
-        from_Arduino = from_Arduino.substring(1, from_Arduino.indexOf(">"));
-        
-        // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
-        for(int i=0; i<from_Arduino.length(); i++){
-          if(String(from_Arduino.charAt(i))==String(",")){
-            comma_Counter += 1;    
-          };
-        };
+    from_Arduino = Serial1.readString();
     
-    //    Serial.println(from_Arduino);       // Вывод всей СТРОКИ.
-    
-        // Парсинг(Разделение) значении через ",".
-        if(comma_Counter == found){      
-          for(int i=0; i<from_Arduino.length(); i++){
-             if(String(from_Arduino.charAt(i))==String(",")){
-               end_s = i;
-               a_SensorValue = from_Arduino.substring(start_s, end_s);   // Получение значения как строки
-               start_s = end_s + 1;
-               Sensors[comma_Counter - found] = a_SensorValue.toFloat();   // Конвертация и Составление списка
-               Serial.println(Sensors[comma_Counter - found]);         // !!! Вывод значении каждого датчика.
-               found -= 1;
-             };                         
-          }; start_s = 0; end_s = 0;      
-        }; comma_Counter = 0; found = 5;
-    
-        // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
-        humidity = Sensors[0];
-        temperature = Sensors[1];
-        light = Sensors[2];
+    // Проверка правильности полученных данных (Определение начала и конца)
+    if (from_Arduino.startsWith("<") && from_Arduino.endsWith(">")){
+      from_Arduino = from_Arduino.substring(1, from_Arduino.indexOf(">"));
   
-     }
-//  }
+      // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
+      for(int i=0; i<from_Arduino.length(); i++){
+        if(String(from_Arduino.charAt(i))==String(",")){
+          comma_Counter += 1;    
+        };
+      };
+        
+  
+      // Парсинг(Разделение) значении через ",".
+      if(comma_Counter == found){      
+        
+        Serial.print("Recived: ");
+        Serial.println(from_Arduino);      // Вывод всей полученной СТРОКИ.
+        
+        for(int i=0; i<from_Arduino.length(); i++){
+           if(String(from_Arduino.charAt(i))==String(",")){
+             end_s = i;
+             a_SensorValue = from_Arduino.substring(start_s, end_s);   // Получение значения как строки
+             start_s = end_s + 1;
+             Sensors[comma_Counter - found] = a_SensorValue.toFloat();   // Конвертация и Составление списка
+             found -= 1;
+           };                         
+        }; start_s = 0; end_s = 0;      
+      }; comma_Counter = 0; found = 5;
+    }
+    // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
+  
 }
+
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
@@ -149,8 +153,8 @@ String light_set_value;
 
 float temp_set_value_f;
 
-// ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ
-void getSensorReadings(){
+// ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ)
+void getDummySensorReadings(){
     humidity = 10;
     temperature = 22;
     light = 100;
@@ -201,11 +205,10 @@ void getDateTime(){
   DateTimeStamp = dayStamp + " // " + timeStamp;
 }
 
+
 // ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
-//  Serial.println("Calling this first!!!");
-//  getFromArduino9();
-  getSensorReadings();
+  getDummySensorReadings();
   getDateTime();
   
   // Значения датчиков для страницы;
@@ -576,17 +579,13 @@ if (!!window.EventSource) {
  document.addEventListener('DOMContentLoaded', function(e){
   console.log("LOADED!!!");
 
-//  !!! DO NOT FORGET !!! 
-//  var xhr = new XMLHttpRequest();
-//  xhr.open("GET", "/", true);
-//  xhr.send();
-  
  }, false);
 }
 
 </script>
 </body>
 </html>)rawliteral";
+
 
 
 // !!! HTML СТРАНИЦА НАСТРОЕК !!!
@@ -788,11 +787,6 @@ if (!!window.EventSource) {
 
  document.addEventListener('DOMContentLoaded', function(e){
   console.log("LOADED!!!");
-
-// !!! DO NOT FORGET !!!  
-//  var xhr = new XMLHttpRequest();
-//  xhr.open("GET", "/", true);
-//  xhr.send();
   
  }, false);
 }
@@ -806,74 +800,12 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-
-//// Код для Задачи 1.
-//void Task1code( void * pvParameters ){
-//  
-//  for(;;){
-//    // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ АКТУАТОРОВ НА ARDUINO ***************
-//       collectActuatrosSetValues();
-//       sendToArduino ();
-//    // *************************************************************************
-//    
-//    
-//    // *************** БЛОК ПРИЕМА ЗНАЧЕНИИИ ДАТЧИКОВ ОТ ARDUINO ***************
-//       getFromArduino();
-//    // *************************************************************************
-//  } 
-//}
-//
-//
-//// Код для Задачи 2.
-//void Task2code( void * pvParameters ){
-//
-//  for(;;){
-//    if ((millis() - lastTime) > timerDelay) {
-//
-//      //  !!! Получение даннах от Arduino !!!
-//      getSensorReadings();
-//      getDateTime();
-//  
-//      // Отправка и Обновление значении на Веб-странице
-//      events.send("ping",NULL,millis());    
-//      events.send(String(DateTimeStamp).c_str(),"datetime",millis());
-//      events.send(String(temperature).c_str(),"temperature",millis());
-//      events.send(String(humidity).c_str(),"humidity",millis());
-//      events.send(String(light).c_str(),"light",millis());
-//      lastTime = millis();
-//    
-//    }
-//  }
-//}
-
-
 void setup() {
   Serial.begin(9600);                           // Для вывода на монитор                          
   Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
 //  Serial.begin(115200);
   initWiFi(); 
 
-//  // Задача 1. Приоритет высокий
-//  xTaskCreatePinnedToCore(
-//                    Task1code,   /* Task function. */
-//                    "Task1",     /* name of task. */
-//                    10000,       /* Stack size of task */
-//                    NULL,        /* parameter of the task */
-//                    1,           /* priority of the task */
-//                    &Task1,      /* Task handle to keep track of created task */
-//                    0);          /* pin task to core 0 */                  
-//  delay(500); 
-//
-//  // Задача 2. Приоритет низкий
-//  xTaskCreatePinnedToCore(
-//                    Task2code,   /* Task function. */
-//                    "Task2",     /* name of task. */
-//                    10000,       /* Stack size of task */
-//                    NULL,        /* parameter of the task */
-//                    0,           /* priority of the task */
-//                    &Task2,      /* Task handle to keep track of created task */
-//                    1);          /* pin task to core 1 */
-//  delay(500); 
 
 
   // Главная страница
@@ -1028,8 +960,7 @@ void loop() {
   if ((millis() - lastTime) > timerDelay) {
     Serial.println("Update!");
     //  !!! Получение даннах от Arduino !!!
-//    getFromArduino();
-    getSensorReadings();
+    getDummySensorReadings();
     getDateTime();
     
     Serial.printf("Temperature = %.2f ºC \n", temperature);

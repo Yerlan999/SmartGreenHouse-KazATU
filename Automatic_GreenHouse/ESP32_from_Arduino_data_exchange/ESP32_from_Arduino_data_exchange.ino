@@ -23,6 +23,8 @@ void setup() {
 
 void sendToArduino(){
 
+  collectActuatrosSetValues();
+  
   // Конвертация значении актуаторов в СТРОКУ!!! для последующей отпавки.
   to_Arduino += "<";
   for(int i=0; i<sizeof(Actuators)/sizeof(float); i++){
@@ -77,6 +79,7 @@ void recieveFromArduino(){
     // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
   
 }
+
 void loop() {
 
 // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ АКТУАТОРОВ НА ARDUINO ***************
