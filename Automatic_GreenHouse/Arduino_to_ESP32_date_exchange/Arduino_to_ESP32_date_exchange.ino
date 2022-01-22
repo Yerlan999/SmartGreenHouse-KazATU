@@ -2,6 +2,9 @@
 
 #include "DHT.h"
 
+#define RXD2 0
+#define TXD2 1
+
 #define DHTPIN 5     
 #define DHTTYPE DHT11
 #define redLED 2
@@ -17,13 +20,9 @@ int comma_Counter = 0;      // Для подчета количества зап
 int found = 5;              // Отражает количество значении переменных получаемых от ESP32
 
 // Тестовые данные датчиков.
+//float Sensors[5] = {1, -5, 10.99, -230.77, 17};
 float Sensors[5];
 float Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных
-
-// Эмулятор состояния актуаторов
-int ten = 0;
-int mix_fans = 0;
-int light = 0;
 
 float temperature;
 float humidity;
@@ -33,11 +32,9 @@ float water_level;
     
 DHT dht(DHTPIN, DHTTYPE);
 
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ
 void getSensorReadings(){
-  
-    temperature = dht.readTemperature();
     humidity = dht.readHumidity();
+    temperature = dht.readTemperature();
     pressure = 100.00;
     moisture = -50.41;
     water_level = 5.12;
@@ -49,9 +46,22 @@ void getSensorReadings(){
     Sensors[4] = water_level;
 }
 
-// ФУНКЦИЯ ДЛЯ ОТПРАВКИ ЗНАЧЕНИИ ДАТЧИКОВ НА ESP32
+void setup() {
+  pinMode(redLED,OUTPUT);
+  pinMode(greenLED,OUTPUT);
+  pinMode(yellowLED,OUTPUT);
+
+  Serial.begin(9600);                // Для вывода на монитор
+  Serial1.begin(9600, SERIAL_8N1);   // Прием/Отправка на ESP32
+  
+  dht.begin();
+}
+
+
 void sendToESP32(){
 
+  getSensorReadings();      // Получение значении датчиков
+  
   // Конвертация значении датчиков в СТРОКУ!!! для последующей отпавки.
   to_ESP32 += "<";
   for(int i=0; i<sizeof(Sensors)/sizeof(float); i++){
@@ -60,70 +70,64 @@ void sendToESP32(){
   to_ESP32 += ">";
   
   Serial1.print(to_ESP32);   // Отправка данных на ESP32 через "Serial Port"
-  Serial.println(to_ESP32);  // Вывод на экран
   
-  to_ESP32 = "";             // Стирание данных.
-  delay(1000);
+  Serial.print("Sent: ");
+  Serial.println(to_ESP32);
+  to_ESP32 = "";              // Стирание данных.
+  delay(1500);
+ 
 }
 
-// ФУНКЦИЯ ДЛЯ ПРИЕМА ЗНАЧЕНИИ АКТУАТОРОВ ОТ ESP32
-void getFromESP32(){
 
-  //Прием СТРОКИ от ESP32(Значения актуаторов).
-  from_ESP32 = Serial1.readString();
-  
-  // Проверка правильности полученных данных (Определение начала и конца)
-  if (from_ESP32.startsWith("<") && from_ESP32.endsWith(">")){
-    from_ESP32 = from_ESP32.substring(1, from_ESP32.indexOf(">"));
-    
-    // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
-    for(int i=0; i<from_ESP32.length(); i++){
-      if(String(from_ESP32.charAt(i))==String(",")){
-        comma_Counter += 1;    
-      };
-    };
-    
-  //  Serial.println(from_ESP32);       // Вывод всей СТРОКИ.
-    
-    //Парсинг(Разделение) значении через ",".
-    if(comma_Counter == found){
+void recieveFromESP32(){
+
+  // Прием СТРОКИ от ESP32(Значения актуаторов).
+    from_ESP32 = Serial1.readString();
+
+    if (from_ESP32.startsWith("<") && from_ESP32.endsWith(">")){
+      from_ESP32 = from_ESP32.substring(1, from_ESP32.indexOf(">"));
+
+      // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
       for(int i=0; i<from_ESP32.length(); i++){
-         if(String(from_ESP32.charAt(i))==String(",")){
-           end_s = i;
-           a_ActuatorValue = from_ESP32.substring(start_s, end_s);   // Получение значения как строки
-           start_s = end_s+1;
-           Actuators[comma_Counter - found] = a_ActuatorValue.toFloat();  // Конвертация и Составление списка
-           Serial.println(Actuators[comma_Counter - found]);  // !!! Вывод значении каждого актуатора.
-           found -= 1;
-         };   
-      }; start_s = 0; end_s = 0;
-    }; comma_Counter = 0; found = 5;
+        if(String(from_ESP32.charAt(i))==String(",")){
+          comma_Counter += 1;    
+        };
+      };      
+    
+      // Парсинг(Разделение) значении через ",".
+      if(comma_Counter == found){
+        
+        Serial.print("Revieved: ");      
+        Serial.println(from_ESP32);       // Вывод всей СТРОКИ.
+        
+        for(int i=0; i<from_ESP32.length(); i++){
+           if(String(from_ESP32.charAt(i))==String(",")){
+             end_s = i;
+             a_ActuatorValue = from_ESP32.substring(start_s, end_s);
+             start_s = end_s+1;
+             Actuators[comma_Counter - found] = a_ActuatorValue.toFloat();   // Конвертация и Составление списка
+             found -= 1;
+             
+           };   
+        }; start_s = 0; end_s = 0;      
+      };  comma_Counter = 0; found = 5;
   
-    // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Actuators" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ESP32 !!!
-  }  
+      // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
+    }
+  
 }
 
-void setup() {
-  pinMode(redLED,OUTPUT);
-  pinMode(greenLED,OUTPUT);
-  pinMode(yellowLED,OUTPUT);
 
-  Serial.begin(9600);        // Для вывода на монитор
-  Serial1.begin(9600);       // Прием/Отправка на ESP32
-  
-  dht.begin();
-}
 
 void loop() {
 
 // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ ДАТЧИКОВ НА ESP32 ***************
-  getSensorReadings();      // Получение значении датчиков
-  sendToESP32();
+   sendToESP32();
 // *************************************************************************
 
 
 // *************** БЛОК ПРИЕМА ЗНАЧЕНИИИ АКТУАТОРОВ ОТ ESP32 ***************
-//  getFromESP32();
+   recieveFromESP32();
 // *************************************************************************
-  
+    
 }
