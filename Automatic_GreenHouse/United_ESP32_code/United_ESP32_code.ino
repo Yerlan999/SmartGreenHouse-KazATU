@@ -208,6 +208,11 @@ void getDateTime(){
 
 // ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
+
+  //  !!! SENDING REQUEST TO ARDUINO ABOUT SENSORS VALUE !!!
+  
+  //  !!! WAITING UNTILL GET SENSORS VALUE !!!
+
   getDummySensorReadings();
   getDateTime();
   
@@ -852,6 +857,8 @@ void setup() {
         }   
       Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration + ": " + light_message_repeat);
     };
+
+    //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
           
     request->send_P(200, "text/html", index_html, processor);
   });
@@ -875,6 +882,8 @@ void setup() {
       Serial.println("POST REQUEST: " + light_message_toggle);
     }
          
+    //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+    
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -915,7 +924,9 @@ void setup() {
           temp_button_state = true;
         }
       }      
-   
+
+      //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+         
       Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
   });
@@ -937,7 +948,9 @@ void setup() {
           fan_button_state = true;
         }
       }      
-   
+      
+      //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+
       Serial.println("POST REQUEST: " + fan_message);
       request->send_P(200, "text/html", index_html, processor);
   });
@@ -959,7 +972,12 @@ void loop() {
   
   if ((millis() - lastTime) > timerDelay) {
     Serial.println("Update!");
-    //  !!! Получение даннах от Arduino !!!
+    //  !!! Получение данных от Arduino !!!
+
+    //  !!! SENDING REQUEST TO ARDUINO ABOUT SENSORS VALUE !!!
+    
+    //  !!! WAITING UNTILL GET SENSORS VALUE !!!
+    
     getDummySensorReadings();
     getDateTime();
     

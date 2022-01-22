@@ -2,9 +2,6 @@
 
 #include "DHT.h"
 
-#define RXD2 0
-#define TXD2 1
-
 #define DHTPIN 5     
 #define DHTTYPE DHT11
 #define redLED 2
@@ -122,6 +119,15 @@ void recieveFromESP32(){
 void loop() {
 
 // *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ ДАТЧИКОВ НА ESP32 ***************
+   
+   //  !!! WAITING FOR REQUEST FROM ESP32 !!!
+   
+   //      !!! IF (SENSORS VALUES REQUESTED): !!!
+   //             !!! SENDING SENSORS VALUES TO ESP32 !!!
+   
+   //      !!! ELSE (ACTUATORS VALUES ARE SENT): !!!
+   //             !!! PROVIDE EXECUTION OF COMMANDS !!!
+   
    sendToESP32();
 // *************************************************************************
 
