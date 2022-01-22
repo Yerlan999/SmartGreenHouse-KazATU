@@ -103,7 +103,7 @@ void recieveFromArduino(){
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "";
+const char* password = "DoesGodReallyExist404";
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
