@@ -46,7 +46,7 @@ void sendToArduino(){
   while (Serial1.available() > 0){
     from_Arduino = Serial1.read();
     if (from_Arduino == 01000101){     // Binary for "E"
-      Serial.print("Actuators delivered!");  
+//      Serial.print("Actuators delivered!");  
     }
   }
 }
@@ -60,7 +60,6 @@ void recieveFromArduino(){
   while (Serial1.available() > 0){
     int inByte = Serial1.read();
     Sensors[pointer] = inByte;
-    Serial.println(inByte);
     pointer += 1;
   }
   
@@ -87,7 +86,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
+unsigned long timerDelay = 5000;    // КАЖДЫЕ 30 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -150,12 +149,12 @@ int stringToInt(String s)
 void initWiFi() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
-    Serial.print("Connecting to WiFi ..");
+//    Serial.print("Connecting to WiFi ..");
     while (WiFi.status() != WL_CONNECTED) {
-        Serial.print('.');
+//        Serial.print('.');
         delay(1000);
     }
-    Serial.println(WiFi.localIP());
+//    Serial.println(WiFi.localIP());
     timeClient.begin();
     timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
 }
@@ -178,23 +177,22 @@ void getDateTime(){
 
 // ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
-  Serial1.write('A');
-  
-  while (Serial1.available() > 0){
-    int inByte = Serial1.read();
-    Sensors[pointer] = inByte;
-    Serial.println(inByte);
-    pointer += 1;
-  }
-  
-  temperature = Sensors[0];
-  humidity = Sensors[2];
-  light = Sensors[4];
-  pointer = 0;
+//  Serial1.write('A');
+//  
+//  while (Serial1.available() > 0){
+//    int inByte = Serial1.read();
+//    Sensors[pointer] = inByte;
+//    pointer += 1;
+//  }
+//  
+//  temperature = Sensors[0];
+//  humidity = Sensors[2];
+//  light = Sensors[4];
+//  pointer = 0;
 
 
 //  recieveFromArduino();
-//  getDummySensorReadings();
+  getDummySensorReadings();
   getDateTime();
   
   // Значения датчиков для страницы;
@@ -834,7 +832,7 @@ void setup() {
           }
           
         }   
-      Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration + ": " + light_message_repeat);
+//      Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration + ": " + light_message_repeat);
     };
 
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
@@ -859,7 +857,7 @@ void setup() {
       else{
         light_button_state = true;
       }
-      Serial.println("POST REQUEST: " + light_message_toggle);
+//      Serial.println("POST REQUEST: " + light_message_toggle);
     }
          
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
@@ -907,7 +905,7 @@ void setup() {
 
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
 //      sendToArduino();   
-      Serial.println("POST REQUEST: " + temp_message);
+//      Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -931,13 +929,13 @@ void setup() {
       
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
 //      sendToArduino();
-      Serial.println("POST REQUEST: " + fan_message);
+//      Serial.println("POST REQUEST: " + fan_message);
       request->send_P(200, "text/html", index_html, processor);
   });
     
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
-      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+//      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
     }
     client->send("hello!", NULL, millis(), 10000);
   });
@@ -961,7 +959,6 @@ void loop() {
     while (Serial1.available() > 0){
       int inByte = Serial1.read();
       Sensors[pointer] = inByte;
-      Serial.println(inByte);
       pointer += 1;
     }
   
@@ -971,10 +968,10 @@ void loop() {
     pointer = 0;
 
     
-    Serial.printf("Temperature = %.2f ºC \n", temperature);
-    Serial.printf("Humidity = %.2f \n", humidity);
-    Serial.printf("Light = %.2f lux \n", light);
-    Serial.println();
+//    Serial.printf("Temperature = %.2f ºC \n", temperature);
+//    Serial.printf("Humidity = %.2f \n", humidity);
+//    Serial.printf("Light = %.2f lux \n", light);
+//    Serial.println();
 
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    

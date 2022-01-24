@@ -61,7 +61,7 @@ void sendToESP32(){
 void loop() {
   while (Serial1.available() > 0){
     if (Serial1.read() == 65){
-      Serial.println("Sending sensors values");
+   
       temperature = dht.readTemperature();
       humidity = dht.readHumidity();
       pressure = 100;
