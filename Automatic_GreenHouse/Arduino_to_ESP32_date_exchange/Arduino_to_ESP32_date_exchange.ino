@@ -11,10 +11,6 @@
 int baud = 9600;
 int pointer = 0;
 
-const unsigned int maxSize = 5;
-
-byte from_ESP32;          // Для хранения СПИСКА со значениями актуаторов от ESP32
-
 // Тестовые данные датчиков.
 int Sensors[5];
 int Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных

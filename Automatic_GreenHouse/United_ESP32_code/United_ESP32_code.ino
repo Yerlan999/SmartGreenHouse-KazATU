@@ -11,62 +11,35 @@
 #define TXD2 17
 
 int baud = 9600;
-int waiteTime = 500;
 int pointer = 0;
-
-const unsigned int maxSize = 5;
 
 // Тестовые данные для актуаторов.
 int Actuators[5];
 int Sensors[10];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
-
-byte from_Arduino;      // Для хранения СТРОКИ со значениями датчиков от Arduino
 
 // Для хранения значении с датчиков
 int temperature;
 int humidity;
 int light;
 
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ АКТУАТОРОВ
-void collectActuatrosSetValues(){
+
+// ФУНКЦИЯ ДЛЯ ОТПРАВКИ ЗНАЧЕНИИ АКТУАТОРОВ НА ARDUINO
+void sendToArduino(){
+
   Actuators[0] = 1;
   Actuators[1] = 1;
   Actuators[2] = 1;
   Actuators[3] = 1;
   Actuators[4] = 1;
-}
 
-// ФУНКЦИЯ ДЛЯ ОТПРАВКИ ЗНАЧЕНИИ АКТУАТОРОВ НА ARDUINO
-void sendToArduino(){
-
-  collectActuatrosSetValues();
-   
   Serial1.write((uint8_t*)Actuators, sizeof(Actuators));       // Отправка данных на Arduino через "Serial Port"
 
   while (Serial1.available() > 0){
-    from_Arduino = Serial1.read();
-    if (from_Arduino == 01000101){     // Binary for "E"
-//      Serial.print("Actuators delivered!");  
+    int inByte = Serial1.read();
+    if (inByte == 65){     // Binary for "E"
+      // FeedBack from Arduino that delivered!   
     }
   }
-}
-
-
-// ФУНКЦИЯ ДЛЯ ПРИЕМА ЗНАЧЕНИИ ДАТЧИКОВ ОТ ARDUINO
-void recieveFromArduino(){
-  
-  Serial1.write('A');
-  
-  while (Serial1.available() > 0){
-    int inByte = Serial1.read();
-    Sensors[pointer] = inByte;
-    pointer += 1;
-  }
-  
-    temperature = Sensors[0];
-    humidity = Sensors[2];
-    light = Sensors[4];
-    pointer = 0;
 }
 
 
@@ -129,6 +102,7 @@ void getDummySensorReadings(){
     light = 0;
 }
 
+
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
 float stringToFloat(String s)
 {
@@ -144,6 +118,7 @@ int stringToInt(String s)
     s.toCharArray(arr, sizeof(arr));
     return atoi(arr);
 }
+
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
@@ -177,21 +152,7 @@ void getDateTime(){
 
 // ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
-//  Serial1.write('A');
-//  
-//  while (Serial1.available() > 0){
-//    int inByte = Serial1.read();
-//    Sensors[pointer] = inByte;
-//    pointer += 1;
-//  }
-//  
-//  temperature = Sensors[0];
-//  humidity = Sensors[2];
-//  light = Sensors[4];
-//  pointer = 0;
 
-
-//  recieveFromArduino();
   getDummySensorReadings();
   getDateTime();
   
@@ -832,13 +793,10 @@ void setup() {
           }
           
         }   
-//      Serial.println("POST REQUEST: " + light_message_time + ": " + light_message_duration + ": " + light_message_repeat);
     };
 
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-    
-//    sendToArduino();       
-    request->send_P(200, "text/html", index_html, processor);
+        request->send_P(200, "text/html", index_html, processor);
   });
 
   // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ -- ВКЛ/ВЫКЛ
@@ -857,11 +815,9 @@ void setup() {
       else{
         light_button_state = true;
       }
-//      Serial.println("POST REQUEST: " + light_message_toggle);
     }
          
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-//    sendToArduino();
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -904,8 +860,6 @@ void setup() {
       }      
 
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-//      sendToArduino();   
-//      Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -928,8 +882,6 @@ void setup() {
       }      
       
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-//      sendToArduino();
-//      Serial.println("POST REQUEST: " + fan_message);
       request->send_P(200, "text/html", index_html, processor);
   });
     
@@ -950,8 +902,6 @@ void loop() {
   
   if ((millis() - lastTime) > timerDelay) {
 
-//    recieveFromArduino();    
-//    getDummySensorReadings();
     getDateTime();
 
     Serial1.write('A');
@@ -968,11 +918,6 @@ void loop() {
     pointer = 0;
 
     
-//    Serial.printf("Temperature = %.2f ºC \n", temperature);
-//    Serial.printf("Humidity = %.2f \n", humidity);
-//    Serial.printf("Light = %.2f lux \n", light);
-//    Serial.println();
-
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
     events.send(String(DateTimeStamp).c_str(),"datetime",millis());
