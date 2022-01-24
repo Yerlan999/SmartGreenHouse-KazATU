@@ -8,48 +8,33 @@
 #define greenLED 3
 #define yellowLED 4
 
-String from_ESP32;          // Для хранения СТРОКИ со значениями актуаторов от ESP32
-String to_ESP32;            // Для хранения данных для Отпавки на ESP32 в виде СТРОКИ
-String a_ActuatorValue;     // Для хранения значения отдельного актуатора перед конвертацией
-int start_s = 0;            // Для парсинга (разбора) СТРОКИ 
-int end_s = 0;              // Для парсинга (разбора) СТРОКИ 
-int comma_Counter = 0;      // Для подчета количества запятых в получаемой от ESP32 строке
-int found = 5;              // Отражает количество значении переменных получаемых от ESP32
+int baud = 9600;
+int pointer = 0;
+
+const unsigned int maxSize = 5;
+
+byte from_ESP32;          // Для хранения СПИСКА со значениями актуаторов от ESP32
 
 // Тестовые данные датчиков.
-//float Sensors[5] = {1, -5, 10.99, -230.77, 17};
-float Sensors[5];
-float Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных
+int Sensors[5];
+int Actuators[5];          // Для хранения значении актуаторов с РЕАЛЬНЫМ типом данных
 
-float temperature;
-float humidity;
-float pressure;
-float moisture;
-float water_level;
+int temperature;
+int humidity;
+int pressure;
+int moisture;
+int water_level;
     
 DHT dht(DHTPIN, DHTTYPE);
 
-void getSensorReadings(){
-    humidity = dht.readHumidity();
-    temperature = dht.readTemperature();
-    pressure = 100.00;
-    moisture = -50.41;
-    water_level = 5.12;
-    
-    Sensors[0] = temperature;   
-    Sensors[1] = humidity;
-    Sensors[2] = pressure;
-    Sensors[3] = moisture;
-    Sensors[4] = water_level;
-}
 
 void setup() {
   pinMode(redLED,OUTPUT);
   pinMode(greenLED,OUTPUT);
   pinMode(yellowLED,OUTPUT);
 
-  Serial.begin(9600);                // Для вывода на монитор
-  Serial1.begin(9600, SERIAL_8N1);   // Прием/Отправка на ESP32
+  Serial.begin(baud);                // Для вывода на монитор
+  Serial1.begin(baud);   // Прием/Отправка на ESP32
   
   dht.begin();
 }
@@ -57,83 +42,40 @@ void setup() {
 
 void sendToESP32(){
 
-  getSensorReadings();      // Получение значении датчиков
-  
-  // Конвертация значении датчиков в СТРОКУ!!! для последующей отпавки.
-  to_ESP32 += "<";
-  for(int i=0; i<sizeof(Sensors)/sizeof(float); i++){
-    to_ESP32 += String(Sensors[i])+String(",");  // Разделение значении через ","
-  };
-  to_ESP32 += ">";
-  
-  Serial1.print(to_ESP32);   // Отправка данных на ESP32 через "Serial Port"
-  
-  Serial.print("Sent: ");
-  Serial.println(to_ESP32);
-  to_ESP32 = "";              // Стирание данных.
-  delay(1500);
- 
-}
-
-
-void recieveFromESP32(){
-
-  // Прием СТРОКИ от ESP32(Значения актуаторов).
-    from_ESP32 = Serial1.readString();
-
-    if (from_ESP32.startsWith("<") && from_ESP32.endsWith(">")){
-      from_ESP32 = from_ESP32.substring(1, from_ESP32.indexOf(">"));
-
-      // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
-      for(int i=0; i<from_ESP32.length(); i++){
-        if(String(from_ESP32.charAt(i))==String(",")){
-          comma_Counter += 1;    
-        };
-      };      
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
+    pressure = 100;
+    moisture = 50;
+    water_level = 5;
     
-      // Парсинг(Разделение) значении через ",".
-      if(comma_Counter == found){
-        
-        Serial.print("Revieved: ");      
-        Serial.println(from_ESP32);       // Вывод всей СТРОКИ.
-        
-        for(int i=0; i<from_ESP32.length(); i++){
-           if(String(from_ESP32.charAt(i))==String(",")){
-             end_s = i;
-             a_ActuatorValue = from_ESP32.substring(start_s, end_s);
-             start_s = end_s+1;
-             Actuators[comma_Counter - found] = a_ActuatorValue.toFloat();   // Конвертация и Составление списка
-             found -= 1;
-             
-           };   
-        }; start_s = 0; end_s = 0;      
-      };  comma_Counter = 0; found = 5;
-  
-      // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
-    }
-  
+    Sensors[0] = temperature;   
+    Sensors[1] = humidity;
+    Sensors[2] = pressure;
+    Sensors[3] = moisture;
+    Sensors[4] = water_level;
+   
+    Serial1.write((uint8_t*)Sensors, sizeof(Sensors));   // Отправка данных на ESP32 через "Serial Port"      
+
 }
-
-
 
 void loop() {
+  while (Serial1.available() > 0){
+    if (Serial1.read() == 65){
+      Serial.println("Sending sensors values");
+      temperature = dht.readTemperature();
+      humidity = dht.readHumidity();
+      pressure = 100;
+      moisture = 50;
+      water_level = 5;
+      
+      Sensors[0] = temperature;   
+      Sensors[1] = humidity;
+      Sensors[2] = pressure;
+      Sensors[3] = moisture;
+      Sensors[4] = water_level;
+     
+      Serial1.write((uint8_t*)Sensors, sizeof(Sensors));   // Отправка данных на ESP32 через "Serial Port"      
 
-// *************** БЛОК ОТПРАВКИ ЗНАЧЕНИИИ ДАТЧИКОВ НА ESP32 ***************
-   
-   //  !!! WAITING FOR REQUEST FROM ESP32 !!!
-   
-   //      !!! IF (SENSORS VALUES REQUESTED): !!!
-   //             !!! SENDING SENSORS VALUES TO ESP32 !!!
-   
-   //      !!! ELSE (ACTUATORS VALUES ARE SENT): !!!
-   //             !!! PROVIDE EXECUTION OF COMMANDS !!!
-   
-   sendToESP32();
-// *************************************************************************
-
-
-// *************** БЛОК ПРИЕМА ЗНАЧЕНИИИ АКТУАТОРОВ ОТ ESP32 ***************
-   recieveFromESP32();
-// *************************************************************************
-    
+    }
+  }
 }

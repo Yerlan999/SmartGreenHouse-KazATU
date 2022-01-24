@@ -10,32 +10,29 @@
 #define RXD2 16
 #define TXD2 17
 
-TaskHandle_t Task1;
-TaskHandle_t Task2;
+int baud = 9600;
+int waiteTime = 500;
+int pointer = 0;
+
+const unsigned int maxSize = 5;
 
 // Тестовые данные для актуаторов.
-float Actuators[5];
-float Sensors[5];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
+int Actuators[5];
+int Sensors[10];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
 
-String from_Arduino;      // Для хранения СТРОКИ со значениями датчиков от Arduino
-String to_Arduino;        // Для хранения данных для Отпавки на Arduino в виде СТРОКИ
-String a_SensorValue;     // Для хранения значения отдельного датчика перед конвертацией
-int start_s = 0;          // Для парсинга (разбора) СТРОКИ 
-int end_s = 0;            // Для парсинга (разбора) СТРОКИ
-int comma_Counter = 0;    // Для подчета количества запятых в получаемой от Arduino строке
-int found = 5;            // Отражает количество значении переменных получаемых от Arduino
+byte from_Arduino;      // Для хранения СТРОКИ со значениями датчиков от Arduino
 
 // Для хранения значении с датчиков
-float temperature;
-float humidity;
-float light;
+int temperature;
+int humidity;
+int light;
 
 // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ АКТУАТОРОВ
 void collectActuatrosSetValues(){
   Actuators[0] = 1;
-  Actuators[1] = -1;
-  Actuators[2] = 1.99;
-  Actuators[3] = -1.77;
+  Actuators[1] = 1;
+  Actuators[2] = 1;
+  Actuators[3] = 1;
   Actuators[4] = 1;
 }
 
@@ -43,61 +40,34 @@ void collectActuatrosSetValues(){
 void sendToArduino(){
 
   collectActuatrosSetValues();
-  
-  // Конвертация значении актуаторов в СТРОКУ!!! для последующей отпавки.
-  to_Arduino += "<";
-  for(int i=0; i<sizeof(Actuators)/sizeof(float); i++){
-    to_Arduino += String(Actuators[i])+String(",");  // Разделение значении через ","
-  };
-  to_Arduino += ">";
+   
+  Serial1.write((uint8_t*)Actuators, sizeof(Actuators));       // Отправка данных на Arduino через "Serial Port"
 
-  Serial1.print(to_Arduino);       // Отправка данных на Arduino через "Serial Port"
-
-  Serial.print("Sent: ");
-  Serial.println(to_Arduino);
-  to_Arduino = "";
-  delay(600);
-  
+  while (Serial1.available() > 0){
+    from_Arduino = Serial1.read();
+    if (from_Arduino == 01000101){     // Binary for "E"
+      Serial.print("Actuators delivered!");  
+    }
+  }
 }
 
 
 // ФУНКЦИЯ ДЛЯ ПРИЕМА ЗНАЧЕНИИ ДАТЧИКОВ ОТ ARDUINO
 void recieveFromArduino(){
-
-    // Прием СТРОКИ от Arduino(Значения датчиков).
-    from_Arduino = Serial1.readString();
-    
-    // Проверка правильности полученных данных (Определение начала и конца)
-    if (from_Arduino.startsWith("<") && from_Arduino.endsWith(">")){
-      from_Arduino = from_Arduino.substring(1, from_Arduino.indexOf(">"));
   
-      // Проверка правильности полученных данных (Подсчет запятых в полученной СТРОКЕ)
-      for(int i=0; i<from_Arduino.length(); i++){
-        if(String(from_Arduino.charAt(i))==String(",")){
-          comma_Counter += 1;    
-        };
-      };
-        
+  Serial1.write('A');
   
-      // Парсинг(Разделение) значении через ",".
-      if(comma_Counter == found){      
-        
-        Serial.print("Recived: ");
-        Serial.println(from_Arduino);      // Вывод всей полученной СТРОКИ.
-        
-        for(int i=0; i<from_Arduino.length(); i++){
-           if(String(from_Arduino.charAt(i))==String(",")){
-             end_s = i;
-             a_SensorValue = from_Arduino.substring(start_s, end_s);   // Получение значения как строки
-             start_s = end_s + 1;
-             Sensors[comma_Counter - found] = a_SensorValue.toFloat();   // Конвертация и Составление списка
-             found -= 1;
-           };                         
-        }; start_s = 0; end_s = 0;      
-      }; comma_Counter = 0; found = 5;
-    }
-    // !!! ГОТОВАЯ ПЕРЕМЕННАЯ-СПИСОК "Sensors" СО ЗНАЧЕНИЯМИ ДАТЧИКОВ ПОЛУЧЕННЫЙ ОТ ARDUINO !!!
+  while (Serial1.available() > 0){
+    int inByte = Serial1.read();
+    Sensors[pointer] = inByte;
+    Serial.println(inByte);
+    pointer += 1;
+  }
   
+    temperature = Sensors[0];
+    humidity = Sensors[2];
+    light = Sensors[4];
+    pointer = 0;
 }
 
 
@@ -117,7 +87,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 60000;    // КАЖДЫЕ 60 секунд
+unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -155,9 +125,9 @@ float temp_set_value_f;
 
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ)
 void getDummySensorReadings(){
-    humidity = 10;
-    temperature = 22;
-    light = 100;
+    humidity = 0;
+    temperature = 0;
+    light = 0;
 }
 
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
@@ -208,12 +178,23 @@ void getDateTime(){
 
 // ДЛЯ ЗАМЕНЫ %ШАБЛОНОВ% на Веб-странице
 String processor(const String& var){
-
-  //  !!! SENDING REQUEST TO ARDUINO ABOUT SENSORS VALUE !!!
+  Serial1.write('A');
   
-  //  !!! WAITING UNTILL GET SENSORS VALUE !!!
+  while (Serial1.available() > 0){
+    int inByte = Serial1.read();
+    Sensors[pointer] = inByte;
+    Serial.println(inByte);
+    pointer += 1;
+  }
+  
+  temperature = Sensors[0];
+  humidity = Sensors[2];
+  light = Sensors[4];
+  pointer = 0;
 
-  getDummySensorReadings();
+
+//  recieveFromArduino();
+//  getDummySensorReadings();
   getDateTime();
   
   // Значения датчиков для страницы;
@@ -495,7 +476,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_LIGHT_SET%>
           <p>%LIGHT_SET_VALUE%</p>
-          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
+          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="light">%LIGHT%</span> lux</span></p>
         </div>
     </div>
     
@@ -576,9 +557,9 @@ if (!!window.EventSource) {
   document.getElementById("hum").innerHTML = e.data;
  }, false);
  
- source.addEventListener('pressure', function(e) {
-  console.log("pressure", e.data);
-  document.getElementById("pres").innerHTML = e.data;
+ source.addEventListener('light', function(e) {
+  console.log("light", e.data);
+  document.getElementById("light").innerHTML = e.data;
  }, false);
 
  document.addEventListener('DOMContentLoaded', function(e){
@@ -806,9 +787,8 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void setup() {
-  Serial.begin(9600);                           // Для вывода на монитор                          
-  Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
-//  Serial.begin(115200);
+  Serial.begin(baud, SERIAL_8N1);               // Для вывода на монитор                          
+  Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
   initWiFi(); 
 
 
@@ -833,7 +813,6 @@ void setup() {
     if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
         light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
         light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
-//        light_message_repeat = request->getParam(LIGHT_PARAM_INPUT4)->value();
            
         if (light_message_time != "" && light_message_duration != ""){
           
@@ -859,7 +838,8 @@ void setup() {
     };
 
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-          
+    
+//    sendToArduino();       
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -883,7 +863,7 @@ void setup() {
     }
          
     //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-    
+//    sendToArduino();
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -926,7 +906,7 @@ void setup() {
       }      
 
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-         
+//      sendToArduino();   
       Serial.println("POST REQUEST: " + temp_message);
       request->send_P(200, "text/html", index_html, processor);
   });
@@ -950,7 +930,7 @@ void setup() {
       }      
       
       //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
-
+//      sendToArduino();
       Serial.println("POST REQUEST: " + fan_message);
       request->send_P(200, "text/html", index_html, processor);
   });
@@ -971,15 +951,25 @@ void setup() {
 void loop() {
   
   if ((millis() - lastTime) > timerDelay) {
-    Serial.println("Update!");
-    //  !!! Получение данных от Arduino !!!
 
-    //  !!! SENDING REQUEST TO ARDUINO ABOUT SENSORS VALUE !!!
-    
-    //  !!! WAITING UNTILL GET SENSORS VALUE !!!
-    
-    getDummySensorReadings();
+//    recieveFromArduino();    
+//    getDummySensorReadings();
     getDateTime();
+
+    Serial1.write('A');
+  
+    while (Serial1.available() > 0){
+      int inByte = Serial1.read();
+      Sensors[pointer] = inByte;
+      Serial.println(inByte);
+      pointer += 1;
+    }
+  
+    temperature = Sensors[0];
+    humidity = Sensors[2];
+    light = Sensors[4];
+    pointer = 0;
+
     
     Serial.printf("Temperature = %.2f ºC \n", temperature);
     Serial.printf("Humidity = %.2f \n", humidity);

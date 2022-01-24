@@ -22,8 +22,6 @@ void setup() {
 
 
 void sendToArduino(){
-
-  collectActuatrosSetValues();
   
   // Конвертация значении актуаторов в СТРОКУ!!! для последующей отпавки.
   to_Arduino += "<";
