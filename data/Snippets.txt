@@ -1,0 +1,4 @@
+//    Serial.printf("Temperature = %.2f ºC \n", temperature);
+//    Serial.printf("Humidity = %.2f \n", humidity);
+//    Serial.printf("Light = %.2f lux \n", light);
+//    Serial.println();
