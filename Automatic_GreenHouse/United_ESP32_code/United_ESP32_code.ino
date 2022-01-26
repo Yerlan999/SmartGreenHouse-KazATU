@@ -933,7 +933,7 @@ void loop() {
   
     while (Serial1.available() > 0){
       int inByte = Serial1.read();
-      Serial.println(inByte);
+//      Serial.println(inByte);
       Sensors[pointer] = inByte;
       pointer += 1;
     }

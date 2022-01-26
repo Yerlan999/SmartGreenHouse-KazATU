@@ -63,8 +63,6 @@ void loop() {
       moisture = 50;
       water_level = 5;
       
-      Serial.println(temperature);
-      
       Sensors[0] = temperature;   
       Sensors[1] = humidity;
       Sensors[2] = pressure;
@@ -78,8 +76,8 @@ void loop() {
     else{
       actuatorsRecieved = true;
       Actuators[pointer] = inByte;
-//      Serial.print("Passed: ");         // ХЗ почему, но без данного вывода на экран диоды не горят
-//      Serial.println(pointer);      
+      Serial.print("Passed: ");         // ХЗ почему, но без данного вывода на экран диоды не горят
+      Serial.println(pointer);      
       pointer += 1;
     }
   }
@@ -98,7 +96,10 @@ void loop() {
     
     actuatorsRecieved = false;
     endRecieve = false;
-
+    
+//    Serial.println(pump_state);
+//    Serial.println(air_heater_state);
+//    Serial.println(water_heater_state);
     
     // Обратная связь с ESP32 о принятии и обработке данных управляющих воздействии
   }   
