@@ -9,6 +9,7 @@
 
 #define RXD2 16
 #define TXD2 17
+#define ONBOARD_LED  2
 
 int baud = 9600;
 int pointer = 0;
@@ -21,26 +22,8 @@ int Sensors[10];         // Для хранения значении датчи�
 int temperature;
 int humidity;
 int light;
-
-
-// ФУНКЦИЯ ДЛЯ ОТПРАВКИ ЗНАЧЕНИИ АКТУАТОРОВ НА ARDUINO
-void sendToArduino(){
-
-  Actuators[0] = 1;
-  Actuators[1] = 1;
-  Actuators[2] = 1;
-  Actuators[3] = 1;
-  Actuators[4] = 1;
-
-  Serial1.write((uint8_t*)Actuators, sizeof(Actuators));       // Отправка данных на Arduino через "Serial Port"
-
-  while (Serial1.available() > 0){
-    int inByte = Serial1.read();
-    if (inByte == 65){     // Binary for "E"
-      // FeedBack from Arduino that delivered!   
-    }
-  }
-}
+int moisture;
+int water_temperature;
 
 
 // Параметры сети WI-FI
@@ -59,7 +42,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 5000;    // КАЖДЫЕ 30 секунд
+unsigned long timerDelay = 5000;    // КАЖДЫЕ 5 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -95,7 +78,7 @@ String light_set_value;
 
 float temp_set_value_f;
 
-// ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ)
+// ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
 void getDummySensorReadings(){
     humidity = 0;
     temperature = 0;
@@ -748,7 +731,9 @@ void notFound(AsyncWebServerRequest *request) {
 void setup() {
   Serial.begin(baud, SERIAL_8N1);               // Для вывода на монитор                          
   Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
-  initWiFi(); 
+  initWiFi();
+  
+  pinMode(ONBOARD_LED,OUTPUT); 
 
 
 
@@ -795,7 +780,15 @@ void setup() {
         }   
     };
 
-    //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+    //  !!! Отправка (новых) значении управляющих воздействии на Arduino
+        
+        Actuators[0] = is_light_set;
+        Actuators[1] = 0;
+        Actuators[2] = 0;
+        Actuators[3] = 0;
+        Actuators[4] = 0;
+    
+        Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"            
         request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -817,7 +810,15 @@ void setup() {
       }
     }
          
-    //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+    //  !!! Отправка (новых) значении управляющих воздействии на Arduino
+    
+    Actuators[0] = light_button_state;
+    Actuators[1] = 0;
+    Actuators[2] = 0;
+    Actuators[3] = 0;
+    Actuators[4] = 0;
+
+    Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"                
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -859,7 +860,15 @@ void setup() {
         }
       }      
 
-      //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+      //  !!! Отправка (новых) значении управляющих воздействии на Arduino
+
+      Actuators[0] = 0;
+      Actuators[1] = temp_button_state || is_temp_set;
+      Actuators[2] = 0;
+      Actuators[3] = 0;
+      Actuators[4] = 0;
+
+      Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"            
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -881,7 +890,15 @@ void setup() {
         }
       }      
       
-      //  !!! SENDING ACTUATORS (NEW/ALL) VALUES TO ARDUINO 
+      //  !!! Отправка (новых) значении управляющих воздействии на Arduino
+      
+      Actuators[0] = 0;
+      Actuators[1] = 0;
+      Actuators[2] = fan_button_state;
+      Actuators[3] = 0;
+      Actuators[4] = 0;
+
+      Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"      
       request->send_P(200, "text/html", index_html, processor);
   });
     
@@ -900,6 +917,14 @@ void setup() {
 // Главный цикл 
 void loop() {
   
+//  while (Serial1.available() > 0){
+//    int inByte = Serial1.read();
+//    if (inByte == 65){
+////      bool Success = true;
+//      Serial.println("Принято и обработано Arduino");      
+//    }
+//  }
+  
   if ((millis() - lastTime) > timerDelay) {
 
     getDateTime();
@@ -908,6 +933,7 @@ void loop() {
   
     while (Serial1.available() > 0){
       int inByte = Serial1.read();
+      Serial.println(inByte);
       Sensors[pointer] = inByte;
       pointer += 1;
     }
@@ -915,8 +941,16 @@ void loop() {
     temperature = Sensors[0];
     humidity = Sensors[2];
     light = Sensors[4];
+    moisture = Sensors[6];
+    water_temperature = Sensors[8];
     pointer = 0;
 
+    if (temperature > 0){
+      digitalWrite(ONBOARD_LED,HIGH);
+      delay(200);
+      digitalWrite(ONBOARD_LED,LOW);
+    }
+    
     
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
