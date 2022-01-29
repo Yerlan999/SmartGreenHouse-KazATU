@@ -9,11 +9,9 @@
 #define yellowLED 4
 
 int baud = 9600;
-int pointer = 0;
 
 // Тестовые данные датчиков.
 int Sensors[5];
-int Actuators[20];
 
 int temperature;
 int humidity;
@@ -21,17 +19,19 @@ int pressure;
 int moisture;
 int water_level;
 
-int pump_state = 0;
-int air_heater_state = 0;
-int water_heater_state = 0;
-int fan_state = 0;
-int moisture_state = 0;
+bool pump_state = false;
+bool air_heater_state = false;
+bool water_heater_state = false;
+bool fan_state = false;
+bool moisture_state = false;
 
-bool actuatorsRecieved = false;
-bool endRecieve = false;
-    
 DHT dht(DHTPIN, DHTTYPE);
 
+void blinkLED(){
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(500);
+  digitalWrite(LED_BUILTIN, LOW);
+}
 
 void setup() {
   pinMode(redLED,OUTPUT);
@@ -51,11 +51,11 @@ void loop() {
   while (Serial1.available() > 0){
     
     int inByte = Serial1.read();
-    
-    if (inByte == 65){
+    Serial.print("Incoming byte: ");
+    Serial.println(inByte);
+
+    if (inByte == 83){
       // Принятие флага о запросе значении датчиков
-      
-      actuatorsRecieved = false;
       
       temperature = dht.readTemperature();
       humidity = dht.readHumidity();
@@ -71,44 +71,50 @@ void loop() {
       
       // Отправка показании датчиков на ESP32
       Serial1.write((uint8_t*)Sensors, sizeof(Sensors));   // Отправка данных на ESP32 через "Serial Port"      
-
+      break;
     }
-    else{
-      Serial.println(inByte);
-      actuatorsRecieved = true;
-      Actuators[pointer] = inByte;
-//      Serial.print("Passed: ");         // ХЗ почему, но без данного вывода на экран диоды не горят
-//      Serial.println(pointer);      
-      pointer += 1;
+    else if (inByte == 84){
+      if (pump_state){
+          pump_state = false;
+        }
+        else{
+          pump_state = true;
+        }
+      Serial1.write('A');
+      blinkLED();
+      break;
     }
-  }
-  if (pointer > 18){
-    endRecieve = true;
-    pointer = 0;
-  }
+    else if (inByte == 76){
+      if (air_heater_state){
+          air_heater_state = false;
+        }
+        else{
+          air_heater_state = true;
+        }
+      Serial1.write('A');
+      blinkLED();
+      break;
+    }
+    else if (inByte == 70){
+      if (water_heater_state){
+          water_heater_state = false;
+        }
+        else{
+          water_heater_state = true;
+        }
+      Serial1.write('A');
+      blinkLED();
+      break;
+    } 
+ 
+ }
 
-  
-  if (actuatorsRecieved && endRecieve){
-    pump_state = Actuators[0];
-    air_heater_state = Actuators[4];
-    water_heater_state = Actuators[8];
-    fan_state = Actuators[12];
-    moisture_state = Actuators[16];
     
-    actuatorsRecieved = false;
-    endRecieve = false;
-    
-//    Serial.println(pump_state);
-//    Serial.println(air_heater_state);
-//    Serial.println(water_heater_state);
-    
-    // Обратная связь с ESP32 о принятии и обработке данных управляющих воздействии
-  }   
-  
   // !!! Исполнение управляющих воздействии от ESP32 !!!
   if(pump_state){digitalWrite(yellowLED, HIGH);}else{digitalWrite(yellowLED, LOW);}
-  
   if(air_heater_state){digitalWrite(greenLED, HIGH);}else{digitalWrite(greenLED, LOW);}
-
   if(water_heater_state){digitalWrite(redLED, HIGH);}else{digitalWrite(redLED, LOW);}
-}
+    
+    // Обратная связь с ESP32 о принятии и обработке данных управляющих воздействии
+}   
+  

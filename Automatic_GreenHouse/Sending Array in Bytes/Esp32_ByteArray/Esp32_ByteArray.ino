@@ -1,14 +1,14 @@
-//    Serial.println(Serial1.readBytes(buf, 6));
-
 #define RXD2 16
 #define TXD2 17
 
 int pointer = 1;
 int values[3];
+byte InValues[6];
+int charCount;
 
 void setup() {
-  Serial.begin(115200);
-  Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  Serial.begin(9600);
+  Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2);
 }
 
 void loop() {
@@ -21,10 +21,12 @@ void loop() {
   }
    
   while (Serial1.available()>0){
-    byte inByte = Serial1.read();
-    if (inByte == '\n'){
-      Serial.println("New Line Symbol");
-    }
-    Serial.println(inByte);  
+    charCount = Serial1.readBytes((uint8_t*)InValues, sizeof(InValues));
+//    if (inByte == '\n'){
+//      Serial.println("New Line Symbol");
+//    }
+    Serial.print("Char count: ");
+    Serial.println(charCount);
+     
   }
 }

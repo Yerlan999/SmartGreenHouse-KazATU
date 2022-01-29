@@ -15,7 +15,7 @@ int baud = 9600;
 int pointer = 0;
 
 // Тестовые данные для актуаторов.
-int Actuators[5];
+int Actuators[2];
 int Sensors[10];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
 
 // Для хранения значении с датчиков
@@ -42,7 +42,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 5000;    // КАЖДЫЕ 5 секунд
+unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
 bool startOfProgramm = false;
 
@@ -81,6 +81,7 @@ String light_set_value;
 
 float temp_set_value_f;
 
+
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
 void getDummySensorReadings(){
     humidity = 0;
@@ -88,9 +89,28 @@ void getDummySensorReadings(){
     light = 0;
 }
 
+
+bool getFeedBack(){
+  
+  while (Serial1.available()>1){
+    int feedBack = Serial1.read();
+    
+    Serial.print("FeedBack message: ");
+    Serial.println(feedBack);
+    
+    if (feedBack == 27 || feedBack == 28){
+      return true;
+    }
+    else{
+      return false;
+    }  
+  }
+}
+
+
 void getSensorsReadings(){
 
-    Serial1.write('A');
+    Serial1.write('S');
   
     while (Serial1.available() > 0){
       int inByte = Serial1.read();
@@ -113,6 +133,7 @@ void getSensorsReadings(){
 
 }
 
+
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
 float stringToFloat(String s)
 {
@@ -120,6 +141,7 @@ float stringToFloat(String s)
     s.toCharArray(arr, sizeof(arr));
     return atof(arr);
 }
+
 
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦЕЛОЕ ЦИСЛО
 int stringToInt(String s)
@@ -143,6 +165,7 @@ void initWiFi() {
     timeClient.begin();
     timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
 }
+
 
 // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ ДАТЫ И ВРЕМЕНИ
 void getDateTime(){
@@ -743,8 +766,7 @@ void setup() {
         new_update_span = request->getParam(TIME_PARAM_INPUT)->value();
         new_update_span = stringToInt(new_update_span)*1000;
         timerDelay = stringToInt(new_update_span);
-    }
-        
+    }     
     request->send_P(200, "text/html", settings_html, processor);
   });
 
@@ -762,37 +784,34 @@ void setup() {
            
         if (light_message_time != "" && light_message_duration != ""){
           
-          // HAVING SET VALUE FOR LIGHTENING
-          if (request->hasParam(LIGHT_PARAM_INPUT4)){
-            light_repeat = true;
-            light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов" + " (пов.)";
-          }
-          else{
-            light_repeat = false;
-            light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов";
-          }
-                
-          if (!light_button_state){
-            light_button_state = true;
-          }
-          if (!is_light_set){
-            is_light_set = true;
+          if (!light_button_state && !is_light_set){
+            Serial1.write('L');  
           }
           
+          if (getFeedBack()){
+          
+            // HAVING SET VALUE FOR LIGHTENING
+            if (request->hasParam(LIGHT_PARAM_INPUT4)){
+              light_repeat = true;
+              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов" + " (пов.)";
+            }
+            else{
+              light_repeat = false;
+              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов";
+            }
+                  
+            if (!light_button_state){
+              light_button_state = true;
+            }
+            if (!is_light_set){
+              is_light_set = true;
+            }
+          }  
         }   
-    };
-
-    //  !!! Отправка (новых) значении управляющих воздействии на Arduino
-        
-        Actuators[0] = is_light_set;
-        Actuators[1] = 0;
-        Actuators[2] = 0;
-        Actuators[3] = 0;
-        Actuators[4] = 0;
-    
-        Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"            
+    }; 
         request->send_P(200, "text/html", index_html, processor);
   });
+
 
   // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ -- ВКЛ/ВЫКЛ
   server.on("/getlighttog", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -801,26 +820,21 @@ void setup() {
     if (request->hasParam(LIGHT_PARAM_INPUT3)) {
         light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
     }
-    
-    if(light_message_toggle = "toggle-light"){
-      if (light_button_state){
-          light_button_state = false;
-          is_light_set = false;
-      }
-      else{
-        light_button_state = true;
-      }
-    }
-         
-    //  !!! Отправка (новых) значении управляющих воздействии на Arduino
-    
-    Actuators[0] = light_button_state;
-    Actuators[1] = 0;
-    Actuators[2] = 0;
-    Actuators[3] = 0;
-    Actuators[4] = 0;
 
-    Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"                
+    Serial1.write('L');
+      
+    if (getFeedBack()){
+    
+      if(light_message_toggle = "toggle-light"){
+        if (light_button_state){
+            light_button_state = false;
+            is_light_set = false;
+        }
+        else{
+          light_button_state = true;
+        }
+      }
+    } 
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -831,48 +845,50 @@ void setup() {
       
       // Контроль ТЕМПЕРАТУРЫ
       if (request->hasParam(TEMP_PARAM_INPUT1)) {
-          temp_message = request->getParam(TEMP_PARAM_INPUT1)->value();
-          if (temp_message != ""){
-            
-            // HAVING SET VALUE ON TEMPERATURE
-            temp_set_value = temp_message;
-            temp_set_value_f = stringToFloat(temp_message);
-            
+        temp_message = request->getParam(TEMP_PARAM_INPUT1)->value();
+        
+        if (temp_message != ""){
+    
+          // HAVING SET VALUE ON TEMPERATURE
+          temp_set_value = temp_message;
+          temp_set_value_f = stringToFloat(temp_message);
+          
+          if (!temp_button_state && !is_temp_set){
+            Serial1.write('T');  
+          }
+           
+          if (getFeedBack()){
             if (!temp_button_state){
               temp_button_state = true;
             }
             if (!is_temp_set){
               is_temp_set = true;  
-            }  
+            }    
           }
-          
+        }  
       }
           
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
           temp_message = request->getParam(TEMP_PARAM_INPUT2)->value();
+
+          Serial1.write('T');
+           
+          if (getFeedBack()){
+          
+            if (temp_message == "toggle-temp"){     
+              if (temp_button_state){
+                temp_button_state = false;
+                is_temp_set = false;
+              }
+              else{
+                temp_button_state = true;
+              }
+            }      
+          }
       };
-      
-      if (temp_message == "toggle-temp"){     
-        if (temp_button_state){
-          temp_button_state = false;
-          is_temp_set = false;
-        }
-        else{
-          temp_button_state = true;
-        }
-      }      
-
-      //  !!! Отправка (новых) значении управляющих воздействии на Arduino
-
-      Actuators[0] = 0;
-      Actuators[1] = temp_button_state || is_temp_set;
-      Actuators[2] = 0;
-      Actuators[3] = 0;
-      Actuators[4] = 0;
-
-      Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"            
       request->send_P(200, "text/html", index_html, processor);
   });
+
 
   // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА
   server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -882,25 +898,20 @@ void setup() {
       if (request->hasParam(FAN_PARAM_INPUT)) {
           fan_message = request->getParam(FAN_PARAM_INPUT)->value();
       }
-      
-      if (fan_message == "toggle-fan"){     
-        if (fan_button_state){
-          fan_button_state = false;
-        }
-        else{
-          fan_button_state = true;
-        }
-      }      
-      
-      //  !!! Отправка (новых) значении управляющих воздействии на Arduino
-      
-      Actuators[0] = 0;
-      Actuators[1] = 0;
-      Actuators[2] = fan_button_state;
-      Actuators[3] = 0;
-      Actuators[4] = 0;
 
-      Serial1.write((uint8_t*)Actuators, sizeof(Actuators));   // Отправка данных на ESP32 через "Serial Port"      
+      Serial1.write('F');
+      
+      if (getFeedBack()){
+           
+        if (fan_message == "toggle-fan"){     
+          if (fan_button_state){
+            fan_button_state = false;
+          }
+          else{
+            fan_button_state = true;
+          }
+        }     
+      }
       request->send_P(200, "text/html", index_html, processor);
   });
     

@@ -8,8 +8,8 @@ int values[3];
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
-  Serial.begin(115200);
-  Serial1.begin(115200);
+  Serial.begin(9600);
+  Serial1.begin(9600);
   dht.begin();
   delay(500);
 }
@@ -22,7 +22,7 @@ void loop() {
       
       values[0] = dht.readHumidity();
       values[1] = dht.readTemperature();
-      values[2] = 0;
+      values[2] = 100;
       
       Serial1.write((uint8_t*)values, sizeof(values)); 
        
