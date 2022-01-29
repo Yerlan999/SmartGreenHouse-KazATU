@@ -51,7 +51,7 @@ void loop() {
   while (Serial1.available() > 0){
     
     int inByte = Serial1.read();
-
+    
     if (inByte == 65){
       // Принятие флага о запросе значении датчиков
       
@@ -74,10 +74,11 @@ void loop() {
 
     }
     else{
+      Serial.println(inByte);
       actuatorsRecieved = true;
       Actuators[pointer] = inByte;
-      Serial.print("Passed: ");         // ХЗ почему, но без данного вывода на экран диоды не горят
-      Serial.println(pointer);      
+//      Serial.print("Passed: ");         // ХЗ почему, но без данного вывода на экран диоды не горят
+//      Serial.println(pointer);      
       pointer += 1;
     }
   }

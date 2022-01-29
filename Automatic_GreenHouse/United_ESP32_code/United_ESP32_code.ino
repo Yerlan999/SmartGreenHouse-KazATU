@@ -44,6 +44,8 @@ AsyncEventSource events("/events");
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 5000;    // КАЖДЫЕ 5 секунд
 
+bool startOfProgramm = false;
+
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
 String dayStamp;
@@ -86,6 +88,30 @@ void getDummySensorReadings(){
     light = 0;
 }
 
+void getSensorsReadings(){
+
+    Serial1.write('A');
+  
+    while (Serial1.available() > 0){
+      int inByte = Serial1.read();
+      Sensors[pointer] = inByte;
+      pointer += 1;
+    }
+  
+    temperature = Sensors[0];
+    humidity = Sensors[2];
+    light = Sensors[4];
+    moisture = Sensors[6];
+    water_temperature = Sensors[8];
+    pointer = 0;
+
+    if (temperature > 0){
+      digitalWrite(ONBOARD_LED,HIGH);
+      delay(200);
+      digitalWrite(ONBOARD_LED,LOW);
+    }
+
+}
 
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
 float stringToFloat(String s)
@@ -142,15 +168,18 @@ String processor(const String& var){
   
   // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
+    getSensorsReadings();
     return String(temperature);
   }
   else if(var == "DATETIME"){
     return String(DateTimeStamp);
   }
   else if(var == "HUMIDITY"){
+    getSensorsReadings();
     return String(humidity);
   }
   else if(var == "LIGHT"){
+    getSensorsReadings();
     return String(light);
   }
 
@@ -901,28 +930,9 @@ void loop() {
   if ((millis() - lastTime) > timerDelay) {
 
     getDateTime();
+    getSensorsReadings();
 
-    Serial1.write('A');
-  
-    while (Serial1.available() > 0){
-      int inByte = Serial1.read();
-//      Serial.println(inByte);
-      Sensors[pointer] = inByte;
-      pointer += 1;
-    }
-  
-    temperature = Sensors[0];
-    humidity = Sensors[2];
-    light = Sensors[4];
-    moisture = Sensors[6];
-    water_temperature = Sensors[8];
-    pointer = 0;
 
-    if (temperature > 0){
-      digitalWrite(ONBOARD_LED,HIGH);
-      delay(200);
-      digitalWrite(ONBOARD_LED,LOW);
-    }
     
     
     // Отправка и Обновление значении на Веб-странице
