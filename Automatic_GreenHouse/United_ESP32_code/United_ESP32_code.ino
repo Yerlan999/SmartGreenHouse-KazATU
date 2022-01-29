@@ -28,7 +28,7 @@ int water_temperature;
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* password = "";
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
@@ -57,6 +57,7 @@ const char* LIGHT_PARAM_INPUT1 = "new-light-value-time";
 const char* LIGHT_PARAM_INPUT2 = "new-light-value-duration";
 const char* LIGHT_PARAM_INPUT3 = "new-light-value";
 const char* LIGHT_PARAM_INPUT4 = "new-light-value-repeat";
+const char* TIME_PARAM_INPUT = "new-update-value";
 
 bool light_repeat = false;
 
@@ -264,6 +265,9 @@ String processor(const String& var){
       return String("card");
     }
     return String(is_temp_set);
+  }
+  else if (var == "UPDATE_SPAN"){
+    return String(timerDelay/1000);  
   };
   return String();
 }
@@ -536,57 +540,6 @@ const char settings_html[] PROGMEM = R"rawliteral(
     .card-set { background-color: #f7c3c3; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .cards { max-width: 800px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .reading { font-size: 1.4rem; }
-    .buttonOFF {
-        padding: 10px 20px;
-        font-size: 24px;
-        text-align: center;
-        outline: none;
-        color: #fff;
-        background-color: #2f4468;
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 6px #999;
-        cursor: pointer;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-tap-highlight-color: rgba(0,0,0,0);
-      }  
-    .buttonOFF:hover {background-color: #1f2e45}
-    .buttonOFF:active {
-        background-color: #1f2e45;
-        box-shadow: 0 4px #666;
-        transform: translateY(2px);
-      }  
-
-    .buttonON {
-        padding: 10px 20px;
-        font-size: 24px;
-        text-align: center;
-        outline: none;
-        color: #fff;
-        background-color: #dc143c;
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 6px #999;
-        cursor: pointer;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-tap-highlight-color: rgba(0,0,0,0);
-      }  
-    .buttonON:hover {background-color: #a61b36}
-    .buttonON:active {
-        background-color: #a61b36;
-        box-shadow: 0 4px #666;
-        transform: translateY(2px);
-    }
     
 .button-submmit {
   appearance: none;
@@ -671,6 +624,13 @@ const char settings_html[] PROGMEM = R"rawliteral(
     </div>
     
     <br><br>
+
+    <form id="update-form" class="" action="/getupd">
+      Интервал обновления(сек) : <input type="number" name="new-update-value" placeholder=%UPDATE_SPAN%>
+      <input id="update-value" class="button-submmit" type="submit" value="Задать">
+    </form>
+
+    <br><br>
     
     <button type="button" class="button-submmit"><a href="/">Главная</a></button>
 
@@ -746,6 +706,19 @@ void setup() {
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", settings_html, processor);
   });
+
+  // Задание значения интервала обновления показании датчиков
+  server.on("/getupd", HTTP_GET, [](AsyncWebServerRequest *request){
+    String new_update_span;
+    if (request->hasParam(TIME_PARAM_INPUT)) {
+        new_update_span = request->getParam(TIME_PARAM_INPUT)->value();
+        new_update_span = stringToInt(new_update_span)*1000;
+        timerDelay = stringToInt(new_update_span);
+    }
+        
+    request->send_P(200, "text/html", settings_html, processor);
+  });
+
   
   // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ  -- ЗАДАТЧИК
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
