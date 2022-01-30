@@ -25,10 +25,19 @@ int light;
 int moisture;
 int water_temperature;
 
+int dummy_temperature;
+int dummy_humidity;
+int dummy_light;
+int dummy_moisture;
+int dummy_water_temperature;
+
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "";
+const char* password = "DoesGodReallyExist404";
+
+const char* http_username = "admin";
+const char* http_password = "admin";
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
@@ -44,7 +53,7 @@ AsyncEventSource events("/events");
 unsigned long lastTime = 0;  
 unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
-bool startOfProgramm = false;
+bool startOfProgramm = true;
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -84,26 +93,29 @@ float temp_set_value_f;
 
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
 void getDummySensorReadings(){
-    humidity = 0;
-    temperature = 0;
-    light = 0;
+    humidity = dummy_humidity;
+    temperature = dummy_temperature;
+    light = dummy_light;
 }
 
 
 bool getFeedBack(){
   
-  while (Serial1.available()>1){
-    int feedBack = Serial1.read();
+  while (Serial1.available()>0){
+    bool feedBack = Serial1.read();
     
     Serial.print("FeedBack message: ");
     Serial.println(feedBack);
     
-    if (feedBack == 27 || feedBack == 28){
+    if (feedBack){
       return true;
     }
     else{
       return false;
     }  
+  }
+  while (Serial1.available()>0){
+    int bullshit = Serial1.read();
   }
 }
 
@@ -113,24 +125,30 @@ void getSensorsReadings(){
     Serial1.write('S');
   
     while (Serial1.available() > 0){
-      int inByte = Serial1.read();
-      Sensors[pointer] = inByte;
-      pointer += 1;
+      temperature = Serial1.read();
+      humidity = Serial1.read();
+      light = Serial1.read();
     }
-  
-    temperature = Sensors[0];
-    humidity = Sensors[2];
-    light = Sensors[4];
-    moisture = Sensors[6];
-    water_temperature = Sensors[8];
-    pointer = 0;
-
+    while (Serial1.available() > 0){
+      int bullshit = Serial1.read();
+    }
+    
+    Serial.println();
+    Serial.println("Recieved values: ");
+    Serial.println();
+    Serial.print("temperature: ");
+    Serial.println(temperature);
+    Serial.print("humidity: ");
+    Serial.println(humidity);    
+    Serial.print("light: ");
+    Serial.println(light);
+    
     if (temperature > 0){
       digitalWrite(ONBOARD_LED,HIGH);
       delay(200);
       digitalWrite(ONBOARD_LED,LOW);
     }
-
+    
 }
 
 
@@ -154,6 +172,11 @@ int stringToInt(String s)
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
+    
+    WiFi.onEvent(Wifi_connected,SYSTEM_EVENT_STA_CONNECTED);
+    WiFi.onEvent(Get_IPAddress, SYSTEM_EVENT_STA_GOT_IP);
+    WiFi.onEvent(Wifi_disconnected, SYSTEM_EVENT_STA_DISCONNECTED); 
+    
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 //    Serial.print("Connecting to WiFi ..");
@@ -167,19 +190,45 @@ void initWiFi() {
 }
 
 
+void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Successfully connected to Access Point");
+}
+
+void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("WIFI is connected!");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Disconnected from WIFI access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.disconnected.reason);
+  Serial.println("Reconnecting...");
+  WiFi.begin(ssid, password);
+}
+
+
 // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ ДАТЫ И ВРЕМЕНИ
 void getDateTime(){
 
-  while(!timeClient.update()) {
-    timeClient.forceUpdate();
+  if (WiFi.status() == WL_CONNECTED){
+    
+    while(!timeClient.update()) {
+      timeClient.forceUpdate();
+    }
+    formattedDate = timeClient.getFormattedDate();
+    
+    int splitT = formattedDate.indexOf("T");
+    dayStamp = formattedDate.substring(0, splitT);
+    // Extract time
+    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
+    DateTimeStamp = dayStamp + " // " + timeStamp;
   }
-  formattedDate = timeClient.getFormattedDate();
-  
-  int splitT = formattedDate.indexOf("T");
-  dayStamp = formattedDate.substring(0, splitT);
-  // Extract time
-  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
-  DateTimeStamp = dayStamp + " // " + timeStamp;
+  else{
+    DateTimeStamp = "Wi-Fi is lost";
+    // GET TIME INFORMATION FROM TIME MODULE OF ARDUINO
+  }
 }
 
 
@@ -191,18 +240,18 @@ String processor(const String& var){
   
   // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
-    getSensorsReadings();
+//    getSensorsReadings();
     return String(temperature);
   }
   else if(var == "DATETIME"){
     return String(DateTimeStamp);
   }
   else if(var == "HUMIDITY"){
-    getSensorsReadings();
+//    getSensorsReadings();
     return String(humidity);
   }
   else if(var == "LIGHT"){
-    getSensorsReadings();
+//    getSensorsReadings();
     return String(light);
   }
 
@@ -564,6 +613,13 @@ if (!!window.EventSource) {
   console.log("LOADED!!!");
 
  }, false);
+ 
+window.addEventListener('beforeunload', function (e) {  
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/logout", true);
+  xhr.send();
+});
+
 }
 
 </script>
@@ -681,7 +737,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
       Интервал обновления(сек) : <input type="number" name="new-update-value" placeholder=%UPDATE_SPAN%>
       <input id="update-value" class="button-submmit" type="submit" value="Задать">
     </form>
-
+    
     <br><br>
     
     <button type="button" class="button-submmit"><a href="/">Главная</a></button>
@@ -751,7 +807,13 @@ void setup() {
 
   // Главная страница
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, processor);
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
+      request->send_P(200, "text/html", index_html, processor);
+  });
+
+  server.on("/logout", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(401);
   });
   
   // Страница настроек
@@ -930,22 +992,19 @@ void setup() {
 // Главный цикл 
 void loop() {
   
-//  while (Serial1.available() > 0){
-//    int inByte = Serial1.read();
-//    if (inByte == 65){
-////      bool Success = true;
-//      Serial.println("Принято и обработано Arduino");      
-//    }
-//  }
-  
   if ((millis() - lastTime) > timerDelay) {
-
+    
+    if (WiFi.status() != WL_CONNECTED){
+      
+    }
+    
     getDateTime();
     getSensorsReadings();
-
-
     
-    
+    dummy_temperature = temperature;
+    dummy_humidity = humidity;
+    dummy_light = light;
+
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
     events.send(String(DateTimeStamp).c_str(),"datetime",millis());

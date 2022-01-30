@@ -27,11 +27,16 @@ bool moisture_state = false;
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void blinkLED(){
+
+void sendFeedBack(){
+  Serial1.write(1);
+  
   digitalWrite(LED_BUILTIN, HIGH);
   delay(500);
   digitalWrite(LED_BUILTIN, LOW);
+    
 }
+
 
 void setup() {
   pinMode(redLED,OUTPUT);
@@ -63,14 +68,10 @@ void loop() {
       moisture = 50;
       water_level = 5;
       
-      Sensors[0] = temperature;   
-      Sensors[1] = humidity;
-      Sensors[2] = pressure;
-      Sensors[3] = moisture;
-      Sensors[4] = water_level;
-      
       // Отправка показании датчиков на ESP32
-      Serial1.write((uint8_t*)Sensors, sizeof(Sensors));   // Отправка данных на ESP32 через "Serial Port"      
+      Serial1.write(temperature);
+      Serial1.write(humidity);
+      Serial1.write(100);
       break;
     }
     else if (inByte == 84){
@@ -80,8 +81,7 @@ void loop() {
         else{
           pump_state = true;
         }
-      Serial1.write('A');
-      blinkLED();
+      sendFeedBack();
       break;
     }
     else if (inByte == 76){
@@ -91,8 +91,7 @@ void loop() {
         else{
           air_heater_state = true;
         }
-      Serial1.write('A');
-      blinkLED();
+      sendFeedBack();
       break;
     }
     else if (inByte == 70){
@@ -102,8 +101,7 @@ void loop() {
         else{
           water_heater_state = true;
         }
-      Serial1.write('A');
-      blinkLED();
+      sendFeedBack();
       break;
     } 
  
@@ -114,7 +112,6 @@ void loop() {
   if(pump_state){digitalWrite(yellowLED, HIGH);}else{digitalWrite(yellowLED, LOW);}
   if(air_heater_state){digitalWrite(greenLED, HIGH);}else{digitalWrite(greenLED, LOW);}
   if(water_heater_state){digitalWrite(redLED, HIGH);}else{digitalWrite(redLED, LOW);}
-    
-    // Обратная связь с ESP32 о принятии и обработке данных управляющих воздействии
+   
 }   
   
