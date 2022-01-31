@@ -20,10 +20,6 @@ char datestring[20];
 int baud = 9600;
 int pointer = 0;
 
-// Тестовые данные для актуаторов.
-int Actuators[2];
-int Sensors[10];         // Для хранения значении датчиков с РЕАЛЬНЫМ типом данных
-
 // Для хранения значении с датчиков
 int temperature;
 int humidity;
@@ -110,7 +106,8 @@ void getDummySensorReadings(){
 
 bool getFeedBack(){
   
-  while (Serial1.available()>0){
+  delay(1000);
+  if (Serial1.available() == 2){
     bool feedBack = Serial1.read();
     
     Serial.print("FeedBack message: ");
@@ -129,8 +126,9 @@ bool getFeedBack(){
 void getSensorsReadings(){
 
     Serial1.write('S');
+    delay(1000);
     
-    while (Serial1.available()>2){
+    if (Serial1.available() > 5){
       temperature = Serial1.read();
       humidity = Serial1.read();
       light = Serial1.read();
@@ -224,7 +222,7 @@ void printDateTime(const RtcDateTime& dt)
       dt.Hour(),
       dt.Minute()
       );
-    Serial.print(datestring);
+//    Serial.print(datestring);
 }
 
 
@@ -243,17 +241,17 @@ void getDateTime(){
     // Extract time
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
     DateTimeStamp = dayStamp + " // " + timeStamp;
-    Serial.println("Relying on Wifi Time...");
-    Serial.println(DateTimeStamp);
+//    Serial.println("Relying on Wifi Time...");
+//    Serial.println(DateTimeStamp);
   }
   else{ 
     RtcDateTime now = Rtc.GetDateTime();
     printDateTime(now);
     DateTimeStamp = datestring;
     
-    Serial.println();
-    Serial.println("Relying on DS1302 Module...");
-    Serial.println(DateTimeStamp);
+//    Serial.println();
+//    Serial.println("Relying on DS1302 Module...");
+//    Serial.println(DateTimeStamp);
     
     if (!now.IsValid())
     {

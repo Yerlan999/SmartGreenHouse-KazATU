@@ -10,9 +10,6 @@
 
 int baud = 9600;
 
-// Тестовые данные датчиков.
-int Sensors[5];
-
 int temperature;
 int humidity;
 int pressure;
