@@ -72,7 +72,7 @@ void loop() {
       Serial1.write(temperature);
       Serial1.write(humidity);
       Serial1.write(100);
-      break;
+      
     }
     else if (inByte == 84){
       if (pump_state){

@@ -6,10 +6,16 @@
 #include <NTPClient.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+
 
 #define RXD2 16
 #define TXD2 17
 #define ONBOARD_LED  2
+#define countof(a) (sizeof(a) / sizeof(a[0]))
+
+char datestring[20];
 
 int baud = 9600;
 int pointer = 0;
@@ -34,7 +40,7 @@ int dummy_water_temperature;
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* password = "";
 
 const char* http_username = "admin";
 const char* http_password = "admin";
@@ -42,6 +48,9 @@ const char* http_password = "admin";
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
+
+ThreeWire myWire(18,19,5);
+RtcDS1302<ThreeWire> Rtc(myWire);
 
 // Создание AsyncWebServer объекта на порте 80
 AsyncWebServer server(80);
@@ -114,23 +123,17 @@ bool getFeedBack(){
       return false;
     }  
   }
-  while (Serial1.available()>0){
-    int bullshit = Serial1.read();
-  }
 }
 
 
 void getSensorsReadings(){
 
     Serial1.write('S');
-  
-    while (Serial1.available() > 0){
+    
+    while (Serial1.available()>2){
       temperature = Serial1.read();
       humidity = Serial1.read();
       light = Serial1.read();
-    }
-    while (Serial1.available() > 0){
-      int bullshit = Serial1.read();
     }
     
     Serial.println();
@@ -191,21 +194,37 @@ void initWiFi() {
 
 
 void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.println("Successfully connected to Access Point");
+//  Serial.println("Successfully connected to Access Point");
 }
 
 void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.println("WIFI is connected!");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+//  Serial.println("WIFI is connected!");
+//  Serial.println("IP address: ");
+//  Serial.println(WiFi.localIP());
 }
 
 void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.println("Disconnected from WIFI access point");
-  Serial.print("WiFi lost connection. Reason: ");
-  Serial.println(info.disconnected.reason);
-  Serial.println("Reconnecting...");
+//  Serial.println("Disconnected from WIFI access point");
+//  Serial.print("WiFi lost connection. Reason: ");
+//  Serial.println(info.disconnected.reason);
+//  Serial.println("Reconnecting...");
   WiFi.begin(ssid, password);
+}
+
+
+void printDateTime(const RtcDateTime& dt)
+{
+
+    snprintf_P(datestring, 
+      countof(datestring),
+      PSTR("%02u-%02u-%02u // %02u:%02u:"),
+      dt.Year(),
+      dt.Month(),
+      dt.Day(),
+      dt.Hour(),
+      dt.Minute()
+      );
+    Serial.print(datestring);
 }
 
 
@@ -224,10 +243,24 @@ void getDateTime(){
     // Extract time
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
     DateTimeStamp = dayStamp + " // " + timeStamp;
+    Serial.println("Relying on Wifi Time...");
+    Serial.println(DateTimeStamp);
   }
-  else{
-    DateTimeStamp = "Wi-Fi is lost";
-    // GET TIME INFORMATION FROM TIME MODULE OF ARDUINO
+  else{ 
+    RtcDateTime now = Rtc.GetDateTime();
+    printDateTime(now);
+    DateTimeStamp = datestring;
+    
+    Serial.println();
+    Serial.println("Relying on DS1302 Module...");
+    Serial.println(DateTimeStamp);
+    
+    if (!now.IsValid())
+    {
+        // Common Causes:
+        //    1) the battery on the device is low or even missing and the power line was disconnected
+        Serial.println("RTC lost confidence in the DateTime!");
+    }
   }
 }
 
@@ -803,6 +836,50 @@ void setup() {
   
   pinMode(ONBOARD_LED,OUTPUT); 
 
+  Serial.print("compiled: ");
+  Serial.print(__DATE__);
+  Serial.println(__TIME__);
+  Rtc.Begin();
+  RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+  printDateTime(compiled);
+  Serial.println();
+
+  if (!Rtc.IsDateTimeValid()) 
+  {
+      // Common Causes:
+      //    1) first time you ran and the device wasn't running yet
+      //    2) the battery on the device is low or even missing
+
+      Serial.println("RTC lost confidence in the DateTime!");
+      Rtc.SetDateTime(compiled);
+  }
+
+  if (Rtc.GetIsWriteProtected())
+  {
+      Serial.println("RTC was write protected, enabling writing now");
+      Rtc.SetIsWriteProtected(false);
+  }
+
+  if (!Rtc.GetIsRunning())
+  {
+      Serial.println("RTC was not actively running, starting now");
+      Rtc.SetIsRunning(true);
+  }
+
+  RtcDateTime now = Rtc.GetDateTime();
+  if (now < compiled) 
+  {
+      Serial.println("RTC is older than compile time!  (Updating DateTime)");
+      Rtc.SetDateTime(compiled);
+  }
+  else if (now > compiled) 
+  {
+      Serial.println("RTC is newer than compile time. (this is expected)");
+  }
+  else if (now == compiled) 
+  {
+      Serial.println("RTC is the same as compile time! (not expected but all is fine)");
+  }  
 
 
   // Главная страница

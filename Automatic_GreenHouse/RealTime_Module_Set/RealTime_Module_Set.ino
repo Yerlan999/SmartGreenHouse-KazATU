@@ -21,30 +21,13 @@ const int kSclkPin = 7;  // Serial Clock
 // Create a DS1302 object.
 DS1302 rtc(kCePin, kIoPin, kSclkPin);
 
-String dayAsString(const Time::Day day) {
-  switch (day) {
-    case Time::kSunday: return "Sunday";
-    case Time::kMonday: return "Monday";
-    case Time::kTuesday: return "Tuesday";
-    case Time::kWednesday: return "Wednesday";
-    case Time::kThursday: return "Thursday";
-    case Time::kFriday: return "Friday";
-    case Time::kSaturday: return "Saturday";
-  }
-  return "(unknown day)";
-}
-
 void printTime() {
   // Get the current time and date from the chip.
   Time t = rtc.time();
 
-  // Name the day of the week.
-  const String day = dayAsString(t.day);
-
   // Format the time and date and insert into the temporary buffer.
   char buf[50];
-  snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d %02d:%02d:%02d",
-           day.c_str(),
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
            t.yr, t.mon, t.date,
            t.hr, t.min, t.sec);
 
@@ -65,7 +48,7 @@ void setup() {
 
   // Make a new time object to set the date and time.
   // Sunday, September 22, 2013 at 01:38:50.
-  Time t(2021, 9, 27, 14, 42, 00, Time::kMonday);
+  Time t(2022, 1, 31, 18, 00, 00);
 
   // Set the time and date on the chip.
   rtc.time(t);
