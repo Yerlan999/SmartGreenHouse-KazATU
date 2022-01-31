@@ -106,9 +106,10 @@ void getDummySensorReadings(){
 
 bool getFeedBack(){
   
-  delay(1000);
+  delay(500);
   if (Serial1.available() == 2){
     bool feedBack = Serial1.read();
+    bool grepper1 = Serial1.read();
     
     Serial.print("FeedBack message: ");
     Serial.println(feedBack);
@@ -126,23 +127,27 @@ bool getFeedBack(){
 void getSensorsReadings(){
 
     Serial1.write('S');
-    delay(1000);
+    delay(500);
     
     if (Serial1.available() > 5){
       temperature = Serial1.read();
       humidity = Serial1.read();
       light = Serial1.read();
+      int garbage1 = Serial1.read();
+      int garbage2 = Serial1.read();
+      int garbage3 = Serial1.read();
+      
+      Serial.println();
+      Serial.println("Recieved values: ");
+      Serial.println();
+      Serial.print("temperature: ");
+      Serial.println(temperature);
+      Serial.print("humidity: ");
+      Serial.println(humidity);    
+      Serial.print("light: ");
+      Serial.println(light);
     }
-    
-    Serial.println();
-    Serial.println("Recieved values: ");
-    Serial.println();
-    Serial.print("temperature: ");
-    Serial.println(temperature);
-    Serial.print("humidity: ");
-    Serial.println(humidity);    
-    Serial.print("light: ");
-    Serial.println(light);
+   
     
     if (temperature > 0){
       digitalWrite(ONBOARD_LED,HIGH);
