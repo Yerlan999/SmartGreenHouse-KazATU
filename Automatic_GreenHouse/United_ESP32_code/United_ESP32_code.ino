@@ -34,11 +34,11 @@ int dummy_water_temperature;
 
 
 // Параметры сети WI-FI
-const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* ssid = "";
+const char* password = "";
 
-const char* http_username = "admin";
-const char* http_password = "admin";
+const char* http_username = "";
+const char* http_password = "";
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
@@ -642,11 +642,11 @@ if (!!window.EventSource) {
 
  }, false);
  
-window.addEventListener('beforeunload', function (e) {  
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/logout", true);
-  xhr.send();
-});
+//window.addEventListener('beforeunload', function (e) {  
+//  var xhr = new XMLHttpRequest();
+//  xhr.open("GET", "/logout", true);
+//  xhr.send();
+//});
 
 }
 
@@ -850,8 +850,8 @@ void setup() {
 
   // Главная страница
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-//    if(!request->authenticate(http_username, http_password))
-//      return request->requestAuthentication();
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
       request->send_P(200, "text/html", index_html, processor);
   });
 

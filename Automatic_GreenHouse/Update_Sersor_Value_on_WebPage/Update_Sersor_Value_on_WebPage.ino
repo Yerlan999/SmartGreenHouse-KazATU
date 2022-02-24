@@ -8,7 +8,7 @@
 #include <Adafruit_Sensor.h>
 
 // Параметры сети WI-FI
-const char* ssid = "Le petit dejeuner 2";
+const char* ssid = "";
 const char* password = "";
 
 // Объявление объекта NTP Client для получения времени 
