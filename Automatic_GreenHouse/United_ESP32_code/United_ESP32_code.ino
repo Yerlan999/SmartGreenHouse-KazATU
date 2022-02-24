@@ -6,8 +6,7 @@
 #include <NTPClient.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
-#include <ThreeWire.h>  
-#include <RtcDS1302.h>
+#include "RTClib.h"
 
 
 #define RXD2 16
@@ -36,7 +35,7 @@ int dummy_water_temperature;
 
 // Параметры сети WI-FI
 const char* ssid = "Le petit dejeuner 2";
-const char* password = "";
+const char* password = "DoesGodReallyExist404";
 
 const char* http_username = "admin";
 const char* http_password = "admin";
@@ -45,8 +44,7 @@ const char* http_password = "admin";
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 
-ThreeWire myWire(18,19,5);
-RtcDS1302<ThreeWire> Rtc(myWire);
+RTC_DS3231 rtc;
 
 // Создание AsyncWebServer объекта на порте 80
 AsyncWebServer server(80);
@@ -215,17 +213,17 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
 }
 
 
-void printDateTime(const RtcDateTime& dt)
+void printDateTime(const DateTime& dt)
 {
 
     snprintf_P(datestring, 
       countof(datestring),
       PSTR("%02u-%02u-%02u // %02u:%02u:"),
-      dt.Year(),
-      dt.Month(),
-      dt.Day(),
-      dt.Hour(),
-      dt.Minute()
+      dt.year(),
+      dt.month(),
+      dt.day(),
+      dt.hour(),
+      dt.minute()
       );
 //    Serial.print(datestring);
 }
@@ -246,24 +244,18 @@ void getDateTime(){
     // Extract time
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
     DateTimeStamp = dayStamp + " // " + timeStamp;
-//    Serial.println("Relying on Wifi Time...");
-//    Serial.println(DateTimeStamp);
+    Serial.println("Relying on Wifi Time...");
+    Serial.println(DateTimeStamp);
   }
   else{ 
-    RtcDateTime now = Rtc.GetDateTime();
+    DateTime now = rtc.now();
     printDateTime(now);
     DateTimeStamp = datestring;
     
 //    Serial.println();
-//    Serial.println("Relying on DS1302 Module...");
-//    Serial.println(DateTimeStamp);
+    Serial.println("Relying on DS1302 Module...");
+    Serial.println(DateTimeStamp);
     
-    if (!now.IsValid())
-    {
-        // Common Causes:
-        //    1) the battery on the device is low or even missing and the power line was disconnected
-        Serial.println("RTC lost confidence in the DateTime!");
-    }
   }
 }
 
@@ -559,7 +551,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_LIGHT_SET%>
           <p>%LIGHT_SET_VALUE%</p>
-          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="light">%LIGHT%</span> lux</span></p>
+          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЕЩЕНИЕ</p><p><span class="reading"><span id="light">%LIGHT%</span> lux</span></p>
         </div>
     </div>
     
@@ -578,7 +570,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     <br><br>
     
-    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЯЩЕНИЯ -->
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЕЩЕНИЯ -->
     
     <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
       Начало: <input type="time" id="time" name="new-light-value-time">
@@ -763,7 +755,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_LIGHT_SET%>
           <p>%LIGHT_SET_VALUE%</p>
-          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЯЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
+          <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЕЩЕНИЕ</p><p><span class="reading"><span id="pres">%LIGHT%</span> lux</span></p>
         </div>
     </div>
     
@@ -839,56 +831,27 @@ void setup() {
   
   pinMode(ONBOARD_LED,OUTPUT); 
 
-  Serial.print("compiled: ");
-  Serial.print(__DATE__);
-  Serial.println(__TIME__);
-  Rtc.Begin();
-  RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
-  printDateTime(compiled);
-  Serial.println();
-
-  if (!Rtc.IsDateTimeValid()) 
-  {
-      // Common Causes:
-      //    1) first time you ran and the device wasn't running yet
-      //    2) the battery on the device is low or even missing
-
-      Serial.println("RTC lost confidence in the DateTime!");
-      Rtc.SetDateTime(compiled);
+  delay(3000); // wait for console opening
+ 
+  if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1);
   }
-
-  if (Rtc.GetIsWriteProtected())
-  {
-      Serial.println("RTC was write protected, enabling writing now");
-      Rtc.SetIsWriteProtected(false);
-  }
-
-  if (!Rtc.GetIsRunning())
-  {
-      Serial.println("RTC was not actively running, starting now");
-      Rtc.SetIsRunning(true);
-  }
-
-  RtcDateTime now = Rtc.GetDateTime();
-  if (now < compiled) 
-  {
-      Serial.println("RTC is older than compile time!  (Updating DateTime)");
-      Rtc.SetDateTime(compiled);
-  }
-  else if (now > compiled) 
-  {
-      Serial.println("RTC is newer than compile time. (this is expected)");
-  }
-  else if (now == compiled) 
-  {
-      Serial.println("RTC is the same as compile time! (not expected but all is fine)");
+ 
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, lets set the time!");
+    // following line sets the RTC to the date &amp; time this sketch was compiled
+    rtc.adjust(DateTime(__DATE__, __TIME__));
+    // This line sets the RTC with an explicit date &amp; time, for example to set
+    // January 21, 2014 at 3am you would call:
+    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }  
 
 
   // Главная страница
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    if(!request->authenticate(http_username, http_password))
-      return request->requestAuthentication();
+//    if(!request->authenticate(http_username, http_password))
+//      return request->requestAuthentication();
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -913,13 +876,13 @@ void setup() {
   });
 
   
-  // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ  -- ЗАДАТЧИК
+  // Задание значения для СИСТЕМЫ ОСВЕЩЕНИЯ  -- ЗАДАТЧИК
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_time;
     String light_message_duration;
     String light_message_repeat;
       
-    // Контроль ОСВЯЩЕНИЯ
+    // Контроль ОСВЕЩЕНИЯ
     if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
         light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
         light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
@@ -955,7 +918,7 @@ void setup() {
   });
 
 
-  // Задание значения для СИСТЕМЫ ОСВЯЩЕНИЯ -- ВКЛ/ВЫКЛ
+  // Задание значения для СИСТЕМЫ ОСВЕЩЕНИЯ -- ВКЛ/ВЫКЛ
   server.on("/getlighttog", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_toggle;
               
