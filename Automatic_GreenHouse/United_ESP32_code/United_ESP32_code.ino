@@ -34,11 +34,20 @@ int dummy_water_temperature;
 
 
 // Параметры сети WI-FI
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "Le petit dejeuner 2";
+const char* password = "DoesGodReallyExist404";
 
-const char* http_username = "";
-const char* http_password = "";
+const char* http_username = "micro";
+const char* http_password = "micro";
+
+// Назначение статического IP адреса
+IPAddress local_IP(192, 168, 72, 248);
+IPAddress gateway(192, 168, 1, 1);
+
+IPAddress subnet(255, 255, 255, 255);
+IPAddress primaryDNS(8, 8, 8, 8);  
+IPAddress secondaryDNS(8, 8, 4, 4);
+
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
@@ -176,7 +185,12 @@ int stringToInt(String s)
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
-    
+  
+  // Применение конфигурации для IP адреса
+//  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+//    Serial.println("STA Failed to configure");
+//  }
+
     WiFi.onEvent(Wifi_connected,SYSTEM_EVENT_STA_CONNECTED);
     WiFi.onEvent(Get_IPAddress, SYSTEM_EVENT_STA_GOT_IP);
     WiFi.onEvent(Wifi_disconnected, SYSTEM_EVENT_STA_DISCONNECTED); 
