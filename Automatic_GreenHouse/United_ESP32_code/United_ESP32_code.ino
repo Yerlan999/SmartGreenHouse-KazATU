@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <AsyncTCP.h>
 #include <NTPClient.h>
+#include <LiquidCrystal_I2C.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
 #include "RTClib.h"
@@ -39,6 +40,9 @@ const char* password = "DoesGodReallyExist404";
 
 const char* http_username = "micro";
 const char* http_password = "micro";
+
+// Объявление объекта LCD дисплея
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Назначение статического IP адреса
 IPAddress local_IP(192, 168, 72, 248);
@@ -202,6 +206,10 @@ void initWiFi() {
 //        Serial.print('.');
         delay(1000);
     }
+
+    lcd.setCursor(0, 0);  
+    lcd.print(WiFi.localIP());
+
 //    Serial.println(WiFi.localIP());
     timeClient.begin();
     timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
@@ -841,6 +849,12 @@ void notFound(AsyncWebServerRequest *request) {
 void setup() {
   Serial.begin(baud, SERIAL_8N1);               // Для вывода на монитор                          
   Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
+  
+  // Инициализация LCD дисплея
+  lcd.init();
+  lcd.backlight();
+  
+  // Инициализация WIFI
   initWiFi();
   
   pinMode(ONBOARD_LED,OUTPUT); 
@@ -1062,6 +1076,13 @@ void loop() {
     dummy_humidity = humidity;
     dummy_light = light;
 
+    lcd.clear();
+    lcd.setCursor(0, 0);  
+    lcd.print(WiFi.localIP());
+    lcd.setCursor(0, 3);  
+    lcd.print(DateTimeStamp);
+      
+    
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
     events.send(String(DateTimeStamp).c_str(),"datetime",millis());
