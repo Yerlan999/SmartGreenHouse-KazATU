@@ -2,3 +2,7 @@
 //    Serial.printf("Humidity = %.2f \n", humidity);
 //    Serial.printf("Light = %.2f lux \n", light);
 //    Serial.println();
+
+
+0x57
+0x68
