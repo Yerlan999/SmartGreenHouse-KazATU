@@ -12,9 +12,9 @@ int baud = 9600;
 
 int temperature;
 int humidity;
-int pressure;
+int light;
 int moisture;
-int water_level;
+int water_temperature;
 
 bool pump_state = false;
 bool air_heater_state = false;
@@ -49,29 +49,45 @@ void setup() {
 
 
 void loop() {
-   
+
+  // Когда получаю сигнал от ESP32...
   while (Serial1.available() > 0){
     
     int inByte = Serial1.read();
     Serial.print("Incoming byte: ");
     Serial.println(inByte);
 
-    if (inByte == 83){
+    if (inByte == 83){ // "S" == 083 в ASCII 
       // Принятие флага о запросе значении датчиков
       
       temperature = dht.readTemperature();
       humidity = dht.readHumidity();
-      pressure = 100;
+      light = 100;
       moisture = 50;
-      water_level = 5;
+      water_temperature = 5;
       
       // Отправка показании датчиков на ESP32
       Serial1.write(temperature);
       Serial1.write(humidity);
-      Serial1.write(100);
+      Serial1.write(light);
+
+      // Сверка отправленных данных на ESP32
+      Serial.println();
+      Serial.println("Sent values: ");
+      Serial.println();
+      Serial.print("temperature: ");
+      Serial.println(temperature);
+      Serial.print("humidity: ");
+      Serial.println(humidity);    
+      Serial.print("light: ");
+      Serial.println(light);
+
       
     }
-    else if (inByte == 84){
+
+    // Принятие флага о ВКЛ/ВЫКЛ реле
+    
+    else if (inByte == 84){ // "T" == 083 в ASCII
       if (pump_state){
           pump_state = false;
         }
@@ -81,7 +97,7 @@ void loop() {
       sendFeedBack();
       break;
     }
-    else if (inByte == 76){
+    else if (inByte == 76){ // "L" == 083 в ASCII
       if (air_heater_state){
           air_heater_state = false;
         }
@@ -91,7 +107,7 @@ void loop() {
       sendFeedBack();
       break;
     }
-    else if (inByte == 70){
+    else if (inByte == 70){ // "F" == 083 в ASCII
       if (water_heater_state){
           water_heater_state = false;
         }

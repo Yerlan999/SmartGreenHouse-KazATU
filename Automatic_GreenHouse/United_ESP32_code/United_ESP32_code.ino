@@ -67,7 +67,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
+unsigned long timerDelay = 10000;    // КАЖДЫЕ 10 секунд
 
 bool startOfProgramm = true;
 
@@ -77,6 +77,7 @@ String dayStamp;
 String timeStamp;
 String DateTimeStamp;
 
+// Используются для вывода переданных со страницы данных
 const char* FAN_PARAM_INPUT = "new-fan-value";
 const char* TEMP_PARAM_INPUT1 = "new-temp-value";
 const char* TEMP_PARAM_INPUT2 = "new-temp-value-tog";
@@ -118,13 +119,17 @@ void getDummySensorReadings(){
 bool getFeedBack(){
   
   delay(500);
-  if (Serial1.available() == 2){
+  if (Serial1.available() > 0){
     bool feedBack = Serial1.read();
     bool grepper1 = Serial1.read();
+    bool grepper2 = Serial1.read();
+    bool grepper3 = Serial1.read();
+    bool grepper4 = Serial1.read();
+    bool grepper5 = Serial1.read();
     
     Serial.print("FeedBack message: ");
     Serial.println(feedBack);
-    
+
     if (feedBack){
       return true;
     }
@@ -138,9 +143,9 @@ bool getFeedBack(){
 void getSensorsReadings(){
 
     Serial1.write('S');
-    delay(500);
+//    delay(500);
     
-    if (Serial1.available() > 5){
+    if (Serial1.available() > 0){
       temperature = Serial1.read();
       humidity = Serial1.read();
       light = Serial1.read();
@@ -160,7 +165,7 @@ void getSensorsReadings(){
     }
    
     
-    if (temperature > 0){
+    if (temperature + humidity + light > 0){
       digitalWrite(ONBOARD_LED,HIGH);
       delay(200);
       digitalWrite(ONBOARD_LED,LOW);
@@ -206,7 +211,8 @@ void initWiFi() {
 //        Serial.print('.');
         delay(1000);
     }
-
+    
+    // Вывод IP адреса на LCD дисплей
     lcd.setCursor(0, 0);  
     lcd.print(WiFi.localIP());
 
@@ -859,7 +865,7 @@ void setup() {
   
   pinMode(ONBOARD_LED,OUTPUT); 
 
-  delay(3000); // wait for console opening
+  delay(3000);
  
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -868,10 +874,10 @@ void setup() {
  
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, lets set the time!");
-    // following line sets the RTC to the date &amp; time this sketch was compiled
+    // Задать время для модуля через время системы (ОС) при загрузке скетча
     rtc.adjust(DateTime(__DATE__, __TIME__));
-    // This line sets the RTC with an explicit date &amp; time, for example to set
-    // January 21, 2014 at 3am you would call:
+    // Задать время для модуля вручную
+    // Январь 21, 2014 и 3 часа ночи:
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }  
 
@@ -972,6 +978,11 @@ void setup() {
   });
 
 
+
+// *****************************************************************************************************
+// *****************************************************************************************************
+
+
   // Задание значения для СИСТЕМЫ ОТОПЛЕНИЯ
   server.on("/gettemp", HTTP_GET, [](AsyncWebServerRequest *request){
       String temp_message;
@@ -1023,6 +1034,10 @@ void setup() {
   });
 
 
+// *****************************************************************************************************
+// *****************************************************************************************************
+
+
   // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА
   server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
       String fan_message;
@@ -1062,13 +1077,11 @@ void setup() {
 
 // Главный цикл 
 void loop() {
-  
+
+  // Сверка значении датчиков и обновление страницы каждые timerDelay секунд (настраиваемые).
   if ((millis() - lastTime) > timerDelay) {
     
-    if (WiFi.status() != WL_CONNECTED){
-      
-    }
-    
+    // Получение данных о времени и значении с датчиковы
     getDateTime();
     getSensorsReadings();
     
@@ -1076,12 +1089,18 @@ void loop() {
     dummy_humidity = humidity;
     dummy_light = light;
 
+    // Вывод IP адреса и времени на LCD дисплей
     lcd.clear();
     lcd.setCursor(0, 0);  
     lcd.print(WiFi.localIP());
     lcd.setCursor(0, 3);  
     lcd.print(DateTimeStamp);
-      
+
+    // DEBUGGING PART
+    if (is_temp_set){
+      Serial.println(temp_set_value_f);
+    }
+    // DEBUGGING PART
     
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
