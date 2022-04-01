@@ -54,8 +54,8 @@ void loop() {
   while (Serial1.available() > 0){
     
     int inByte = Serial1.read();
-    Serial.print("Incoming byte: ");
-    Serial.println(inByte);
+//    Serial.print("Incoming byte: ");
+//    Serial.println(inByte);
 
     if (inByte == 83){ // "S" == 083 в ASCII 
       // Принятие флага о запросе значении датчиков
@@ -71,47 +71,75 @@ void loop() {
       Serial1.write(humidity);
       Serial1.write(light);
 
-      // Сверка отправленных данных на ESP32
-      Serial.println();
-      Serial.println("Sent values: ");
-      Serial.println();
-      Serial.print("temperature: ");
-      Serial.println(temperature);
-      Serial.print("humidity: ");
-      Serial.println(humidity);    
-      Serial.print("light: ");
-      Serial.println(light);
+//      // Сверка отправленных данных на ESP32
+//      Serial.println();
+//      Serial.println("Sent values: ");
+//      Serial.println();
+//      Serial.print("temperature: ");
+//      Serial.println(temperature);
+//      Serial.print("humidity: ");
+//      Serial.println(humidity);    
+//      Serial.print("light: ");
+//      Serial.println(light);
 
       
     }
 
     // Принятие флага о ВКЛ/ВЫКЛ реле
     
-    else if (inByte == 84){ // "T" == 083 в ASCII
+    else if (inByte == 84){ // "T" == 084 в ASCII
       if (pump_state){
           pump_state = false;
         }
-        else{
+      else{
           pump_state = true;
         }
       sendFeedBack();
       break;
     }
-    else if (inByte == 76){ // "L" == 083 в ASCII
+    else if (inByte == 97){
+      pump_state = true;
+      sendFeedBack();
+      break;
+    }
+    else if (inByte == 98){
+      pump_state = false;
+      sendFeedBack();
+      break;
+    }
+    
+    
+    
+    
+    else if (inByte == 76){ // "L" == 076 в ASCII
       if (air_heater_state){
           air_heater_state = false;
         }
-        else{
+      else{
           air_heater_state = true;
         }
       sendFeedBack();
       break;
     }
-    else if (inByte == 70){ // "F" == 083 в ASCII
+    else if (inByte == 99){
+      air_heater_state = false;
+      sendFeedBack();
+      break;  
+    }
+    else if (inByte == 100){
+      air_heater_state = true;
+      sendFeedBack();
+      break;  
+    }
+    
+    
+    
+    
+    else if (inByte == 70){ // "F" == 070 в ASCII
       if (water_heater_state){
           water_heater_state = false;
         }
-        else{
+      else{
           water_heater_state = true;
         }
       sendFeedBack();
@@ -122,9 +150,9 @@ void loop() {
 
     
   // !!! Исполнение управляющих воздействии от ESP32 !!!
-  if(pump_state){digitalWrite(yellowLED, HIGH);}else{digitalWrite(yellowLED, LOW);}
-  if(air_heater_state){digitalWrite(greenLED, HIGH);}else{digitalWrite(greenLED, LOW);}
-  if(water_heater_state){digitalWrite(redLED, HIGH);}else{digitalWrite(redLED, LOW);}
+  if(pump_state){digitalWrite(yellowLED, LOW);}else{digitalWrite(yellowLED, HIGH);}
+  if(air_heater_state){digitalWrite(greenLED, LOW);}else{digitalWrite(greenLED, HIGH);}
+  if(water_heater_state){digitalWrite(redLED, LOW);}else{digitalWrite(redLED, HIGH);}
    
 }   
   

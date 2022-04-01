@@ -127,8 +127,8 @@ bool getFeedBack(){
     bool grepper4 = Serial1.read();
     bool grepper5 = Serial1.read();
     
-    Serial.print("FeedBack message: ");
-    Serial.println(feedBack);
+//    Serial.print("FeedBack message: ");
+//    Serial.println(feedBack);
 
     if (feedBack){
       return true;
@@ -153,15 +153,15 @@ void getSensorsReadings(){
       int garbage2 = Serial1.read();
       int garbage3 = Serial1.read();
       
-      Serial.println();
-      Serial.println("Recieved values: ");
-      Serial.println();
-      Serial.print("temperature: ");
-      Serial.println(temperature);
-      Serial.print("humidity: ");
-      Serial.println(humidity);    
-      Serial.print("light: ");
-      Serial.println(light);
+//      Serial.println();
+//      Serial.println("Recieved values: ");
+//      Serial.println();
+//      Serial.print("temperature: ");
+//      Serial.println(temperature);
+//      Serial.print("humidity: ");
+//      Serial.println(humidity);    
+//      Serial.print("light: ");
+//      Serial.println(light);
     }
    
     
@@ -272,8 +272,8 @@ void getDateTime(){
     // Extract time
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
     DateTimeStamp = dayStamp + " // " + timeStamp;
-    Serial.println("Relying on Wifi Time...");
-    Serial.println(DateTimeStamp);
+//    Serial.println("Relying on Wifi Time...");
+//    Serial.println(DateTimeStamp);
   }
   else{ 
     DateTime now = rtc.now();
@@ -281,8 +281,8 @@ void getDateTime(){
     DateTimeStamp = datestring;
     
 //    Serial.println();
-    Serial.println("Relying on DS1302 Module...");
-    Serial.println(DateTimeStamp);
+//    Serial.println("Relying on DS1302 Module...");
+//    Serial.println(DateTimeStamp);
     
   }
 }
@@ -665,6 +665,11 @@ if (!!window.EventSource) {
   document.getElementById("light").innerHTML = e.data;
  }, false);
 
+source.addEventListener('refresher', function(e) {
+  console.log("myevent", e.data);
+  window.location = '/';
+  }, false)
+
  document.addEventListener('DOMContentLoaded', function(e){
   console.log("LOADED!!!");
 
@@ -868,12 +873,12 @@ void setup() {
   delay(3000);
  
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+//    Serial.println("Couldn't find RTC");
     while (1);
   }
  
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, lets set the time!");
+//    Serial.println("RTC lost power, lets set the time!");
     // Задать время для модуля через время системы (ОС) при загрузке скетча
     rtc.adjust(DateTime(__DATE__, __TIME__));
     // Задать время для модуля вручную
@@ -1028,6 +1033,7 @@ void setup() {
                 temp_button_state = true;
               }
             }      
+          temp_set_value_f = 0.00;
           }
       };
       request->send_P(200, "text/html", index_html, processor);
@@ -1096,11 +1102,25 @@ void loop() {
     lcd.setCursor(0, 3);  
     lcd.print(DateTimeStamp);
 
+
     // DEBUGGING PART
-    if (is_temp_set){
-      Serial.println(temp_set_value_f);
+
+    Serial.println(temp_set_value_f);
+    if (temp_set_value_f != 0){
+      if (temp_set_value_f <= temperature){
+       
+        Serial1.write('b');
+        temp_button_state = false;
+        is_temp_set = false;
+        events.send("Refresh the page","refresher",millis());        
+      }
+//      else{
+//        Serial1.write('d');
+//      }
     }
+    
     // DEBUGGING PART
+
     
     // Отправка и Обновление значении на Веб-странице
     events.send("ping",NULL,millis());    
