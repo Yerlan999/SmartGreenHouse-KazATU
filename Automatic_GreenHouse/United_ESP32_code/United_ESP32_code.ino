@@ -642,37 +642,45 @@ if (!!window.EventSource) {
  }, false);
  
  source.addEventListener('message', function(e) {
-  console.log("message", e.data);
+//  console.log("message", e.data);
  }, false);
 
  source.addEventListener('datetime', function(e) {
-  console.log("datetime", e.data);
+//  console.log("datetime", e.data);
   document.getElementById("datetime").innerHTML = e.data;
  }, false);
 
  source.addEventListener('temperature', function(e) {
-  console.log("temperature", e.data);
+//  console.log("temperature", e.data);
   document.getElementById("temp").innerHTML = e.data;
  }, false);
  
  source.addEventListener('humidity', function(e) {
-  console.log("humidity", e.data);
+//  console.log("humidity", e.data);
   document.getElementById("hum").innerHTML = e.data;
  }, false);
  
  source.addEventListener('light', function(e) {
-  console.log("light", e.data);
+//  console.log("light", e.data);
   document.getElementById("light").innerHTML = e.data;
  }, false);
 
 source.addEventListener('refresher', function(e) {
-  console.log("myevent", e.data);
+//  console.log("myevent", e.data);
   window.location = '/';
   }, false)
 
  document.addEventListener('DOMContentLoaded', function(e){
   console.log("LOADED!!!");
-
+  console.log(document.URL);
+  console.log(document.URL.slice(0, 22));
+  
+  if (document.URL.length > 22){
+    window.location = '/';
+  }
+  else{
+    console.log("shorter than 22");  
+  }
  }, false);
  
 //window.addEventListener('beforeunload', function (e) {  
