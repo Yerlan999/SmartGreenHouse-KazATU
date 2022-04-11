@@ -801,7 +801,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_WATER_SET%>
           <p>%WATER_SET_VALUE%</p>
-          <p><i class="fa fa-shower" style="color:#00add6;"></i> ПОЛИВ</p><p><span class="reading"><span id="water">%WATER%</span> ед.</span></p>
+          <p><i class="fa fa-shower" style="color:#00add6;"></i> ПОЛИВ</p><p><span class="reading"><span id="water">%WATER%</span> л.</span></p>
         </div>
         <div class=%IS_CARBON_SET%>
           <p><i class="fa fa-leaf" style="color:#059e8a;"></i> СОДЕРЖАНИЕ CO2</p><p><span class="reading"><span id="carbon">%CARBON%</span><span>%CARBON_SET_VALUE%</span> &percnt;</span></p>
@@ -810,7 +810,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <p><i class="fas fa-water" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_temp">%WATER_TEMP%</span><span>%WATER_TEMP_SET_VALUE%</span> &deg;C</span></p>
         </div>   
         <div class=%IS_WATER_LEVEL_SET%>
-          <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> ед.</span></p>
+          <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> л.</span></p>
         </div>       
     </div>
     
@@ -1098,7 +1098,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_WATER_SET%>
           <p>%WATER_SET_VALUE%</p>
-          <p><i class="fa fa-shower" style="color:#00add6;"></i> ПОЛИВ</p><p><span class="reading"><span id="water">%WATER%</span> ед.</span></p>
+          <p><i class="fa fa-shower" style="color:#00add6;"></i> ПОЛИВ</p><p><span class="reading"><span id="water">%WATER%</span> л.</span></p>
         </div>
         <div class=%IS_CARBON_SET%>
           <p><i class="fa fa-leaf" style="color:#059e8a;"></i> СОДЕРЖАНИЕ CO2</p><p><span class="reading"><span id="carbon">%CARBON%</span><span>%CARBON_SET_VALUE%</span> &percnt;</span></p>
@@ -1107,7 +1107,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
           <p><i class="fas fa-water" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_temp">%WATER_TEMP%</span><span>%WATER_TEMP_SET_VALUE%</span> &deg;C</span></p>
         </div>   
         <div class=%IS_WATER_LEVEL_SET%>
-          <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> ед.</span></p>
+          <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> л.</span></p>
         </div>       
     </div>
     
@@ -1316,7 +1316,7 @@ void setup() {
         if (water_message_time != "" && water_message_duration != ""){
           
           if (!water_button_state && !is_water_set){
-            Serial1.write('Z');  
+            Serial1.write('W');  
           }
           
           if (getFeedBack()){
@@ -1352,7 +1352,7 @@ void setup() {
         water_message_toggle = request->getParam(WATER_PARAM_INPUT3)->value();
     }
 
-    Serial1.write('Z');
+    Serial1.write('W');
       
     if (getFeedBack()){
     
@@ -1489,7 +1489,7 @@ void setup() {
           carbon_set_value_f = stringToFloat(carbon_message);
           
           if (!carbon_button_state && !is_carbon_set){
-            Serial1.write('W');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.write('C');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -1506,7 +1506,7 @@ void setup() {
       else if (request->hasParam(CARBON_PARAM_INPUT2)) {
           carbon_message = request->getParam(CARBON_PARAM_INPUT2)->value();
 
-          Serial1.write('W');
+          Serial1.write('C');
            
           if (getFeedBack()){
           
@@ -1541,7 +1541,7 @@ void setup() {
           water_temp_set_value_f = stringToFloat(water_temp_message);
           
           if (!water_temp_button_state && !is_water_temp_set){
-            Serial1.write('J');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.write('X');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -1558,7 +1558,7 @@ void setup() {
       else if (request->hasParam(WATER_TEMP_PARAM_INPUT2)) {
           water_temp_message = request->getParam(WATER_TEMP_PARAM_INPUT2)->value();
 
-          Serial1.write('J');
+          Serial1.write('X');
            
           if (getFeedBack()){
           
@@ -1593,7 +1593,7 @@ void setup() {
           water_level_set_value_f = stringToFloat(water_level_message);
           
           if (!water_level_button_state && !is_water_level_set){
-            Serial1.write('V');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.write('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -1610,7 +1610,7 @@ void setup() {
       else if (request->hasParam(WATER_LEVEL_PARAM_INPUT2)) {
           water_level_message = request->getParam(WATER_LEVEL_PARAM_INPUT2)->value();
 
-          Serial1.write('V');
+          Serial1.write('Y');
            
           if (getFeedBack()){
           
@@ -1690,23 +1690,23 @@ void loop() {
     lcd.print(DateTimeStamp);
 
 
-    // DEBUGGING PART
+//  ********************************  ДЕБАГГИНГ  ***********************************
 
-    Serial.println(temp_set_value_f);
-    if (temp_set_value_f != 0){
-      if (temp_set_value_f <= temperature){
-       
-        Serial1.write('b');
-        temp_button_state = false;
-        is_temp_set = false;
-        events.send("Refresh the page","refresher",millis());        
-      }
+//    Serial.println(temp_set_value_f);
+//    if (temp_set_value_f != 0){
+//      if (temp_set_value_f <= temperature){
+//       
+//        Serial1.write('b');
+//        temp_button_state = false;
+//        is_temp_set = false;
+//        events.send("Refresh the page","refresher",millis());        
+//      }
 //      else{
 //        Serial1.write('d');
 //      }
-    }
+//    }
     
-    // DEBUGGING PART
+//  ********************************  ДЕБАГГИНГ  ***********************************
 
     
     // Отправка и Обновление значении на Веб-странице
