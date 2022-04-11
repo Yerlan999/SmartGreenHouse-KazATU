@@ -25,13 +25,20 @@ int temperature;
 int humidity;
 int light;
 int moisture;
+int water;
+int carbon;
 int water_temperature;
+int water_level;
+
 
 int dummy_temperature;
 int dummy_humidity;
 int dummy_light;
 int dummy_moisture;
+int dummy_water;
+int dummy_carbon;
 int dummy_water_temperature;
+int dummy_water_level;
 
 
 // Параметры сети WI-FI
@@ -67,7 +74,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 10000;    // КАЖДЫЕ 10 секунд
+unsigned long timerDelay = 30000;    // КАЖДЫЕ 10 секунд
 
 bool startOfProgramm = true;
 
@@ -93,19 +100,37 @@ bool light_repeat = false;
 bool temp_button_state = false;
 bool light_button_state = false;
 bool fan_button_state = false;
+bool water_button_state = false;
+bool carbon_button_state = false;
+bool water_temp_button_state = false;
+bool water_level_button_state = false;
 
 // Состояние карточек отображения показании
 bool is_temp_set = false;
 bool is_hum_set = false;
 bool is_light_set = false;
+bool is_water_set = false;
+bool is_carbon_set = false;
+bool is_water_temp_set = false;
+bool is_water_level_set = false;
+
 
 // Заданные значения для системы
 String to = " >>> ";
 String temp_set_value;
 String hum_set_value;
 String light_set_value;
+String water_set_value;
+String carbon_set_value;
+String water_temp_set_value;
+String water_level_set_value;
+
 
 float temp_set_value_f;
+float hum_set_value_f;
+float carbon_set_value_f;
+float water_temp_set_value_f;
+float water_level_set_value_f;
 
 
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
@@ -113,6 +138,10 @@ void getDummySensorReadings(){
     humidity = dummy_humidity;
     temperature = dummy_temperature;
     light = dummy_light;
+    water = dummy_water;
+    carbon = dummy_carbon;
+    water_temperature = dummy_water_temperature;
+    water_level = dummy_water_level;    
 }
 
 
@@ -296,21 +325,30 @@ String processor(const String& var){
   
   // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
-//    getSensorsReadings();
     return String(temperature);
   }
   else if(var == "DATETIME"){
     return String(DateTimeStamp);
   }
   else if(var == "HUMIDITY"){
-//    getSensorsReadings();
     return String(humidity);
   }
   else if(var == "LIGHT"){
-//    getSensorsReadings();
     return String(light);
   }
-
+  else if(var == "WATER"){
+    return String(water);
+  }
+  else if(var == "WATER_TEMP"){
+    return String(water_temperature);
+  }
+  else if(var == "WATER_LEVEL"){
+    return String(water_level);
+  }    
+  else if(var == "CARBON"){
+    return String(carbon);
+  }
+    
   // Вывод заданных значении
   else if(var == "TEMP_SET_VALUE"){
     if(is_temp_set){
@@ -336,7 +374,40 @@ String processor(const String& var){
       return String("");
     };
   }
-
+  else if(var == "WATER_SET_VALUE"){
+    if(is_water_set){
+      return String(water_set_value);
+    }
+    else{
+      return String("");
+    };
+  }
+  else if(var == "WATER_TEMP_SET_VALUE"){
+    if(is_water_temp_set){
+      return String(water_temp_set_value);
+    }
+    else{
+      return String("");
+    };
+  }
+  else if(var == "WATER_LEVEL_SET_VALUE"){
+    if(is_water_level_set){
+      return String(water_level_set_value);
+    }
+    else{
+      return String("");
+    };
+  }
+  else if(var == "CARBON_SET_VALUE"){
+    if(is_carbon_set){
+      return String(carbon_set_value);
+    }
+    else{
+      return String("");
+    };
+  }
+  
+  
   // Состояния текста кнопок задатчиков
   else if (var == "TEMP_SUB_BUT_TEXT"){
     if (temp_button_state){
@@ -423,6 +494,43 @@ String processor(const String& var){
     }
     return String(is_temp_set);
   }
+  else if (var == "IS_WATERING_SET"){
+    if (is_water_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_water_set);
+  }  
+  else if (var == "IS_WATER_LEVEL_SET"){
+    if (is_water_level_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_water_level_set);
+  }
+  else if (var == "IS_WATER_TEMP_SET"){
+    if (is_water_temp_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_water_temp_set);
+  }  
+  else if (var == "IS_CARBON_SET"){
+    if (is_carbon_set){
+      return String("card-set");
+    }
+    else{
+      return String("card");
+    }
+    return String(is_carbon_set);
+  }
+    
   else if (var == "UPDATE_SPAN"){
     return String(timerDelay/1000);  
   };
@@ -572,20 +680,40 @@ const char index_html[] PROGMEM = R"rawliteral(
     <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ --> 
     <div class="cards">
         <div class=%IS_TEMP_SET%>
-          <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> ТЕМПЕРАТУРА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span><span>%TEMP_SET_VALUE%</span> &deg;C</span></p>
+          <p><i class="fas fa-thermometer-half" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОЗДУХА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span><span>%TEMP_SET_VALUE%</span> &deg;C</span></p>
         </div>
         <div class=%IS_HUM_SET%>
-          <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ</p><p><span class="reading"><span id="hum">%HUMIDITY%</span><span>%HUM_SET_VALUE%</span> &percnt;</span></p>
+          <p><i class="fas fa-tint" style="color:#00add6;"></i> ВЛАЖНОСТЬ ВОЗДУХА</p><p><span class="reading"><span id="hum">%HUMIDITY%</span><span>%HUM_SET_VALUE%</span> &percnt;</span></p>
         </div>
         <div class=%IS_LIGHT_SET%>
           <p>%LIGHT_SET_VALUE%</p>
           <p><i class="far fa-lightbulb" style="color:#e1e437;"></i> ОСВЕЩЕНИЕ</p><p><span class="reading"><span id="light">%LIGHT%</span> lux</span></p>
         </div>
+        <div class=%IS_WATERING_SET%>
+          <p>%WATER_SET_VALUE%</p>
+          <p><i class="fa fa-shower" style="color:#00add6;"></i> ПОЛИВ</p><p><span class="reading"><span id="water">%WATER%</span> ед.</span></p>
+        </div>
+        <div class=%IS_CARBON_SET%>
+          <p>%CARBON_SET_VALUE%</p>
+          <p><i class="fa fa-leaf" style="color:#059e8a;"></i> CO2</p><p><span class="reading"><span id="carbon">%CARBON%</span> &percnt;</span></p>
+        </div>   
+        <div class=%IS_WATER_TEMP_SET%>
+          <p>%WATER_TEMP_SET_VALUE%</p>
+          <p><i class="fas fa-water" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОДЫ</p><p><span class="reading"><span id="water_temp">%WATER_TEMP%</span> &deg;C</span></p>
+        </div>   
+        <div class=%IS_WATER_LEVEL_SET%>
+          <p>%WATER_LEVEL_SET_VALUE%</p>
+          <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span> ед.</span></p>
+        </div>       
     </div>
+    
+
     
     <br><br>
 
-    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОТОПЛЕНИЯ -->
+
+
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОТОПЛЕНИЯ ВОЗДУХА -->
     
     <form id="temp-form" class=%TEMP_BUTTON_STATE% action="/gettemp">
       Температура на : <input type="number" name="new-temp-value">
@@ -597,7 +725,20 @@ const char index_html[] PROGMEM = R"rawliteral(
     </form>
     
     <br><br>
+
+    <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ УВЛАЖНЕНИЯ ВОЗДУХА -->
     
+    <form id="temp-form" class=%HUM_BUTTON_STATE% action="/gettemp">
+      Температура на : <input type="number" name="new-temp-value">
+      <input id="temp-value" class="button-submmit" type="submit" value="Задать">
+    </form>
+    <form id="temp-form-on" class=%TEMP_BUTTON_STATE% action="/gettemp">
+      <input type="hidden" name="new-temp-value-tog" value="toggle-temp">
+      <input id="temp-on" class="button-submmit" type="submit" value=%TEMP_SUB_BUT_TEXT%>
+    </form>
+    
+    <br><br>
+
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЕЩЕНИЯ -->
     
     <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
@@ -675,7 +816,7 @@ source.addEventListener('refresher', function(e) {
   console.log(document.URL);
   console.log(document.URL.slice(0, 22));
   
-  if (document.URL.length > 22){
+  if (document.URL.length > 24){
     window.location = '/';
   }
   else{
