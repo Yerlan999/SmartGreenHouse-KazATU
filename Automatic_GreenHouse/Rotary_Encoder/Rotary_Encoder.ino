@@ -37,12 +37,11 @@ void setup() {
 void loop() { 
 
     bPress = digitalRead(outputC);
-    if (bPress){
-      Serial.println("Button Pressed!");  
-    } 
+     
     aState = digitalRead(outputA); // Reads the "current" state of the outputA
     // If the previous and the current state of the outputA are different, that means a Pulse has occured
     if (bPress == 0){
+        Serial.println("Button Pressed!");
         if (aState != aLastState){     
             // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
             if (digitalRead(outputB) != aState) { 

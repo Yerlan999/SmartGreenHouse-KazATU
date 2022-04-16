@@ -10,7 +10,7 @@
 #define DT 25  // S2
 #define SW 32  // Key
 #include "GyverEncoder.h"
-Encoder enc1(CLK, DT, SW);
+Encoder enc1(CLK, DT, SW, true);
 
 // Объявление объекта LCD дисплея
 LiquidCrystal_I2C lcd(0x27, 20, 4);
@@ -45,7 +45,6 @@ void loop() {
   if (enc1.isRelease()) Serial.println("Release");     // отпускание кнопки (+ дебаунс)
   if (enc1.isHolded()) Serial.println("Holded");       // если была удержана и энк не поворачивался
   //if (enc1.isHold()) Serial.println("Hold");         // возвращает состояние кнопки
-  delay(100);
 
 //  // Вывод на LCD дисплей
 //  lcd.clear();
