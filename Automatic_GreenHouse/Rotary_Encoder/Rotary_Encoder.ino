@@ -1,7 +1,11 @@
-#define outputC 3
-#define outputA 4
-#define outputB 5
+#include <LiquidCrystal_I2C.h>
 
+#define outputC 32 // Key 
+#define outputA 33 // S1
+#define outputB 25 // S2
+
+// Объявление объекта LCD дисплея
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 int counter = 0; 
 int aState;
@@ -10,21 +14,32 @@ int bPress;
 
 
 void setup() { 
+  // Инициализация LCD дисплея
+  lcd.init();
+  lcd.backlight();
   
-    pinMode (outputA,INPUT);
-    pinMode (outputB,INPUT);
-    pinMode (outputC,INPUT);
+  pinMode (outputA,INPUT);
+  pinMode (outputB,INPUT);
+  pinMode (outputC,INPUT);
 
-    Serial.begin (9600);
-    // Reads the initial state of the outputA
-    aLastState = digitalRead(outputA);       
+  Serial.begin (9600);
+  // Reads the initial state of the outputA
+  aLastState = digitalRead(outputA);       
+
+  // Вывод на LCD дисплей
+  lcd.clear();
+  lcd.setCursor(0, 0);  
+  lcd.print("Hey!");  
+
 } 
 
 
 void loop() { 
 
     bPress = digitalRead(outputC);
-     
+    if (bPress){
+      Serial.println("Button Pressed!");  
+    } 
     aState = digitalRead(outputA); // Reads the "current" state of the outputA
     // If the previous and the current state of the outputA are different, that means a Pulse has occured
     if (bPress == 0){
@@ -59,4 +74,13 @@ void loop() {
         };        
     };
     aLastState = aState; // Updates the previous state of the outputA with the current state
+
+
+
+//  // Вывод на LCD дисплей
+//  lcd.clear();
+//  lcd.setCursor(0, 0);  
+//  lcd.print("Hey!");  
+
+
 };
