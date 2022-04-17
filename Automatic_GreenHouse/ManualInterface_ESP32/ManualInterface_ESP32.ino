@@ -20,8 +20,10 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 int temperature = 31;
 int humidity = 50;
 int carbon = 10;
-int water_temperatrue = 36;
+int water_temperature = 36;
 int water_level = 5;
+int water = 1;
+int light = 22;
 
 bool temperature_set = false;
 bool humidity_set = false;
@@ -32,20 +34,62 @@ bool watering_set = false;
 bool lighting_set = false;
 
 int temperature_set_value = 0;
-int humidityset_value = 0;
+int humidity_set_value = 0;
 int carbon_set_value = 0;
 int water_temp_set_value = 0;
 int water_level_set_value = 0;
 
 int watering_time_hour = 0;
-int watering_time_minure = 0;
+int watering_time_minute = 0;
+int watering_duration = 0;
 bool watering_time_repeat = false;
 bool watering_state = false;
 
 int lighting_time_hour = 0;
-int lighting_time_minure = 0;
+int lighting_time_minute = 0;
+int lighting_duration = 0;
 bool lighting_time_repeat = false;
 bool lighting_state = false;
+
+
+bool temperature_state = false;
+bool humidity_state = false;
+bool carbon_state = false;
+bool water_temp_state = false;
+bool water_level_state = false;
+
+
+typedef struct { 
+  uint8_t system_num;
+  int system_val;
+  bool is_system_set;
+  int system_set_val;
+  bool system_state;
+} case_one_params;
+const case_one_params CaseOne[] {
+    {0, temperature, temperature_set, temperature_set_value, temperature_state},
+    {1, humidity, humidity_set, humidity_set_value, humidity_state},
+    {2, carbon, carbon_set, carbon_set_value, carbon_state},
+    {3, water_temperature, water_temp_set, water_temp_set_value, water_temp_state},
+    {4, water_level, water_level_set, water_level_set_value, water_level_state},
+};
+
+
+
+typedef struct { 
+  uint8_t system_num;
+  int system_val;
+  bool is_system_set;
+  int system_time_h;
+  int system_time_m;
+  int system_dur;
+  bool system_rep;
+  bool system_state;
+} case_two_params;
+const case_two_params CaseTwo[] {
+    {5, light, lighting_set, lighting_time_hour, lighting_time_minute, lighting_duration, lighting_time_repeat, lighting_state},
+    {6, water, watering_set, watering_time_hour, watering_time_minute, watering_duration, watering_time_repeat, watering_state},
+};
 
 
 
@@ -115,29 +159,33 @@ void toggle_editing_mode(){
 void update_menu(){
   if (main_systems_pointer < 5){
     lcd.setCursor(1, 1);
-    lcd.print("val:");
+    lcd.print("val:" + String(CaseOne[main_systems_pointer].system_val));
     
     lcd.setCursor(12, 1);
-    lcd.print("set:");
+    lcd.print("set:" + String(CaseOne[main_systems_pointer].system_set_val));
     
     lcd.setCursor(1, 2);
-    lcd.print("state:");
+    lcd.print("state:" + String(CaseOne[main_systems_pointer].system_state));
     
   }
   else{
     lcd.setCursor(1, 1);
-    lcd.print("time:");
+    lcd.print("time:" + String(CaseTwo[main_systems_pointer-5].system_time_h) +" " + ":" + String(CaseTwo[main_systems_pointer-5].system_time_m));
     
     lcd.setCursor(12, 1);
-    lcd.print("dur:");
+    lcd.print("dur:" + String(CaseTwo[main_systems_pointer-5].system_dur));
 
     lcd.setCursor(1, 2);
-    lcd.print("rep:");
+    lcd.print("rep:" + String(CaseTwo[main_systems_pointer-5].system_rep));
     
     lcd.setCursor(12, 2);
-    lcd.print("state:");
+    lcd.print("state:" + String(CaseTwo[main_systems_pointer-5].system_state));
   }
 }
+
+
+
+
 
 void update_cursor(){
   lcd.setCursor(options[main_places_pointer].col, options[main_places_pointer].row);
@@ -180,11 +228,21 @@ int poiter_stopper(){
 void update_pointer(int where){
   if (!editing_mode){
     if (where < 0 && main_places_pointer < poiter_stopper()){
-      main_places_pointer++;
+      if (main_systems_pointer < 5 && main_places_pointer == 0){
+        main_places_pointer += 2;
+      }
+      else{
+        main_places_pointer++;
+      }
     }
     else if (where > 0 && main_places_pointer > 0){
-      main_places_pointer--;
-    };
+      if (main_systems_pointer < 5 && main_places_pointer == 2){
+        main_places_pointer -= 2;
+      }
+      else{
+        main_places_pointer--;
+      }
+    }
   }
 }
 
