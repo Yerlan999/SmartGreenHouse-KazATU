@@ -137,20 +137,38 @@ bool switch_value2 = false;
 int main_places_pointer = 0; // from 0 to 4
 int main_systems_pointer = 0; // from 0 to 6
 
-char hover_cursor = '>';
-char select_cursor = '=';
-char switch_cursos = '#';
+char hover_cursor = '>';   // for mode 0
+char select_cursor = '-';  // for mode 1
+char switch_cursor = '=';  // for mode 2
 
-bool editing_mode = false;
+int editing_mode = 0;
 bool value_is_set = false;
 
 void toggle_editing_mode(){
   if (main_places_pointer != 0){
-    if (editing_mode){
-      editing_mode = false;
+
+    if (editing_mode == 1 && main_systems_pointer > 4 && main_places_pointer == 1){
+      editing_mode = 2;
     }
-    else{
-      editing_mode = true;
+    else if(editing_mode == 2 && main_systems_pointer > 4 && main_places_pointer == 1){
+      editing_mode = 0;
+    }
+    else if(editing_mode == 0 && main_systems_pointer > 4 && main_places_pointer == 1){
+      editing_mode = 1;
+    }
+    
+    else if(editing_mode == 0 && main_systems_pointer > 4 && main_places_pointer != 1){
+      editing_mode = 1;
+    }
+    else if(editing_mode == 1 && main_systems_pointer > 4 && main_places_pointer != 1){
+      editing_mode = 0;
+    }
+    
+    else if (editing_mode == 1 && main_systems_pointer < 5){
+      editing_mode = 0;
+    }
+    else if (editing_mode == 0 && main_systems_pointer < 5){
+      editing_mode = 1;
     }
   }
 }
@@ -206,11 +224,14 @@ void update_display(){
 
 
 char update_cursor_type(){
-  if (editing_mode){
+  if (editing_mode == 0){
+    return hover_cursor;
+  }
+  else if (editing_mode == 1){
     return select_cursor;
   }
   else{
-    return hover_cursor;
+    return switch_cursor;
   }
 }
 
@@ -226,7 +247,7 @@ int poiter_stopper(){
 
 
 void update_pointer(int where){
-  if (!editing_mode){
+  if (editing_mode == 0){
     if (where < 0 && main_places_pointer < poiter_stopper()){
       if (main_systems_pointer < 5 && main_places_pointer == 0){
         main_places_pointer += 2;
