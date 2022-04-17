@@ -112,14 +112,7 @@ void toggle_editing_mode(){
 }
 
 
-void update_display(){
-  lcd.clear();
-  lcd.setCursor(options[main_places_pointer].col, options[main_places_pointer].row);
-  lcd.print(update_cursor_type());
-
-  lcd.setCursor(4, 0);
-  lcd.print(system_titles[main_systems_pointer].system_name);
-
+void update_menu(){
   if (main_systems_pointer < 5){
     lcd.setCursor(1, 1);
     lcd.print("val:");
@@ -144,6 +137,23 @@ void update_display(){
     lcd.setCursor(12, 2);
     lcd.print("state:");
   }
+}
+
+void update_cursor(){
+  lcd.setCursor(options[main_places_pointer].col, options[main_places_pointer].row);
+  lcd.print(update_cursor_type());  
+}
+
+void update_title(){
+  lcd.setCursor(4, 0);
+  lcd.print(system_titles[main_systems_pointer].system_name);
+}
+
+void update_display(){
+  lcd.clear();
+  update_cursor();
+  update_title();
+  update_menu();
 }
 
 
@@ -188,16 +198,6 @@ void update_system(int where){
       main_systems_pointer--;
     };
   }
-}
-
-
-void update_value(int where){
-  
-}
-
-
-void diplay_correspond_menu(int what){
-  
 }
 
 
