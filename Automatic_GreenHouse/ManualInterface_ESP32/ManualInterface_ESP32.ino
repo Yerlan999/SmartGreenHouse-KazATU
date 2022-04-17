@@ -16,6 +16,39 @@ Encoder enc1(CLK, DT, SW, true);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 
+// Main system variables
+int temperature = 31;
+int humidity = 50;
+int carbon = 10;
+int water_temperatrue = 36;
+int water_level = 5;
+
+bool temperature_set = false;
+bool humidity_set = false;
+bool carbon_set = false;
+bool water_temp_set = false;
+bool water_level_set = false;
+bool watering_set = false;
+bool lighting_set = false;
+
+int temperature_set_value = 0;
+int humidityset_value = 0;
+int carbon_set_value = 0;
+int water_temp_set_value = 0;
+int water_level_set_value = 0;
+
+int watering_time_hour = 0;
+int watering_time_minure = 0;
+bool watering_time_repeat = false;
+bool watering_state = false;
+
+int lighting_time_hour = 0;
+int lighting_time_minure = 0;
+bool lighting_time_repeat = false;
+bool lighting_state = false;
+
+
+
 typedef struct { 
   uint8_t place;
   uint8_t row;
@@ -44,6 +77,19 @@ const systems system_titles[] {
     {6, "Lightening"},
 };
 
+// Case Menu 1 
+int current_value = 0;
+int set_value = 0;
+bool switch_value1 = false;
+
+// Case Menu 2
+int set_hour = 0;
+int set_minute = 0;
+int set_duration = 0;
+bool set_repeat = false;
+bool switch_value2 = false;
+
+
 int main_places_pointer = 0; // from 0 to 4
 int main_systems_pointer = 0; // from 0 to 6
 
@@ -52,6 +98,7 @@ char select_cursor = '=';
 char switch_cursos = '#';
 
 bool editing_mode = false;
+bool value_is_set = false;
 
 void toggle_editing_mode(){
   if (main_places_pointer != 0){
@@ -72,6 +119,31 @@ void update_display(){
 
   lcd.setCursor(4, 0);
   lcd.print(system_titles[main_systems_pointer].system_name);
+
+  if (main_systems_pointer < 5){
+    lcd.setCursor(1, 1);
+    lcd.print("val:");
+    
+    lcd.setCursor(12, 1);
+    lcd.print("set:");
+    
+    lcd.setCursor(1, 2);
+    lcd.print("state:");
+    
+  }
+  else{
+    lcd.setCursor(1, 1);
+    lcd.print("time:");
+    
+    lcd.setCursor(12, 1);
+    lcd.print("dur:");
+
+    lcd.setCursor(1, 2);
+    lcd.print("rep:");
+    
+    lcd.setCursor(12, 2);
+    lcd.print("state:");
+  }
 }
 
 
@@ -82,13 +154,22 @@ char update_cursor_type(){
   else{
     return hover_cursor;
   }
+}
 
+
+int poiter_stopper(){
+  if (main_systems_pointer < 5 ){
+    return 3;  
+  }
+  else{
+    return 4;
+  };
 }
 
 
 void update_pointer(int where){
   if (!editing_mode){
-    if (where < 0 && main_places_pointer < 4){
+    if (where < 0 && main_places_pointer < poiter_stopper()){
       main_places_pointer++;
     }
     else if (where > 0 && main_places_pointer > 0){
@@ -129,14 +210,7 @@ void setup() {
 
   Serial.begin(9600);
 
-  // Вывод на LCD дисплей
-  lcd.clear();
-
-  lcd.setCursor(3, 0);
-  lcd.print(update_cursor_type());
-
-  lcd.setCursor(4, 0);
-  lcd.print(system_titles[0].system_name);
+  update_display();
 }
 
 
