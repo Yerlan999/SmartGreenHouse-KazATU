@@ -16,7 +16,8 @@ Encoder enc1(CLK, DT, SW, true);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 
-// Main system variables
+// **** Main system variables ****
+
 int temperature = 31;
 int humidity = 50;
 int carbon = 10;
@@ -59,14 +60,47 @@ bool water_temp_state = false;
 bool water_level_state = false;
 
 
-typedef struct { 
+
+// **** Main Structures for storing Data **** 
+
+struct case_one_params{ 
   uint8_t system_num;
   int system_val;
   bool is_system_set;
   int system_set_val;
   bool system_state;
-} case_one_params;
-const case_one_params CaseOne[] {
+
+  int get_value(int which){
+    if (which == 1){
+      return this->system_val;
+    }
+    else if(which == 2){
+      return int(this->is_system_set);
+    }
+    else if(which == 3){
+      return this->system_set_val;
+    }
+    else if(which == 4){
+      return int(this->system_state);
+    }  
+  }
+
+  void set_value(int which, int new_value){
+    if (which == 1){
+      this->system_val = new_value;
+    }
+    else if(which == 2){
+      this->is_system_set = bool(new_value);
+    }
+    else if(which == 3){
+      this->system_set_val = new_value;
+    }
+    else if(which == 4){
+      this->system_state = bool(new_value);
+    }
+  }
+};
+case_one_params CaseOne[] {
     {0, temperature, temperature_set, temperature_set_value, temperature_state},
     {1, humidity, humidity_set, humidity_set_value, humidity_state},
     {2, carbon, carbon_set, carbon_set_value, carbon_state},
@@ -75,8 +109,7 @@ const case_one_params CaseOne[] {
 };
 
 
-
-typedef struct { 
+struct case_two_params{ 
   uint8_t system_num;
   int system_val;
   bool is_system_set;
@@ -85,8 +118,8 @@ typedef struct {
   int system_dur;
   bool system_rep;
   bool system_state;
-} case_two_params;
-const case_two_params CaseTwo[] {
+};
+case_two_params CaseTwo[] {
     {5, light, lighting_set, lighting_time_hour, lighting_time_minute, lighting_duration, lighting_time_repeat, lighting_state},
     {6, water, watering_set, watering_time_hour, watering_time_minute, watering_duration, watering_time_repeat, watering_state},
 };
@@ -121,28 +154,38 @@ const systems system_titles[] {
     {6, "Lightening"},
 };
 
-// Case Menu 1 
-int current_value = 0;
-int set_value = 0;
-bool switch_value1 = false;
-
-// Case Menu 2
-int set_hour = 0;
-int set_minute = 0;
-int set_duration = 0;
-bool set_repeat = false;
-bool switch_value2 = false;
-
 
 int main_places_pointer = 0; // from 0 to 4
 int main_systems_pointer = 0; // from 0 to 6
+
+int new_value_counter = 0;    // from 0 to infinity
+int new_time_hour_value = 0;  // from 0 to 23
+int new_time_minute_value = 0;  // from 0 to 59
+int new_state_value = 0;  // from 0 to 1
+
+bool value_is_set = false;
 
 char hover_cursor = '>';   // for mode 0
 char select_cursor = '-';  // for mode 1
 char switch_cursor = '=';  // for mode 2
 
 int editing_mode = 0;
-bool value_is_set = false;
+
+
+int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
+  
+  int starter_value = CaseOne[main_systems_pointer].get_value(main_places_pointer+1);
+  
+  if (where < 0 && starter_value < hight_end){
+    starter_value++;
+  }
+  else if (where > 0 && starter_value > low_end){
+    starter_value--;
+  };
+
+  return starter_value;
+}
+
 
 void toggle_editing_mode(){
   if (main_places_pointer != 0){
@@ -202,9 +245,6 @@ void update_menu(){
 }
 
 
-
-
-
 void update_cursor(){
   lcd.setCursor(options[main_places_pointer].col, options[main_places_pointer].row);
   lcd.print(update_cursor_type());  
@@ -246,6 +286,16 @@ int poiter_stopper(){
 }
 
 
+
+void editing_values(int where){
+  Serial.println("Option of " + String(main_places_pointer) + " System of " + String(main_systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
+  
+  if (main_systems_pointer < 5){
+    CaseOne[main_systems_pointer].set_value(main_places_pointer+1, value_changer_with_restrictionsONE(where, 0, 23));
+  }
+}
+
+
 void update_pointer(int where){
   if (editing_mode == 0){
     if (where < 0 && main_places_pointer < poiter_stopper()){
@@ -264,6 +314,10 @@ void update_pointer(int where){
         main_places_pointer--;
       }
     }
+  }
+  else{  // IN THE EDITING MODE
+    // FUNCTION FOR APPLYING EDITING VALUES HERE MUST BE
+    editing_values(where);
   }
 }
 
@@ -288,17 +342,14 @@ void setup() {
   lcd.backlight();
 
   Serial.begin(9600);
-
+//  Serial.println(CaseOne[0].system_val);
+//  CaseOne[0].set_value(444);
+//  Serial.println(CaseOne[0].system_val);
   update_display();
 }
 
 
 void loop() {
-
-//  Serial.println(options[3].place);
-//  Serial.println(options[3].row);
-//  Serial.println(options[3].col);
-
   
   // обязательная функция отработки. Должна постоянно опрашиваться
   enc1.tick();
