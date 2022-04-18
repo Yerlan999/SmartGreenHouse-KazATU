@@ -1,5 +1,7 @@
 #include <LiquidCrystal_I2C.h>
 #include "GyverEncoder.h"
+#include "RTClib.h"
+
 
 /* 
   CLK == S1
@@ -10,11 +12,21 @@
 #define CLK 33 // S1
 #define DT 25  // S2
 #define SW 32  // Key
+#define countof(a) (sizeof(a) / sizeof(a[0]))
 
 
 Encoder enc1(CLK, DT, SW, true);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
+RTC_DS3231 rtc;
+
+
+// Переменные для хранения и обработки значении времени для Веб-страницы
+String formattedDate;
+String dayStamp;
+String timeStamp;
+String DateTimeStamp;
+char datestring[20];
 
 // **** Main system variables ****
 
@@ -254,6 +266,28 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bo
 }
 
 
+void printDateTime(const DateTime& dt)
+{
+
+    snprintf_P(datestring, 
+      countof(datestring),
+      PSTR("%02u-%02u-%02u %02u:%02u"),
+      dt.year(),
+      dt.month(),
+      dt.day(),
+      dt.hour(),
+      dt.minute()
+      );
+//    Serial.print(datestring);
+}
+
+
+void get_date_time(){
+  DateTime now = rtc.now();
+  printDateTime(now);
+  DateTimeStamp = datestring;
+}
+
 
 void toggle_editing_mode(){
   if (main_places_pointer != 0){
@@ -366,11 +400,19 @@ void update_title(){
   }
 }
 
+void display_time(){
+  get_date_time();
+  lcd.setCursor(1 ,3);
+  lcd.print(DateTimeStamp);
+}
+
 void update_display(){
   lcd.clear();
   update_cursor();
   update_title();
   update_menu();
+  display_time();
+  
 }
 
 
@@ -469,6 +511,20 @@ void setup() {
   // Инициализация LCD дисплея
   lcd.init();
   lcd.backlight();
+
+  if (! rtc.begin()) {
+//    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+ 
+  if (rtc.lostPower()) {
+//    Serial.println("RTC lost power, lets set the time!");
+    // Задать время для модуля через время системы (ОС) при загрузке скетча
+    rtc.adjust(DateTime(__DATE__, __TIME__));
+    // Задать время для модуля вручную
+    // Январь 21, 2014 и 3 часа ночи:
+    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+  }  
 
   Serial.begin(9600);
   update_display();
