@@ -110,66 +110,67 @@ case_one_params CaseOne[] {
 
 
 struct case_two_params{ 
-  uint8_t system_num;
-  int system_val;
-  bool is_system_set;
   int system_time_h;
   int system_time_m;
   int system_dur;
   bool system_rep;
   bool system_state;
+  uint8_t system_num;
+  int system_val;
+  bool is_system_set;
+  
 
   int get_value(int which){
-    if (which == 1){
+    if (which == 6){
       return this->system_val;
     }
-    else if(which == 2){
+    else if(which == 7){
       return int(this->is_system_set);
     }
-    else if(which == 3){
+    else if(which == 0){
       return this->system_time_h;
     }
-    else if(which == 4){
+    else if(which == 1){
       return this->system_time_m;
     }
-    else if(which == 5){
+    else if(which == 2){
       return this->system_dur;
     }
-    else if(which == 6){
+    else if(which == 3){
       return int(this->system_rep);
     }
-    else if(which == 7){
+    else if(which == 4){
       return int(this->system_state);
     }  
   }
 
   void set_value(int which, int new_value){
-    if (which == 1){
+    if (which == 6){
       this->system_val = new_value;
     }
-    else if(which == 2){
+    else if(which == 7){
       this->is_system_set = bool(new_value);
     }
-    else if(which == 3){
+    else if(which == 0){
       this->system_time_h = new_value;
     }
-    else if(which == 4){
+    else if(which == 1){
       this->system_time_m = new_value;
     }
-    else if(which == 5){
+    else if(which == 2){
       this->system_dur = new_value;
     }
-    else if(which == 6){
+    else if(which == 3){
       this->system_rep = bool(new_value);
     }
-    else if(which == 7){
+    else if(which == 4){
       this->system_state = bool(new_value);
     }
   }
 };
 case_two_params CaseTwo[] {
-    {5, light, lighting_set, lighting_time_hour, lighting_time_minute, lighting_duration, lighting_time_repeat, lighting_state},
-    {6, water, watering_set, watering_time_hour, watering_time_minute, watering_duration, watering_time_repeat, watering_state},
+    {lighting_time_hour, lighting_time_minute, lighting_duration, lighting_time_repeat, lighting_state, 5, light, lighting_set},
+    {watering_time_hour, watering_time_minute, watering_duration, watering_time_repeat, watering_state, 6, water, watering_set},
 };
 
 
@@ -240,10 +241,10 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bo
   int starter_value;
   
   if (is_hour){
-    starter_value = CaseTwo[main_systems_pointer-5].get_value(3);
+    starter_value = CaseTwo[main_systems_pointer-5].get_value(0);
   }
   else if (is_min){
-    starter_value = CaseTwo[main_systems_pointer-5].get_value(4);
+    starter_value = CaseTwo[main_systems_pointer-5].get_value(1);
   } 
   else{
     starter_value = CaseTwo[main_systems_pointer-5].get_value(main_places_pointer);
@@ -373,11 +374,11 @@ void editing_values(int where){
     if (main_places_pointer == 1){
       if (editing_mode == 1){
         // Edit hours
-        CaseTwo[main_systems_pointer-5].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
+        CaseTwo[main_systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
       }
       else{ // editing_mode = 2
         // Edit minutes
-        CaseTwo[main_systems_pointer-5].set_value(4, value_changer_with_restrictionsTWO(where, 0, 59, false, true));
+        CaseTwo[main_systems_pointer-5].set_value(1, value_changer_with_restrictionsTWO(where, 0, 59, false, true));
       }
     }
     else{
