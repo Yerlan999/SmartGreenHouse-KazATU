@@ -118,6 +118,54 @@ struct case_two_params{
   int system_dur;
   bool system_rep;
   bool system_state;
+
+  int get_value(int which){
+    if (which == 1){
+      return this->system_val;
+    }
+    else if(which == 2){
+      return int(this->is_system_set);
+    }
+    else if(which == 3){
+      return this->system_time_h;
+    }
+    else if(which == 4){
+      return this->system_time_m;
+    }
+    else if(which == 5){
+      return this->system_dur;
+    }
+    else if(which == 6){
+      return int(this->system_rep);
+    }
+    else if(which == 7){
+      return int(this->system_state);
+    }  
+  }
+
+  void set_value(int which, int new_value){
+    if (which == 1){
+      this->system_val = new_value;
+    }
+    else if(which == 2){
+      this->is_system_set = bool(new_value);
+    }
+    else if(which == 3){
+      this->system_time_h = new_value;
+    }
+    else if(which == 4){
+      this->system_time_m = new_value;
+    }
+    else if(which == 5){
+      this->system_dur = new_value;
+    }
+    else if(which == 6){
+      this->system_rep = bool(new_value);
+    }
+    else if(which == 7){
+      this->system_state = bool(new_value);
+    }
+  }
 };
 case_two_params CaseTwo[] {
     {5, light, lighting_set, lighting_time_hour, lighting_time_minute, lighting_duration, lighting_time_repeat, lighting_state},
@@ -185,6 +233,32 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 
   return starter_value;
 }
+
+
+int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bool is_hour, bool is_min){
+  
+  int starter_value;
+  
+  if (is_hour){
+    starter_value = CaseTwo[main_systems_pointer-5].get_value(3);
+  }
+  else if (is_min){
+    starter_value = CaseTwo[main_systems_pointer-5].get_value(4);
+  } 
+  else{
+    starter_value = CaseTwo[main_systems_pointer-5].get_value(main_places_pointer);
+  }
+  
+  if (where < 0 && starter_value < hight_end){
+    starter_value++;
+  }
+  else if (where > 0 && starter_value > low_end){
+    starter_value--;
+  };
+
+  return starter_value;
+}
+
 
 
 void toggle_editing_mode(){
@@ -291,7 +365,25 @@ void editing_values(int where){
   Serial.println("Option of " + String(main_places_pointer) + " System of " + String(main_systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
   
   if (main_systems_pointer < 5){
+    // Edit set values and state of Case 1
     CaseOne[main_systems_pointer].set_value(main_places_pointer+1, value_changer_with_restrictionsONE(where, 0, 23));
+  }
+  else{
+    // Case 2
+    if (main_places_pointer == 1){
+      if (editing_mode == 1){
+        // Edit hours
+        CaseTwo[main_systems_pointer-5].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
+      }
+      else{ // editing_mode = 2
+        // Edit minutes
+        CaseTwo[main_systems_pointer-5].set_value(4, value_changer_with_restrictionsTWO(where, 0, 59, false, true));
+      }
+    }
+    else{
+      // Edit the rest
+      CaseTwo[main_systems_pointer-5].set_value(main_places_pointer, value_changer_with_restrictionsTWO(where, 0, 23, false, false));
+    }
   }
 }
 
