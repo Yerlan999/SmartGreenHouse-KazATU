@@ -207,13 +207,6 @@ const systems system_titles[] {
 int main_places_pointer = 0; // from 0 to 4
 int main_systems_pointer = 0; // from 0 to 6
 
-int new_value_counter = 0;    // from 0 to infinity
-int new_time_hour_value = 0;  // from 0 to 23
-int new_time_minute_value = 0;  // from 0 to 59
-int new_state_value = 0;  // from 0 to 1
-
-bool value_is_set = false;
-
 char hover_cursor = '>';   // for mode 0
 char select_cursor = '-';  // for mode 1
 char switch_cursor = '=';  // for mode 2
@@ -292,6 +285,28 @@ void toggle_editing_mode(){
 }
 
 
+void apply_values_of_system(){
+  if (main_places_pointer == 0){
+    if (main_systems_pointer > 4){
+      if(CaseTwo[main_systems_pointer-5].get_value(7)){
+        CaseTwo[main_systems_pointer-5].set_value(7, false);
+      }
+      else{
+        CaseTwo[main_systems_pointer-5].set_value(7, true);
+      }
+    }
+    else{
+      if(CaseOne[main_systems_pointer].get_value(2)){
+        CaseOne[main_systems_pointer].set_value(2, false);
+      }
+      else{
+        CaseOne[main_systems_pointer].set_value(2, true);
+      }
+    }
+  }
+}
+
+
 void update_menu(){
   if (main_systems_pointer < 5){
     lcd.setCursor(1, 1);
@@ -306,7 +321,7 @@ void update_menu(){
   }
   else{
     lcd.setCursor(1, 1);
-    lcd.print("time:" + String(CaseTwo[main_systems_pointer-5].system_time_h) +" " + ":" + String(CaseTwo[main_systems_pointer-5].system_time_m));
+    lcd.print("time:" + String(CaseTwo[main_systems_pointer-5].system_time_h) + ":" + String(CaseTwo[main_systems_pointer-5].system_time_m));
     
     lcd.setCursor(12, 1);
     lcd.print("dur:" + String(CaseTwo[main_systems_pointer-5].system_dur));
@@ -328,6 +343,27 @@ void update_cursor(){
 void update_title(){
   lcd.setCursor(4, 0);
   lcd.print(system_titles[main_systems_pointer].system_name);
+  
+  if (main_systems_pointer < 5){
+    if (CaseOne[main_systems_pointer].get_value(2)){
+      lcd.setCursor(19, 0);
+      lcd.print('$');    
+    }
+    else{
+      lcd.setCursor(19, 0);
+      lcd.print(' ');    
+    }    
+  }
+  else {
+    if (CaseTwo[main_systems_pointer-5].get_value(7)){
+      lcd.setCursor(19, 0);
+      lcd.print('$');    
+    }
+    else{
+      lcd.setCursor(19, 0);
+      lcd.print(' ');    
+    }    
+  }
 }
 
 void update_display(){
@@ -435,9 +471,6 @@ void setup() {
   lcd.backlight();
 
   Serial.begin(9600);
-//  Serial.println(CaseOne[0].system_val);
-//  CaseOne[0].set_value(444);
-//  Serial.println(CaseOne[0].system_val);
   update_display();
 }
 
@@ -480,6 +513,8 @@ void loop() {
   
   if (enc1.isHolded()){
     Serial.println("Holded");           // если была удержана и энк не поворачивался
+    apply_values_of_system();
+    update_display();
   };
   
 //  if (enc1.isHold()){
