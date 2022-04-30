@@ -13,13 +13,20 @@
 #define DT 25  // S2
 #define SW 32  // Key
 #define countof(a) (sizeof(a) / sizeof(a[0]))
-
+#define RXD2 16
+#define TXD2 17
+#define ONBOARD_LED  2
 
 Encoder enc1(CLK, DT, SW, true);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 RTC_DS3231 rtc;
 
+int baud = 9600;
+
+// Интервал обновления показании датчиков
+unsigned long lastTime = 0;  
+unsigned long timerDelay = 10000;    // КАЖДЫЕ 10 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -226,17 +233,75 @@ char switch_cursor = '=';  // for mode 2
 int editing_mode = 0;
 
 
+bool getFeedBack(){
+  
+  delay(500);
+  if (Serial1.available() > 0){
+    bool feedBack = Serial1.read();
+    bool grepper1 = Serial1.read();
+    bool grepper2 = Serial1.read();
+    bool grepper3 = Serial1.read();
+    bool grepper4 = Serial1.read();
+    bool grepper5 = Serial1.read();
+    
+//    Serial.print("FeedBack message: ");
+//    Serial.println(feedBack);
+
+    if (feedBack){
+      return true;
+    }
+    else{
+      return false;
+    }  
+  }
+}
+
+
+void blinkBuildLED(){
+  digitalWrite(ONBOARD_LED,HIGH);
+  delay(200);
+  digitalWrite(ONBOARD_LED,LOW);  
+}
+
+void getSensorsReadings(){
+
+    Serial1.write('S');
+//    delay(500);
+    
+    if (Serial1.available() > 0){
+      temperature = Serial1.read();
+      humidity = Serial1.read();
+      light = Serial1.read();
+      int garbage1 = Serial1.read();
+      int garbage2 = Serial1.read();
+      int garbage3 = Serial1.read();
+      
+//      Serial.println();
+//      Serial.println("Recieved values: ");
+//      Serial.println();
+//      Serial.print("temperature: ");
+//      Serial.println(temperature);
+//      Serial.print("humidity: ");
+//      Serial.println(humidity);    
+//      Serial.print("light: ");
+//      Serial.println(light);
+    }
+}
+    
+
 int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
   
   int starter_value = CaseOne[main_systems_pointer].get_value(main_places_pointer+1);
+  bool is_system_set = CaseOne[main_systems_pointer].get_value(2);
   
-  if (where < 0 && starter_value < hight_end){
-    starter_value++;
+  if (!is_system_set){
+    if (where < 0 && starter_value < hight_end){
+      starter_value++;
+    }
+    else if (where > 0 && starter_value > low_end){
+      starter_value--;
+    };
   }
-  else if (where > 0 && starter_value > low_end){
-    starter_value--;
-  };
-
   return starter_value;
 }
 
@@ -244,7 +309,8 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bool is_hour, bool is_min){
   
   int starter_value;
-  
+  bool is_system_set = CaseTwo[main_systems_pointer-5].get_value(7);
+
   if (is_hour){
     starter_value = CaseTwo[main_systems_pointer-5].get_value(0);
   }
@@ -254,14 +320,15 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bo
   else{
     starter_value = CaseTwo[main_systems_pointer-5].get_value(main_places_pointer);
   }
-  
-  if (where < 0 && starter_value < hight_end){
-    starter_value++;
-  }
-  else if (where > 0 && starter_value > low_end){
-    starter_value--;
-  };
 
+  if (!is_system_set){
+    if (where < 0 && starter_value < hight_end){
+      starter_value++; 
+    }
+    else if (where > 0 && starter_value > low_end){
+      starter_value--;
+    };
+  }
   return starter_value;
 }
 
@@ -507,6 +574,8 @@ void update_system(int where){
 
 
 void setup() {
+
+  pinMode(ONBOARD_LED,OUTPUT);
   
   // Инициализация LCD дисплея
   lcd.init();
@@ -526,7 +595,8 @@ void setup() {
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }  
 
-  Serial.begin(9600);
+  Serial.begin(baud, SERIAL_8N1);
+  Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
   update_display();
 }
 
@@ -582,4 +652,18 @@ void loop() {
     update_display();
    
   }
+
+
+  if ((millis() - lastTime) > timerDelay) {
+    
+    // Read the sersors reading
+    getSensorsReadings();
+    blinkBuildLED();
+    
+    // Update screen values
+    
+    lastTime = millis();
+  }
+
+
 }

@@ -72,7 +72,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 30000;    // КАЖДЫЕ 10 секунд
+unsigned long timerDelay = 10000;    // КАЖДЫЕ 10 секунд
 
 bool startOfProgramm = true;
 
