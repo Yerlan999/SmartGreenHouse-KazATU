@@ -277,7 +277,7 @@ typedef struct {
 const coordinates options[] {
     {0, 0, 1},
     {1, 1, 0},
-    {2, 1, 10},
+    {2, 1, 11},
     {3, 2, 0},
 };
 
@@ -480,20 +480,10 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 }
 
 
-int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bool is_hour, bool is_min){
+int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
   
-  int starter_value;
+  int starter_value = CaseTwo[systems_pointer-5].get_value(which);
   bool is_system_set = CaseTwo[systems_pointer-5].get_value(7);
-
-  if (is_hour){
-    starter_value = CaseTwo[systems_pointer-5].get_value(0);
-  }
-  else if (is_min){
-    starter_value = CaseTwo[systems_pointer-5].get_value(1);
-  } 
-  else{
-    starter_value = CaseTwo[systems_pointer-5].get_value(places_pointer);
-  }
 
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -517,16 +507,39 @@ void editing_values(int where){
     }
     else {
       // CASE 2 CLOCK AND INTERVAL MENUES
-      CaseTwo[systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
+      
+      // CLOCK MENU
+      if (levels_pointer == 1 && places_pointer == 1){
+        if (editing_mode == 1){ // HOURS
+          CaseTwo[systems_pointer-5].set_value(1, value_changer_with_restrictionsTWO(where, 0, 23, 1));
+        }
+        else if (editing_mode == 2){ // MINUTES
+          CaseTwo[systems_pointer-5].set_value(2, value_changer_with_restrictionsTWO(where, 0, 59, 2));
+        }
+      }
+      else if (levels_pointer == 1 && places_pointer == 2){ // DURATION 1
+        CaseTwo[systems_pointer-5].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, 3));
+      }
+      else if (levels_pointer == 1 && places_pointer == 3){ // REPEAT
+        CaseTwo[systems_pointer-5].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
+      }      
+    
+      // INTERVAL MENU
+      if (levels_pointer == 2 && places_pointer == 1){ // DURATION 2
+       CaseTwo[systems_pointer-5].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
+      }
+      else if (levels_pointer == 2 && places_pointer == 2){ // PAUSE
+        CaseTwo[systems_pointer-5].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
+      }
     }
+    
   }
   // LEVEL 3 EXLUSIVE FOR CASE 2
   else{
     // CASE 2 STATE MENU
-    CaseTwo[systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
+    CaseTwo[systems_pointer-5].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
   }
 }
-
 
 void update_place(int where){
   if (editing_mode == 0){
@@ -651,23 +664,24 @@ String current_title(){
 }
 
 void update_title(){
-  lcd.setCursor(2, 0);
+  lcd.setCursor(options[0].col+1, options[0].row);
   lcd.print(current_title());
 }
 
 void update_menu(){
 //  levels_pointer, systems_pointer, places_pointer
+// options[0].row.col
 
   // LEVEL 1
   if (levels_pointer == 0){
     // CASE 1
     if (systems_pointer < 5){
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("curr value:" + String(CaseOne[systems_pointer].system_val));
     }
     // CASE 2
     else{
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("curr value:" + String(CaseTwo[systems_pointer-5].system_val));
     }    
   }
@@ -676,18 +690,18 @@ void update_menu(){
   else if (levels_pointer == 1){
     // CASE 1
     if (systems_pointer < 5){
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("set value:" + String(CaseOne[systems_pointer].system_set_val));
     }
     // CASE 2
     else{
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("time:" + String(CaseTwo[systems_pointer-5].system_time_h) + ":" + String(CaseTwo[systems_pointer-5].system_time_m));
 
-      lcd.setCursor(11, 1);
+      lcd.setCursor(options[2].col+1, options[2].row);
       lcd.print("dur:" + String(CaseTwo[systems_pointer-5].system_dur1));
       
-      lcd.setCursor(1, 2);
+      lcd.setCursor(options[3].col+1, options[3].row);
       lcd.print("repeat:" + String(CaseTwo[systems_pointer-5].system_rep));
     }
   }
@@ -696,15 +710,15 @@ void update_menu(){
   else if (levels_pointer == 2){
     // CASE 1
     if (systems_pointer < 5){
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("state:" + String(CaseOne[systems_pointer].system_state));
     }
     // CASE 2
     else{
-      lcd.setCursor(1, 1);
+      lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("dur:" + String(CaseTwo[systems_pointer-5].system_dur2));
 
-      lcd.setCursor(11, 1);
+      lcd.setCursor(options[2].col+1, options[2].row);
       lcd.print("pause:" + String(CaseTwo[systems_pointer-5].system_pause));
     }
   }
@@ -712,7 +726,7 @@ void update_menu(){
   // LEVEL 4
   else if (levels_pointer == 3){
     // CASE 2
-    lcd.setCursor(1, 1);
+    lcd.setCursor(options[1].col+1, options[1].row);
     lcd.print("state:" + String(CaseTwo[bool(systems_pointer-5)].system_state));
   }
 }
