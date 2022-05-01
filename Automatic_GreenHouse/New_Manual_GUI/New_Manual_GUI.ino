@@ -99,162 +99,172 @@ bool water_level_state = false;
 // **** Main Structures for storing Data **** 
 
 struct case_one_params{ 
-  uint8_t system_num;
-  int system_val;
-  bool is_system_set;
-  int system_set_val;
-  bool system_state;
-  bool is_state_set;
+  
+  int system_val; // 0
+  
+  int system_set_val; // 1
+  
+  bool system_state; // 2
+  
+  bool is_system_set; // 3
+  bool is_state_set; // 4
+  
+  uint8_t system_num; // 5
+
 
   int get_value(int which){
-    if (which == 1){
+    if (which == 0){
       return this->system_val;
     }
-    else if(which == 2){
+    else if(which == 3){
       return int(this->is_system_set);
     }
-    else if(which == 3){
+    else if(which == 1){
       return this->system_set_val;
     }
-    else if(which == 4){
+    else if(which == 2){
       return int(this->system_state);
     }
-    else if(which == 5){
+    else if(which == 4){
       return int(this->is_state_set);
     }  
   }
 
+
   void set_value(int which, int new_value){
-    if (which == 1){
+    if (which == 0){
       this->system_val = new_value;
     }
-    else if(which == 2){
+    else if(which == 3){
       this->is_system_set = bool(new_value);
     }
-    else if(which == 3){
+    else if(which == 1){
       this->system_set_val = new_value;
     }
-    else if(which == 4){
+    else if(which == 2){
       this->system_state = bool(new_value);
     }
-    else if(which == 5){
+    else if(which == 4){
       this->is_state_set = bool(new_value);
     }
   }
 };
 case_one_params CaseOne[] {
-    {0, temperature, temperature_set, temperature_set_value, temperature_state, temperature_state_set},
-    {1, humidity, humidity_set, humidity_set_value, humidity_state, humidity_state_set},
-    {2, carbon, carbon_set, carbon_set_value, carbon_state, carbon_state_set},
-    {3, water_temperature, water_temp_set, water_temp_set_value, water_temp_state, water_temp_state_set},
-    {4, water_level, water_level_set, water_level_set_value, water_level_state, water_level_state_set},
+    {temperature, temperature_set_value, temperature_state, temperature_set, temperature_state_set, 0},
+    {humidity, humidity_set_value, humidity_state, humidity_set, humidity_state_set, 1},
+    {carbon, carbon_set_value, carbon_state, carbon_set, carbon_state_set, 2},
+    {water_temperature, water_temp_set_value, water_temp_state, water_temp_set, water_temp_state_set, 3},
+    {water_level, water_level_set_value, water_level_state, water_level_set, water_level_state_set, 4},
 };
 
 
 struct case_two_params{ 
-  int system_time_h;  // 0
-  int system_time_m; // 1
-  int system_dur1; // 2
-  bool system_rep; // 3
 
-  int system_dur2; // 4
-  int system_pause; // 5
+  int system_val; // 0
   
-  bool system_state; // 6
-  
-  bool is_clock_set; // 7
-  bool is_inter_set; // 8
-  bool is_state_set; // 9
-  
-  uint8_t system_num; // 10
-  int system_val; // 11
+  int system_time_h;  // 1
+  int system_time_m; // 2
+  int system_dur1; // 3
+  bool system_rep; // 4
 
+  int system_dur2; // 5
+  int system_pause; // 6
+  
+  bool system_state; // 7
+  
+  bool is_clock_set; // 8
+  bool is_inter_set; // 9
+  bool is_state_set; // 10
+  
+  uint8_t system_num; // 11
+  
 
   int get_value(int which){
     
-    if (which == 11){
+    if (which == 0){
       return this->system_val;
     }
     
-    else if(which == 7){
+    else if(which == 8){
       return int(this->is_clock_set);
     }
-    else if(which == 8){
+    else if(which == 9){
       return int(this->is_inter_set);
     }
-    else if(which == 9){
+    else if(which == 10){
       return int(this->is_state_set);
     }
     
-    else if(which == 0){
+    else if(which == 1){
       return this->system_time_h;
     }
-    else if(which == 1){
+    else if(which == 2){
       return this->system_time_m;
     }
-    else if(which == 2){
+    else if(which == 3){
       return this->system_dur1;
     }
-    else if(which == 3){
+    else if(which == 4){
       return int(this->system_rep);
     }
     
-    else if(which == 6){
+    else if(which == 7){
       return int(this->system_state);
     }  
 
-    else if(which == 4){
+    else if(which == 5){
       return int(this->system_dur2);
     }
-    else if(which == 5){
+    else if(which == 6){
       return int(this->system_pause);
     }
   }
 
+  
   void set_value(int which, int new_value){
-    if (which == 11){
+    if (which == 0){
       this->system_val = new_value;
     }
 
-    else if(which == 7){
+    else if(which == 8){
       this->is_clock_set = bool(new_value);
     }
-    else if(which == 8){
+    else if(which == 9){
       this->is_inter_set = bool(new_value);
     }
-    else if(which == 9){
+    else if(which == 10){
       this->is_state_set = bool(new_value);
     }
 
        
-    else if(which == 0){
+    else if(which == 1){
       this->system_time_h = new_value;
     }
-    else if(which == 1){
+    else if(which == 2){
       this->system_time_m = new_value;
     }
-    else if(which == 2){
+    else if(which == 3){
       this->system_dur1 = new_value;
     }
-    else if(which == 3){
+    else if(which == 4){
       this->system_rep = bool(new_value);
     }
 
-    else if(which == 4){
+    else if(which == 5){
       this->system_dur2 = new_value;
     }
-    else if(which == 5){
+    else if(which == 6){
       this->system_pause = new_value;
     }
     
-    else if(which == 6){
+    else if(which == 7){
       this->system_state = bool(new_value);
     }
   }
 };
 case_two_params CaseTwo[] {
-    {lighting_time_hour, lighting_time_minute, lighting_duration1, lighting_time_repeat, lighting_duration2, lighting_pause, lighting_state, lighting_clock_set, lighting_inter_set, lighting_state_set, 5, light,},
-    {watering_time_hour, watering_time_minute, watering_duration1, watering_time_repeat, watering_duration2, watering_pause, watering_state, watering_clock_set, watering_inter_set, watering_state_set, 6, water},
+    {light, lighting_time_hour, lighting_time_minute, lighting_duration1, lighting_time_repeat, lighting_duration2, lighting_pause, lighting_state, lighting_clock_set, lighting_inter_set, lighting_state_set, 5},
+    {water, watering_time_hour, watering_time_minute, watering_duration1, watering_time_repeat, watering_duration2, watering_pause, watering_state, watering_clock_set, watering_inter_set, watering_state_set, 6},
 };
 
 
@@ -454,7 +464,9 @@ int places_pointer_restrictor(){
 int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
   
   int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
-  bool is_system_set = CaseOne[systems_pointer].get_value(2);
+  bool is_system_set = CaseOne[systems_pointer].get_value(3);
+  
+  Serial.println("Starter Value: " + String(starter_value));
   
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -498,33 +510,21 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, bo
 void editing_values(int where){
 //  Serial.println("Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
   
-  // LEVEL 2
-  if (levels_pointer == 1){
+  // LEVEL 1 or LEVEL 2  
+  if (levels_pointer == 1 || levels_pointer == 2){
     if (systems_pointer < 5){ // CASE 1
-      CaseOne[systems_pointer].set_value(3, value_changer_with_restrictionsONE(where, 0, 99));  
+      CaseOne[systems_pointer].set_value(levels_pointer, value_changer_with_restrictionsONE(where, 0, 99));
     }
-    else{ // CASE 2
-      if (places_pointer == 1){
-        if (editing_mode == 1){
-          // Edit hours
-          CaseTwo[systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
-        }
-        else{ // editing_mode = 2
-          // Edit minutes
-          CaseTwo[systems_pointer-5].set_value(1, value_changer_with_restrictionsTWO(where, 0, 59, false, true));
-        }
-      }      
+    else {
+      // CASE 2 CLOCK AND INTERVAL MENUES
+      CaseTwo[systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
     }
   }
-  // LEVEL 3
-  else if (levels_pointer == 2){
-    if (systems_pointer < 5){ // CASE 1
-      CaseOne[systems_pointer].set_value(3, value_changer_with_restrictionsONE(where, 0, 99));  
-    }
-      
+  // LEVEL 3 EXLUSIVE FOR CASE 2
+  else{
+    // CASE 2 STATE MENU
+    CaseTwo[systems_pointer-5].set_value(0, value_changer_with_restrictionsTWO(where, 0, 23, true, false));
   }
-
-  
 }
 
 
