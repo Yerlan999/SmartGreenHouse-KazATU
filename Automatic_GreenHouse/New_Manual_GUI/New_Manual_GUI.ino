@@ -402,18 +402,18 @@ void getSensorsReadings(){
 
       // UPDATING SENSORS VALUES FROM ARDUINO MEGA
       CaseOne[0].set_value(0, temperature);
-      CaseOne[1].set_value(0, humidity);
-      CaseTwo[0].set_value(0, light);
+      CaseOne[2].set_value(0, humidity);
+      CaseTwo[1].set_value(0, light);
   
-//      Serial.println();
-//      Serial.println("Recieved values: ");
-//      Serial.println();
-//      Serial.print("temperature: ");
-//      Serial.println(temperature);
-//      Serial.print("humidity: ");
-//      Serial.println(humidity);    
-//      Serial.print("light: ");
-//      Serial.println(light);
+      Serial.println();
+      Serial.println("Recieved values: ");
+      Serial.println();
+      Serial.print("temperature: ");
+      Serial.println(temperature);
+      Serial.print("humidity: ");
+      Serial.println(humidity);    
+      Serial.print("light: ");
+      Serial.println(light);
     }
 }
 
