@@ -644,6 +644,22 @@ void update_cursor(){
   lcd.print(update_cursor_type());  
 }
 
+char system_set_icon(){
+  if (systems_pointer < 5){
+    bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
+    if (is_set){
+      return '$';  
+    }    
+  }
+  else{
+    bool is_set = CaseTwo[systems_pointer-5].get_value(levels_pointer+7);
+    if (is_set){
+      return '$';
+    }
+  }
+  return ' ';
+}
+
 String current_title(){
   
   switch (levels_pointer) {
@@ -666,6 +682,8 @@ String current_title(){
 void update_title(){
   lcd.setCursor(options[0].col+1, options[0].row);
   lcd.print(current_title());
+  lcd.setCursor(19, 0);
+  lcd.print(system_set_icon());
 }
 
 void update_menu(){
@@ -739,6 +757,81 @@ void update_display(){
   display_time();  
 }
 
+void set_current_system(){
+  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
+  // CASES 1
+  if (systems_pointer < 5){
+    
+    if (levels_pointer == 1){
+      bool current_state = CaseOne[systems_pointer].get_value(3);
+      bool other_state = CaseOne[systems_pointer].get_value(4);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(3, false);
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(3, true);
+      }
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseOne[systems_pointer].get_value(4);
+      bool other_state = CaseOne[systems_pointer].get_value(3);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(4, false);
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(4, true);
+      }      
+  
+    }
+  
+  }
+  // CASES 2
+  else {
+   
+    if (levels_pointer == 1){
+      bool current_state = CaseTwo[systems_pointer-5].get_value(8);
+      bool other_state = CaseTwo[systems_pointer-5].get_value(9);
+      bool another_state = CaseTwo[systems_pointer-5].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-5].set_value(8, false);
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-5].set_value(8, true);
+      }  
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseTwo[systems_pointer-5].get_value(9);
+      bool other_state = CaseTwo[systems_pointer-5].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-5].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-5].set_value(9, false);
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-5].set_value(9, true);
+      }      
+    }
+    else if (levels_pointer == 3){
+      bool current_state = CaseTwo[systems_pointer-5].get_value(10);
+      bool other_state = CaseTwo[systems_pointer-5].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-5].get_value(9);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-5].set_value(10, false);
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-5].set_value(10, true);
+      }      
+    }    
+  
+  }
+
+}
+
+
 
 void setup() {
   pinMode(ONBOARD_LED,OUTPUT);
@@ -758,9 +851,11 @@ void setup() {
     rtc.adjust(DateTime(__DATE__, __TIME__));
     // Задать время для модуля вручную
     // Январь 21, 2014 и 3 часа ночи:
-    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
-  }  
+//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
 
+  }  
+//  rtc.adjust(DateTime(__DATE__, __TIME__));
+  
   Serial.begin(baud, SERIAL_8N1);
   Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
   update_display();
@@ -802,13 +897,14 @@ void loop() {
   if (enc1.isRelease()){
 //    Serial.println("Release");          // отпускание кнопки (+ дебаунс)
     update_level();
-    track_cursor();
+//    track_cursor();
     toggle_editing_mode();
     update_display();
   };
   
   if (enc1.isHolded()){
 //    Serial.println("Holded");           // если была удержана и энк не поворачивался
+    set_current_system();
     update_display();
   };
   
@@ -819,7 +915,7 @@ void loop() {
 
   if (enc1.isTurn()) {                   // если был совершён поворот (индикатор поворота в любую сторону)
     update_display();
-    track_cursor(); 
+//    track_cursor(); 
   }
 
 
