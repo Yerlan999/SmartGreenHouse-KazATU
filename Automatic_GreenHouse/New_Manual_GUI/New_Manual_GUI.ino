@@ -26,7 +26,7 @@ int baud = 9600;
 
 // Интервал обновления показании датчиков
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 120000;    // КАЖДЫЕ 120 секунд
+unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
 String formattedDate;
@@ -37,13 +37,13 @@ char datestring[20];
 
 // **** Main system variables ****
 
-int temperature = 31;
-int humidity = 50;
-int carbon = 10;
-int water_temperature = 36;
-int water_level = 5;
-int water = 1;
-int light = 22;
+int temperature = 0;
+int humidity = 0;
+int carbon = 0;
+int water_temperature = 0;
+int water_level = 0;
+int water = 0;
+int light = 0;
 
 bool temperature_set = false;
 bool humidity_set = false;
@@ -399,7 +399,12 @@ void getSensorsReadings(){
       int garbage1 = Serial1.read();
       int garbage2 = Serial1.read();
       int garbage3 = Serial1.read();
-      
+
+      // UPDATING SENSORS VALUES FROM ARDUINO MEGA
+      CaseOne[0].set_value(0, temperature);
+      CaseOne[1].set_value(0, humidity);
+      CaseTwo[0].set_value(0, light);
+  
 //      Serial.println();
 //      Serial.println("Recieved values: ");
 //      Serial.println();
@@ -482,8 +487,8 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 
 int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
   
-  int starter_value = CaseTwo[systems_pointer-5].get_value(which);
-  bool is_system_set = CaseTwo[systems_pointer-5].get_value(7);
+  int starter_value = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(which);
+  bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(7);
 
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -511,25 +516,25 @@ void editing_values(int where){
       // CLOCK MENU
       if (levels_pointer == 1 && places_pointer == 1){
         if (editing_mode == 1){ // HOURS
-          CaseTwo[systems_pointer-5].set_value(1, value_changer_with_restrictionsTWO(where, 0, 23, 1));
+          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(1, value_changer_with_restrictionsTWO(where, 0, 23, 1));
         }
         else if (editing_mode == 2){ // MINUTES
-          CaseTwo[systems_pointer-5].set_value(2, value_changer_with_restrictionsTWO(where, 0, 59, 2));
+          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(2, value_changer_with_restrictionsTWO(where, 0, 59, 2));
         }
       }
       else if (levels_pointer == 1 && places_pointer == 2){ // DURATION 1
-        CaseTwo[systems_pointer-5].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, 3));
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, 3));
       }
       else if (levels_pointer == 1 && places_pointer == 3){ // REPEAT
-        CaseTwo[systems_pointer-5].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
       }      
     
       // INTERVAL MENU
       if (levels_pointer == 2 && places_pointer == 1){ // DURATION 2
-       CaseTwo[systems_pointer-5].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
+       CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
       }
       else if (levels_pointer == 2 && places_pointer == 2){ // PAUSE
-        CaseTwo[systems_pointer-5].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
       }
     }
     
@@ -537,7 +542,7 @@ void editing_values(int where){
   // LEVEL 3 EXLUSIVE FOR CASE 2
   else{
     // CASE 2 STATE MENU
-    CaseTwo[systems_pointer-5].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
+    CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
   }
 }
 
@@ -652,7 +657,7 @@ char system_set_icon(){
     }    
   }
   else{
-    bool is_set = CaseTwo[systems_pointer-5].get_value(levels_pointer+7);
+    bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
     if (is_set){
       return '$';
     }
@@ -673,7 +678,7 @@ String current_title(){
     return L3system_titles[systems_pointer].system_name;
     break;
   case 3:
-    return L4system_titles[bool(systems_pointer-5)].system_name;
+    return L4system_titles[bool(systems_pointer-(countof(L1system_titles)-2))].system_name;
     break;
 }
  
@@ -700,7 +705,7 @@ void update_menu(){
     // CASE 2
     else{
       lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("curr value:" + String(CaseTwo[systems_pointer-5].system_val));
+      lcd.print("curr value:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_val));
     }    
   }
   
@@ -714,13 +719,13 @@ void update_menu(){
     // CASE 2
     else{
       lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("time:" + String(CaseTwo[systems_pointer-5].system_time_h) + ":" + String(CaseTwo[systems_pointer-5].system_time_m));
+      lcd.print("time:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h) + ":" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m));
 
       lcd.setCursor(options[2].col+1, options[2].row);
-      lcd.print("dur:" + String(CaseTwo[systems_pointer-5].system_dur1));
+      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1));
       
       lcd.setCursor(options[3].col+1, options[3].row);
-      lcd.print("repeat:" + String(CaseTwo[systems_pointer-5].system_rep));
+      lcd.print("repeat:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep));
     }
   }
 
@@ -734,10 +739,10 @@ void update_menu(){
     // CASE 2
     else{
       lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("dur:" + String(CaseTwo[systems_pointer-5].system_dur2));
+      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2));
 
       lcd.setCursor(options[2].col+1, options[2].row);
-      lcd.print("pause:" + String(CaseTwo[systems_pointer-5].system_pause));
+      lcd.print("pause:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause));
     }
   }
 
@@ -745,7 +750,7 @@ void update_menu(){
   else if (levels_pointer == 3){
     // CASE 2
     lcd.setCursor(options[1].col+1, options[1].row);
-    lcd.print("state:" + String(CaseTwo[bool(systems_pointer-5)].system_state));
+    lcd.print("state:" + String(CaseTwo[bool(systems_pointer-(countof(L1system_titles)-2))].system_state));
   }
 }
 
@@ -791,39 +796,39 @@ void set_current_system(){
   else {
    
     if (levels_pointer == 1){
-      bool current_state = CaseTwo[systems_pointer-5].get_value(8);
-      bool other_state = CaseTwo[systems_pointer-5].get_value(9);
-      bool another_state = CaseTwo[systems_pointer-5].get_value(10);
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
       
       if (current_state){
-        CaseTwo[systems_pointer-5].set_value(8, false);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
       }
       else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-5].set_value(8, true);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
       }  
     }
     else if (levels_pointer == 2){
-      bool current_state = CaseTwo[systems_pointer-5].get_value(9);
-      bool other_state = CaseTwo[systems_pointer-5].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-5].get_value(10);
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
       
       if (current_state){
-        CaseTwo[systems_pointer-5].set_value(9, false);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
       }
       else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-5].set_value(9, true);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
       }      
     }
     else if (levels_pointer == 3){
-      bool current_state = CaseTwo[systems_pointer-5].get_value(10);
-      bool other_state = CaseTwo[systems_pointer-5].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-5].get_value(9);
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
       
       if (current_state){
-        CaseTwo[systems_pointer-5].set_value(10, false);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
       }
       else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-5].set_value(10, true);
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
       }      
     }    
   
@@ -922,9 +927,9 @@ void loop() {
   if ((millis() - lastTime) > timerDelay) {
     
     // Read the sersors reading
-//    getSensorsReadings();
-//    blinkBuildLED();
-    
+    getSensorsReadings();
+    blinkBuildLED();
+    update_display();
     // Update screen values
     
     lastTime = millis();
