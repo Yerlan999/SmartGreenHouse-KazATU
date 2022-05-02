@@ -1,5 +1,6 @@
 // Импортирование необходимых библиотек
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <WiFiUdp.h>
 #include <Arduino.h>
 #include <AsyncTCP.h>
@@ -16,6 +17,7 @@
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
 char datestring[20];
+int wifi_try_counter = 0;
 
 int baud = 9600;
 int pointer = 0;
@@ -40,8 +42,15 @@ int dummy_water_level;
 
 
 // Параметры сети WI-FI
-const char* ssid = "Le petit dejeuner 2";
-const char* password = "DoesGodReallyExist404";
+const char* main_ssid = "Le petit dejeuner 2";
+const char* main_password = "DoesGodReallyExist404";
+
+const char* other_ssid = "HUAWEI Y6 2019";
+const char* other_password = "mama1963";
+
+const char* another_ssid = "HUAWEI P8 lite 2017";
+const char* another_password = "11111111";
+
 
 const char* http_username = "micro";
 const char* http_password = "micro";
@@ -57,6 +66,7 @@ IPAddress subnet(255, 255, 255, 255);
 IPAddress primaryDNS(8, 8, 8, 8);  
 IPAddress secondaryDNS(8, 8, 4, 4);
 
+WiFiMulti wifiMulti;
 
 // Объявление объекта NTP Client для получения времени 
 WiFiUDP ntpUDP;
@@ -72,7 +82,7 @@ AsyncEventSource events("/events");
 
 // Интервал обновления показании датчиков и времени на Веб-странице
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 10000;    // КАЖДЫЕ 10 секунд
+unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
 bool startOfProgramm = true;
 
@@ -101,17 +111,26 @@ const char* WATER_TEMP_PARAM_INPUT2 = "new-water-temp-value-tog";
 const char* WATER_LEVEL_PARAM_INPUT1 = "new-water-level-value";
 const char* WATER_LEVEL_PARAM_INPUT2 = "new-water-level-value-tog";
 
+
 const char* LIGHT_PARAM_INPUT1 = "new-light-value-time";
-const char* LIGHT_PARAM_INPUT2 = "new-light-value-duration";
+const char* LIGHT_PARAM_INPUT2 = "new-light-value-duration1";
 const char* LIGHT_PARAM_INPUT3 = "new-light-value";
 const char* LIGHT_PARAM_INPUT4 = "new-light-value-repeat";
 bool light_repeat = false;
 
+const char* LIGHT_PARAM_INPUT5 = "new-light-value-duration2";
+const char* LIGHT_PARAM_INPUT6 = "new-light-value-pause";
+
+
 const char* WATER_PARAM_INPUT1 = "new-water-value-time";
-const char* WATER_PARAM_INPUT2 = "new-water-value-duration";
+const char* WATER_PARAM_INPUT2 = "new-water-value-duration1";
 const char* WATER_PARAM_INPUT3 = "new-water-value";
 const char* WATER_PARAM_INPUT4 = "new-water-value-repeat";
 bool water_repeat = false;
+
+const char* WATER_PARAM_INPUT5 = "new-water-value-duration2";
+const char* WATER_PARAM_INPUT6 = "new-water-value-pause";
+
 
 const char* TIME_PARAM_INPUT = "new-update-value";
 
@@ -137,6 +156,7 @@ bool is_water_level_set = false;
 
 // Заданные значения для системы
 String to = " >>> ";
+
 String temp_set_value;
 String hum_set_value;
 String light_set_value;
@@ -151,6 +171,20 @@ float hum_set_value_f;
 float carbon_set_value_f;
 float water_temp_set_value_f;
 float water_level_set_value_f;
+float light_set_value_f;
+float water_set_value_f;
+
+
+struct wifi_template{ 
+  uint8_t num;
+  const char* ssid;
+  const char* password;
+};
+wifi_template wifi_dict[] {
+    {0, main_ssid, main_password},
+    {1, other_ssid, other_password},
+    {2, another_ssid, another_password},
+};
 
 
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
@@ -254,12 +288,21 @@ void initWiFi() {
     WiFi.onEvent(Wifi_disconnected, SYSTEM_EVENT_STA_DISCONNECTED); 
     
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-//    Serial.print("Connecting to WiFi ..");
-    while (WiFi.status() != WL_CONNECTED) {
-//        Serial.print('.');
-        delay(1000);
+
+    wifiMulti.addAP(main_ssid, main_password);
+    wifiMulti.addAP(other_ssid, other_password);
+    wifiMulti.addAP(another_ssid, another_password);
+
+    if(wifiMulti.run() == WL_CONNECTED) {
+      Serial.println(WiFi.SSID());
     }
+    
+//    WiFi.begin(main_ssid, main_password);
+////    Serial.print("Connecting to WiFi ..");
+//    while (WiFi.status() != WL_CONNECTED) {
+////        Serial.print('.');
+//        delay(1000);
+//    }
     
     // Вывод IP адреса на LCD дисплей
     lcd.setCursor(0, 0);  
@@ -270,23 +313,34 @@ void initWiFi() {
     timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
 }
 
+void wifi_try_counter_incrementer(){
+  wifi_try_counter++;
+  if (wifi_try_counter > 2){
+    wifi_try_counter = 0;
+  }
+}
 
 void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
-//  Serial.println("Successfully connected to Access Point");
+  Serial.println("Successfully connected to Access Point");
 }
 
 void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
-//  Serial.println("WIFI is connected!");
-//  Serial.println("IP address: ");
-//  Serial.println(WiFi.localIP());
+  Serial.println("WIFI is connected!");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-//  Serial.println("Disconnected from WIFI access point");
-//  Serial.print("WiFi lost connection. Reason: ");
-//  Serial.println(info.disconnected.reason);
-//  Serial.println("Reconnecting...");
-  WiFi.begin(ssid, password);
+  Serial.println("Disconnected from WIFI access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.disconnected.reason);
+  Serial.println("Reconnecting...");  
+
+  Serial.println(wifi_try_counter);
+  WiFi.begin(wifi_dict[wifi_try_counter].ssid, wifi_dict[wifi_try_counter].password);
+  wifi_try_counter_incrementer();
+  
+  lcd.print(WiFi.localIP());
 }
 
 
@@ -885,10 +939,11 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
       Начало освещ.: <input type="time" id="time" name="new-light-value-time">
-      продолж. (ч): <input type="number" name="new-light-value-duration">
+      продолж. (ч): <input type="number" name="new-light-value-duration1">
       повтор: <input type="checkbox" name="new-light-value-repeat">
       <input id="light-value" class="button-submmit" type="submit" value="Задать">
     </form>
+    <br>
     <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
       <input type="hidden" name="new-light-value" value="toggle-light">
       <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
@@ -900,10 +955,11 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
       Начало полива: <input type="time" id="time" name="new-water-value-time">
-      продолж. (ч): <input type="number" name="new-water-value-duration">
+      продолж. (ч): <input type="number" name="new-water-value-duration1">
       повтор: <input type="checkbox" name="new-water-value-repeat">
       <input id="water-value" class="button-submmit" type="submit" value="Задать">
     </form>
+    <br>
     <form id="water-form-on" class=%WATER_BUTTON_STATE% action="/getwatertog">
       <input type="hidden" name="new-water-value" value="toggle-water">
       <input id="water-on" class="button-submmit" type="submit" value=%WATER_SUB_BUT_TEXT%>
