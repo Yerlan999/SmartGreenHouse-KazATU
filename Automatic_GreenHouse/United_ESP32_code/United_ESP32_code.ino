@@ -711,10 +711,13 @@ const char index_html[] PROGMEM = R"rawliteral(
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
   
-  <style>
+  <style>      
     html {font-family: Arial; display: inline-block; text-align: center;}
     p { font-size: 1.2rem;}
-    body {  margin: 0;}
+    body {  margin: 0;
+            font-family: 'Open Sans', sans-serif;
+            background: ivory;
+    }
     .topnav { overflow: hidden; background-color: #50B8B4; color: white; font-size: 1rem; }
     .content { padding: 20px; }
     .card { background-color: white; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
@@ -830,6 +833,8 @@ const char index_html[] PROGMEM = R"rawliteral(
   display: none;
 }
 
+
+
 </style>
 </head>
 
@@ -936,18 +941,33 @@ const char index_html[] PROGMEM = R"rawliteral(
     <br><br>
     
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЕЩЕНИЯ -->
-    
-    <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
-      Начало освещ.: <input type="time" id="time" name="new-light-value-time">
-      продолж. (ч): <input type="number" name="new-light-value-duration1">
-      повтор: <input type="checkbox" name="new-light-value-repeat">
-      <input id="light-value" class="button-submmit" type="submit" value="Задать">
-    </form>
-    <br>
-    <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
-      <input type="hidden" name="new-light-value" value="toggle-light">
-      <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
-    </form>
+
+    <div id="flip-light-control-top">
+      <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
+        Начало освещ.: <input type="time" id="time" name="new-light-value-time">
+        продолж. (ч): <input type="number" name="new-light-value-duration1">
+        повтор: <input type="checkbox" name="new-light-value-repeat">
+        <input id="light-value" class="button-submmit" type="submit" value="Задать">
+      </form>
+      <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
+        <input type="hidden" name="new-light-value" value="toggle-light">
+        <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
+      </form>
+    </div>
+
+    <div id="flip-light-control-back">
+      <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
+        продолж. (ч): <input type="number" name="new-light-value-duration2">
+        пауза. (ч): <input type="number" name="new-light-value-pause">
+        <input id="light-value" class="button-submmit" type="submit" value="Задать">
+      </form>
+      <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
+        <input type="hidden" name="new-light-value" value="toggle-light">
+        <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
+      </form>   
+    </div>
+
+
     
     <br><br>
 
@@ -959,7 +979,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       повтор: <input type="checkbox" name="new-water-value-repeat">
       <input id="water-value" class="button-submmit" type="submit" value="Задать">
     </form>
-    <br>
     <form id="water-form-on" class=%WATER_BUTTON_STATE% action="/getwatertog">
       <input type="hidden" name="new-water-value" value="toggle-water">
       <input id="water-on" class="button-submmit" type="submit" value=%WATER_SUB_BUT_TEXT%>
@@ -981,6 +1000,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   
   </div>
+
 
 <script>
 if (!!window.EventSource) {
@@ -1036,14 +1056,31 @@ source.addEventListener('refresher', function(e) {
     console.log("shorter than 22");  
   }
  }, false);
- 
-//window.addEventListener('beforeunload', function (e) {  
-//  var xhr = new XMLHttpRequest();
-//  xhr.open("GET", "/logout", true);
-//  xhr.send();
-//});
+
+
+
+document.getElementById("flip-light-control-top").addEventListener("dblclick", flipperA);
+document.getElementById("flip-light-control-back").addEventListener("dblclick", flipperB);
+
+document.getElementById("flip-light-control-back").style.setProperty("display", "none");
+
+function flipperA(){
+  console.log("CLICK ON LIGHT CONTROL TOOLS A"); 
+  document.getElementById("flip-light-control-back").style.setProperty("display", "block");
+  document.getElementById("flip-light-control-top").style.setProperty("display", "none");
+  
+}
+
+function flipperB(){
+  console.log("CLICK ON LIGHT CONTROL TOOLS B"); 
+  document.getElementById("flip-light-control-top").style.setProperty("display", "block");
+  document.getElementById("flip-light-control-back").style.setProperty("display", "none");
+  
+}
 
 }
+
+
 
 </script>
 </body>
@@ -1180,6 +1217,9 @@ const char settings_html[] PROGMEM = R"rawliteral(
 
   </div>
 
+
+
+
 <script>
 if (!!window.EventSource) {
  var source = new EventSource('/events');
@@ -1222,6 +1262,7 @@ if (!!window.EventSource) {
   
  }, false);
 }
+
 
 </script>
 </body>
