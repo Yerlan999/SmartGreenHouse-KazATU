@@ -10,7 +10,7 @@
 #define NUM_LEDS    25
 #define LED_BRIGHTNESS 5 // [0 - 255]
 
-// Блок констант для реле
+// Блок констант для реле 
 #define relay1 23
 #define relay2 25
 #define relay3 27
