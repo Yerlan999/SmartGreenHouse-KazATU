@@ -983,7 +983,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     <div id="flip-water-control-back">
       <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
-        Продолж. полива: <input type="time" id="time" name="new-water-value-duration2">
+        Продолж. полива: <input type="number" name="new-water-value-duration2">
         пауза: <input type="number" name="new-water-value-pause">
         <input id="water-value" class="button-submmit" type="submit" value="Задать">
       </form>
@@ -1365,15 +1365,18 @@ void setup() {
   // Задание значения для СИСТЕМЫ ОСВЕЩЕНИЯ  -- ЗАДАТЧИК
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_time;
-    String light_message_duration;
+    String light_message_duration1;
+    String light_message_duration2;
     String light_message_repeat;
+    String light_message_pause;
+    
       
     // Контроль ОСВЕЩЕНИЯ
     if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
         light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
-        light_message_duration = request->getParam(LIGHT_PARAM_INPUT2)->value();
+        light_message_duration1 = request->getParam(LIGHT_PARAM_INPUT2)->value();
            
-        if (light_message_time != "" && light_message_duration != ""){
+        if (light_message_time != "" && light_message_duration1 != ""){
           
           if (!light_button_state && !is_light_set){
             Serial1.write('L');  
@@ -1384,11 +1387,11 @@ void setup() {
             // HAVING SET VALUE FOR LIGHTENING
             if (request->hasParam(LIGHT_PARAM_INPUT4)){
               light_repeat = true;
-              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов" + " (пов.)";
+              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин" + " (пов.)";
             }
             else{
               light_repeat = false;
-              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration + " часов";
+              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин";
             }
                   
             if (!light_button_state){
@@ -1399,7 +1402,29 @@ void setup() {
             }
           }  
         }   
-    }; 
+    }
+    else if (request->hasParam(LIGHT_PARAM_INPUT5) && request->hasParam(LIGHT_PARAM_INPUT6)) {
+        light_message_duration2 = request->getParam(LIGHT_PARAM_INPUT5)->value();
+        light_message_pause = request->getParam(LIGHT_PARAM_INPUT6)->value();
+     
+        if (light_message_pause != "" && light_message_duration2 != ""){
+          
+          if (!light_button_state && !is_light_set){
+            Serial1.write('L');  
+          }
+          if (getFeedBack()){
+            // HAVING SET VALUE FOR LIGHTENING
+            light_set_value = "В течение: " + light_message_duration2 + " с паузой в: " + light_message_pause + " мин";
+          }
+          
+          if (!light_button_state){
+            light_button_state = true;
+          }
+          if (!is_light_set){
+            is_light_set = true;
+          }
+        }
+    };
         request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -1433,15 +1458,18 @@ void setup() {
   // Задание значения для СИСТЕМЫ ПОЛИВА  -- ЗАДАТЧИК
   server.on("/getwater", HTTP_GET, [](AsyncWebServerRequest *request){
     String water_message_time;
-    String water_message_duration;
+    String water_message_duration1;
+    String water_message_duration2;
     String water_message_repeat;
+    String water_message_pause;
+
       
     // Контроль ПОЛИВА
     if (request->hasParam(WATER_PARAM_INPUT1) && request->hasParam(WATER_PARAM_INPUT2)) {
         water_message_time = request->getParam(WATER_PARAM_INPUT1)->value();
-        water_message_duration = request->getParam(WATER_PARAM_INPUT2)->value();
+        water_message_duration1 = request->getParam(WATER_PARAM_INPUT2)->value();
            
-        if (water_message_time != "" && water_message_duration != ""){
+        if (water_message_time != "" && water_message_duration1 != ""){
           
           if (!water_button_state && !is_water_set){
             Serial1.write('W');  
@@ -1452,11 +1480,11 @@ void setup() {
             // HAVING SET VALUE FOR WATERING
             if (request->hasParam(WATER_PARAM_INPUT4)){
               water_repeat = true;
-              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration + " часов" + " (пов.)";
+              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин" + " (пов.)";
             }
             else{
               water_repeat = false;
-              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration + " часов";
+              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин";
             }
                   
             if (!water_button_state){
@@ -1467,7 +1495,30 @@ void setup() {
             }
           }  
         }   
-    }; 
+    }
+    else if (request->hasParam(WATER_PARAM_INPUT5) && request->hasParam(WATER_PARAM_INPUT6)){
+        water_message_pause = request->getParam(WATER_PARAM_INPUT6)->value();
+        water_message_duration2 = request->getParam(WATER_PARAM_INPUT5)->value();
+        
+        if (water_message_pause != "" && water_message_duration2 != ""){
+          
+          if (!water_button_state && !is_water_set){
+            Serial1.write('W');  
+          }
+          if (getFeedBack()){
+            
+            // HAVING SET VALUE FOR WATERING
+            water_set_value = "В течение: " + water_message_duration2 + " с паузой в: " + water_message_pause + " мин";
+            if (!water_button_state){
+              water_button_state = true;
+            }
+            if (!is_water_set){
+              is_water_set = true;
+            }            
+          }
+                      
+        }
+    }
         request->send_P(200, "text/html", index_html, processor);
   });
 
