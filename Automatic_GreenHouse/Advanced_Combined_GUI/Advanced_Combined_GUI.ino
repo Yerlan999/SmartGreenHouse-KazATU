@@ -148,13 +148,13 @@ const char* TIME_PARAM_INPUT = "new-update-value";
   // Заданные значения для системы
   String to = " >>> ";
   
-  String temp_set_value;
-  String hum_set_value;
-  String light_set_value;
-  String water_set_value;
-  String carbon_set_value;
-  String water_temp_set_value;
-  String water_level_set_value;
+  String temp_set_value_s;
+  String hum_set_value_s;
+  String light_set_value_s;
+  String water_set_value_s;
+  String carbon_set_value_s;
+  String water_temp_set_value_s;
+  String water_level_set_value_s;
   
   
   float temp_set_value_f;
@@ -382,6 +382,22 @@ void getWiFiDateTime(){
 }
 
 
+void printDateTime(const DateTime& dt)
+{
+
+    snprintf_P(datestring, 
+      countof(datestring),
+      PSTR("%02u-%02u-%02u %02u:%02u"),
+      dt.year(),
+      dt.month(),
+      dt.day(),
+      dt.hour(),
+      dt.minute()
+      );
+//    Serial.print(datestring);
+}
+
+
 void getHardDateTime(){ 
     DateTime now = rtc.now();
     printDateTime(now);
@@ -397,7 +413,7 @@ void getHardDateTime(){
 String processor(const String& var){
 
   getDummySensorReadings();
-  getDateTime();
+  getWiFiDateTime();
   
   // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
@@ -428,7 +444,7 @@ String processor(const String& var){
   // Вывод заданных значении
   else if(var == "TEMP_SET_VALUE"){
     if(is_temp_set){
-      return String(to + temp_set_value);
+      return String(to + temp_set_value_s);
     }
     else{
       return String("");
@@ -436,7 +452,7 @@ String processor(const String& var){
   } 
   else if(var == "HUM_SET_VALUE"){
     if(is_hum_set){
-      return String(to + hum_set_value);
+      return String(to + hum_set_value_s);
     }
     else{
       return String("");
@@ -444,7 +460,7 @@ String processor(const String& var){
   }
   else if(var == "LIGHT_SET_VALUE"){
     if(is_light_set){
-      return String(light_set_value);
+      return String(light_set_value_s);
     }
     else{
       return String("");
@@ -452,7 +468,7 @@ String processor(const String& var){
   }
   else if(var == "WATER_SET_VALUE"){
     if(is_water_set){
-      return String(water_set_value);
+      return String(water_set_value_s);
     }
     else{
       return String("");
@@ -460,7 +476,7 @@ String processor(const String& var){
   }
   else if(var == "WATER_TEMP_SET_VALUE"){
     if(is_water_temp_set){
-      return String(to + water_temp_set_value);
+      return String(to + water_temp_set_value_s);
     }
     else{
       return String("");
@@ -468,7 +484,7 @@ String processor(const String& var){
   }
   else if(var == "WATER_LEVEL_SET_VALUE"){
     if(is_water_level_set){
-      return String(to + water_level_set_value);
+      return String(to + water_level_set_value_s);
     }
     else{
       return String("");
@@ -476,7 +492,7 @@ String processor(const String& var){
   }
   else if(var == "CARBON_SET_VALUE"){
     if(is_carbon_set){
-      return String(to + carbon_set_value);
+      return String(to + carbon_set_value_s);
     }
     else{
       return String("");
@@ -1630,21 +1646,6 @@ void getSensorsReadings(){
 }
 
 
-void printDateTime(const DateTime& dt)
-{
-
-    snprintf_P(datestring, 
-      countof(datestring),
-      PSTR("%02u-%02u-%02u %02u:%02u"),
-      dt.year(),
-      dt.month(),
-      dt.day(),
-      dt.hour(),
-      dt.minute()
-      );
-//    Serial.print(datestring);
-}
-
 void get_date_time(){
   DateTime now = rtc.now();
   printDateTime(now);
@@ -2141,11 +2142,11 @@ void setup() {
             // HAVING SET VALUE FOR LIGHTENING
             if (request->hasParam(LIGHT_PARAM_INPUT4)){
               light_repeat = true;
-              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин" + " (пов.)";
+              light_set_value_s = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин" + " (пов.)";
             }
             else{
               light_repeat = false;
-              light_set_value = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин";
+              light_set_value_s = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин";
             }
                   
             if (!light_button_state){
@@ -2168,7 +2169,7 @@ void setup() {
           }
           if (getFeedBack()){
             // HAVING SET VALUE FOR LIGHTENING
-            light_set_value = "В течение: " + light_message_duration2 + " с паузой в: " + light_message_pause + " мин";
+            light_set_value_s = "В течение: " + light_message_duration2 + " с паузой в: " + light_message_pause + " мин";
           }
           
           if (!light_button_state){
@@ -2234,11 +2235,11 @@ void setup() {
             // HAVING SET VALUE FOR WATERING
             if (request->hasParam(WATER_PARAM_INPUT4)){
               water_repeat = true;
-              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин" + " (пов.)";
+              water_set_value_s = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин" + " (пов.)";
             }
             else{
               water_repeat = false;
-              water_set_value = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин";
+              water_set_value_s = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин";
             }
                   
             if (!water_button_state){
@@ -2262,7 +2263,7 @@ void setup() {
           if (getFeedBack()){
             
             // HAVING SET VALUE FOR WATERING
-            water_set_value = "В течение: " + water_message_duration2 + " с паузой в: " + water_message_pause + " мин";
+            water_set_value_s = "В течение: " + water_message_duration2 + " с паузой в: " + water_message_pause + " мин";
             if (!water_button_state){
               water_button_state = true;
             }
@@ -2314,7 +2315,7 @@ void setup() {
         if (temp_message != ""){
     
           // HAVING SET VALUE ON TEMPERATURE
-          temp_set_value = temp_message;
+          temp_set_value_s = temp_message;
           temp_set_value_f = stringToFloat(temp_message);
           
           if (!temp_button_state && !is_temp_set){
@@ -2366,7 +2367,7 @@ void setup() {
         if (hum_message != ""){
     
           // HAVING SET VALUE ON HUMIDITY
-          hum_set_value = hum_message;
+          hum_set_value_s = hum_message;
           hum_set_value_f = stringToFloat(hum_message);
           
           if (!hum_button_state && !is_hum_set){
@@ -2418,7 +2419,7 @@ void setup() {
         if (carbon_message != ""){
     
           // HAVING SET VALUE ON CO2
-          carbon_set_value = carbon_message;
+          carbon_set_value_s = carbon_message;
           carbon_set_value_f = stringToFloat(carbon_message);
           
           if (!carbon_button_state && !is_carbon_set){
@@ -2470,7 +2471,7 @@ void setup() {
         if (water_temp_message != ""){
     
           // HAVING SET VALUE ON WATER TEMPERATURE
-          water_temp_set_value = water_temp_message;
+          water_temp_set_value_s = water_temp_message;
           water_temp_set_value_f = stringToFloat(water_temp_message);
           
           if (!water_temp_button_state && !is_water_temp_set){
@@ -2522,7 +2523,7 @@ void setup() {
         if (water_level_message != ""){
     
           // HAVING SET VALUE ON WATER TEMPERATURE
-          water_level_set_value = water_level_message;
+          water_level_set_value_s = water_level_message;
           water_level_set_value_f = stringToFloat(water_level_message);
           
           if (!water_level_button_state && !is_water_level_set){
@@ -2687,7 +2688,7 @@ void loop() {
   if ((millis() - lastTime) > timerDelay) {
     
     // Получение данных о времени и значении с датчиковы
-    getDateTime();
+    getWiFiDateTime();
     getSensorsReadings();
     
     dummy_temperature = temperature;
