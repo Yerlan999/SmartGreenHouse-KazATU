@@ -1,9 +1,14 @@
 // КОД ДЛЯ ARDUINO MEGA
 
 #include "DHT.h"
+#include <FastLED.h>
 
 #define DHTPIN 5     
 #define DHTTYPE DHT11
+
+#define LED_PIN     9
+#define NUM_LEDS    25
+#define LED_BRIGHTNESS 5 // [0 - 255]
 
 // Блок констант для реле
 #define relay1 23
@@ -46,7 +51,7 @@ bool second_floor_relay_state = false;
 bool third_floor_relay_state = false;
 
 DHT dht(DHTPIN, DHTTYPE);
-
+CRGB leds[NUM_LEDS];
 
 // Функция для отправки обратной связи на ESP32
 void sendFeedBack(){
@@ -60,6 +65,8 @@ void sendFeedBack(){
 
 
 void setup() {
+  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
+  
   pinMode(relay1,OUTPUT);
   pinMode(relay2,OUTPUT);
   pinMode(relay3,OUTPUT);
@@ -320,5 +327,19 @@ void loop() {
   if(phytolamp_state){digitalWrite(relay7, LOW);}else{digitalWrite(relay7, HIGH);}
   if(outlet_fan_state){digitalWrite(relay8, LOW);}else{digitalWrite(relay8, HIGH);}
    
+
+
+
+  // LED LIGHT CONTROL
+  for (int led=0; led<NUM_LEDS; led++){
+    leds[led] = CRGB(LED_BRIGHTNESS, 0, LED_BRIGHTNESS);
+  }
+  FastLED.show();
+  
+  
+  
+
+
+
 }   
   
