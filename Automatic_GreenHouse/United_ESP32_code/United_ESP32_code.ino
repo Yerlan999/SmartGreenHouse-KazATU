@@ -832,8 +832,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 .button-submmit:-webkit-details-marker {
   display: none;
 }
-
-
+  
 
 </style>
 </head>
@@ -939,52 +938,67 @@ const char index_html[] PROGMEM = R"rawliteral(
     </form>
     
     <br><br>
+
+
+
     
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЕЩЕНИЯ -->
 
     <div id="flip-light-control-top">
       <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
         Начало освещ.: <input type="time" id="time" name="new-light-value-time">
-        продолж. (ч): <input type="number" name="new-light-value-duration1">
+        продолж: <input type="number" name="new-light-value-duration1">
         повтор: <input type="checkbox" name="new-light-value-repeat">
         <input id="light-value" class="button-submmit" type="submit" value="Задать">
-      </form>
-      <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
-        <input type="hidden" name="new-light-value" value="toggle-light">
-        <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
       </form>
     </div>
 
     <div id="flip-light-control-back">
       <form id="light-form" class=%LIGHT_BUTTON_STATE% action="/getlight">
-        продолж. (ч): <input type="number" name="new-light-value-duration2">
-        пауза. (ч): <input type="number" name="new-light-value-pause">
+        Продолж. освещ: <input type="number" name="new-light-value-duration2">
+        пауза: <input type="number" name="new-light-value-pause">
         <input id="light-value" class="button-submmit" type="submit" value="Задать">
-      </form>
-      <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
-        <input type="hidden" name="new-light-value" value="toggle-light">
-        <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
       </form>   
     </div>
 
+    <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
+      <input type="hidden" name="new-light-value" value="toggle-light">
+      <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
+    </form>
 
     
     <br><br>
 
+
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ПОЛИВА -->
     
-    <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
-      Начало полива: <input type="time" id="time" name="new-water-value-time">
-      продолж. (ч): <input type="number" name="new-water-value-duration1">
-      повтор: <input type="checkbox" name="new-water-value-repeat">
-      <input id="water-value" class="button-submmit" type="submit" value="Задать">
-    </form>
+    <div id="flip-water-control-top">
+      <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
+        Начало полива: <input type="time" id="time" name="new-water-value-time">
+        продолж: <input type="number" name="new-water-value-duration1">
+        повтор: <input type="checkbox" name="new-water-value-repeat">
+        <input id="water-value" class="button-submmit" type="submit" value="Задать">
+      </form>
+    </div>
+
+    <div id="flip-water-control-back">
+      <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
+        Продолж. полива: <input type="time" id="time" name="new-water-value-duration2">
+        пауза: <input type="number" name="new-water-value-pause">
+        <input id="water-value" class="button-submmit" type="submit" value="Задать">
+      </form>
+    </div>
+
     <form id="water-form-on" class=%WATER_BUTTON_STATE% action="/getwatertog">
       <input type="hidden" name="new-water-value" value="toggle-water">
       <input id="water-on" class="button-submmit" type="submit" value=%WATER_SUB_BUT_TEXT%>
     </form>
     
     <br><br>
+
+
+
+
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ВЕНТИЛЯЦИИ -->
     
@@ -1059,24 +1073,41 @@ source.addEventListener('refresher', function(e) {
 
 
 
-document.getElementById("flip-light-control-top").addEventListener("dblclick", flipperA);
-document.getElementById("flip-light-control-back").addEventListener("dblclick", flipperB);
+document.getElementById("flip-light-control-top").addEventListener("dblclick", flipper.bind(event, "flip-light"));
+document.getElementById("flip-light-control-back").addEventListener("dblclick", flipper.bind(event, "flipback-light"));
+document.getElementById("flip-water-control-top").addEventListener("dblclick", flipper.bind(event, "flip-water"));
+document.getElementById("flip-water-control-back").addEventListener("dblclick", flipper.bind(event, "flipback-water"));
 
 document.getElementById("flip-light-control-back").style.setProperty("display", "none");
+document.getElementById("flip-water-control-back").style.setProperty("display", "none");
 
-function flipperA(){
-  console.log("CLICK ON LIGHT CONTROL TOOLS A"); 
-  document.getElementById("flip-light-control-back").style.setProperty("display", "block");
-  document.getElementById("flip-light-control-top").style.setProperty("display", "none");
-  
+function flipper(flag){
+  if (flag == "flip-light"){
+    console.log("CLICK ON LIGHT CONTROL TOOLS A"); 
+    document.getElementById("flip-light-control-back").style.setProperty("display", "block");
+    document.getElementById("flip-light-control-top").style.setProperty("display", "none");
+  }
+  else if (flag == "flipback-light"){
+    console.log("CLICK ON LIGHT CONTROL TOOLS B"); 
+    document.getElementById("flip-light-control-top").style.setProperty("display", "block");
+    document.getElementById("flip-light-control-back").style.setProperty("display", "none");    
+  }
+
+  else if (flag == "flip-water"){
+    console.log("CLICK ON WATER CONTROL TOOLS A"); 
+    document.getElementById("flip-water-control-back").style.setProperty("display", "block");    
+    document.getElementById("flip-water-control-top").style.setProperty("display", "none");
+  }
+  else if (flag == "flipback-water"){
+    console.log("CLICK ON WATER CONTROL TOOLS B"); 
+    document.getElementById("flip-water-control-top").style.setProperty("display", "block");
+    document.getElementById("flip-water-control-back").style.setProperty("display", "none");    
+  }  
 }
 
-function flipperB(){
-  console.log("CLICK ON LIGHT CONTROL TOOLS B"); 
-  document.getElementById("flip-light-control-top").style.setProperty("display", "block");
-  document.getElementById("flip-light-control-back").style.setProperty("display", "none");
-  
-}
+
+
+
 
 }
 
