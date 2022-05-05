@@ -147,6 +147,7 @@ const char* TIME_PARAM_INPUT = "new-update-value";
   
   // Заданные значения для системы
   String to = " >>> ";
+  char set_symbol = '*';
   
   String temp_set_value_s;
   String hum_set_value_s;
@@ -1866,13 +1867,13 @@ char system_set_icon(){
   if (systems_pointer < 5){
     bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
     if (is_set){
-      return '$';  
+      return set_symbol;  
     }    
   }
   else{
     bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
     if (is_set){
-      return '$';
+      return set_symbol;
     }
   }
   return ' ';

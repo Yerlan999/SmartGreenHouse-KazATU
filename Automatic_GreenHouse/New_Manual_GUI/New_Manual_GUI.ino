@@ -858,7 +858,7 @@ void setup() {
     // Январь 21, 2014 и 3 часа ночи:
 //     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
 
-  }  
+  }   
 //  rtc.adjust(DateTime(__DATE__, __TIME__));
   
   Serial.begin(baud, SERIAL_8N1);
