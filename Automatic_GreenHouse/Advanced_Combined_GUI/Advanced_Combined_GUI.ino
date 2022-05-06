@@ -284,6 +284,14 @@ int stringToInt(String s)
 }
 
 
+void display_wifi_info(){
+  // Вывод IP адреса страницы и данных WiFi точки на LCD дисплей
+  lcd.setCursor(0, 0);  
+  lcd.print(WiFi.localIP());
+  lcd.setCursor(0, 1);
+  lcd.print(WiFi.SSID());  
+}
+
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
   
@@ -307,9 +315,7 @@ void initWiFi() {
       gui_control_mode = "web-based";
       Serial.println("Web-Based GUI");
  
-      // Вывод IP адреса на LCD дисплей
-      lcd.setCursor(0, 0);  
-      lcd.print(WiFi.localIP());
+      display_wifi_info();
     }
     else{
       Serial.println("Manual GUI");
@@ -335,14 +341,14 @@ void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Web-Based GUI Again");
   gui_control_mode = "web-based";
   // Вывод IP адреса на LCD дисплей
-  lcd.setCursor(0, 0);  
-  lcd.print(WiFi.localIP());
+  display_wifi_info();
 }
 
 void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("WIFI is connected!");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  gui_control_mode = "web-based";
 }
 
 void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
@@ -358,8 +364,7 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
     Serial.println("Web-Based GUI Again");
     gui_control_mode = "web-based";
     // Вывод IP адреса на LCD дисплей
-    lcd.setCursor(0, 0);  
-    lcd.print(WiFi.localIP());  
+    display_wifi_info();  
   }
   
 }
@@ -2697,9 +2702,8 @@ void loop() {
     dummy_light = light;
 
     // Вывод IP адреса и времени на LCD дисплей
-    lcd.clear();
-    lcd.setCursor(0, 0);  
-    lcd.print(WiFi.localIP());
+    lcd.clear();  
+    display_wifi_info();
     lcd.setCursor(0, 3);  
     lcd.print(DateTimeStamp);
 
