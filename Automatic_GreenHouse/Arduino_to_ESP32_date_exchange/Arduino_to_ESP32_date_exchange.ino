@@ -115,7 +115,7 @@ void loop() {
       Serial1.write(temperature);
       Serial1.write(humidity);
       Serial1.write(light);
-
+      
 //      // Сверка отправленных данных на ESP32
 //      Serial.println();
 //      Serial.println("Sent values: ");
@@ -130,6 +130,20 @@ void loop() {
       
     }
 
+    else if (inByte == 65){ // "А" == 065 в ASCII 
+      // Принятие флага о запросе значении исполнительных механизмов
+      
+      // Отправка показании датчиков на ESP32
+      Serial1.write(pump_state);
+      Serial1.write(air_heater_state);
+      Serial1.write(air_humiditer_state);      
+      Serial1.write(water_heater_state);
+      Serial1.write(fan_state);
+      Serial1.write(outlet_fan_state);
+      Serial1.write(phytolamp_state);
+      Serial1.write(water_tank_filler_state);
+      
+      
     // Принятие флага о ВКЛ/ВЫКЛ реле
     
     else if (inByte == 84){ // "T" == 084 в ASCII
