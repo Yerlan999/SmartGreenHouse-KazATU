@@ -26,9 +26,9 @@ const L1systems L1system_titles[] {
 // Define CS pin for the SD card module
 #define SD_CS 5
 
-void setup() {
-  Serial.begin(9600);
 
+void init_sd_card(){
+  
   // Initialize SD card
   SD.begin(SD_CS);  
   if(!SD.begin(SD_CS)) {
@@ -46,7 +46,11 @@ void setup() {
   else{
     Serial.println("Card has been found. Ok!");Serial.println(" ");
   }
+}
 
+
+
+void prepare_main_files(){
 
   // Delete if needed
 //  deleteFile(SD, "/sersors_logger.txt");
@@ -56,7 +60,7 @@ void setup() {
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
     Serial.println("Creating file...'/sersors_logger.txt'");
-    writeFile(SD, "/sersors_logger.txt", "Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
+    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
   }
   else {
     Serial.println("'/sersors_logger.txt' file already exists!");Serial.println(" ");
@@ -65,11 +69,19 @@ void setup() {
   if(!SD.exists("/actuators_logger.txt")) {
     Serial.println("'/actuators_logger.txt' file doens't exist");
     Serial.println("Creating file...'/actuators_logger.txt'");
-    writeFile(SD, "/actuators_logger.txt", "PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
+    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
   }
   else {
     Serial.println("'/actuators_logger.txt' file already exists!");Serial.println(" ");
-  }
+  }  
+}
+
+
+void setup() {
+  Serial.begin(9600);
+
+  init_sd_card();
+  prepare_main_files();
 
 
 //  makeSnapShot(5, "c,23,59,1,0");
