@@ -8,6 +8,25 @@ float test_var2;
 bool test_var3;
 
 
+
+// ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
+float stringToFloat(String s)
+{
+    char arr[12];
+    s.toCharArray(arr, sizeof(arr));
+    return atof(arr);
+}
+
+
+// ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦЕЛОЕ ЦИСЛО
+int stringToInt(String s)
+{
+    char arr[12];
+    s.toCharArray(arr, sizeof(arr));
+    return atoi(arr);
+}
+
+
 typedef struct { 
   uint8_t system_num;
   String system_name;
@@ -84,8 +103,8 @@ void setup() {
   prepare_main_files();
 
 
-//  makeSnapShot(5, "c,23,59,1,0");
-//  readSnapShot(5);
+  makeSnapShot(5, "c,23,59,1,");
+  readSnapShot(5);
 
 }
 
@@ -118,7 +137,7 @@ void makeSnapShot(int which_system, String values){
 }
 
 void readSnapShot(int which_system){
-  readFile(SD, filePathCreator(which_system));
+  readFile(SD, filePathCreator(which_system), which_system);
 }
 
 
@@ -155,7 +174,7 @@ void appendFile(fs::FS &fs, String path, String message) {
 }
 
 
-void readFile(fs::FS &fs, String path) {
+void readFile(fs::FS &fs, String path, int which_system) {
   Serial.println("Reading from file: " + path);
   File file = fs.open(path, FILE_READ);
   if(!file) {
@@ -163,6 +182,8 @@ void readFile(fs::FS &fs, String path) {
     return;
   }
   while (file.available()) {
+    CaseOne[which_system].set_value(attrib_num, new_value);
+    CaseOne[which_system].set_value(attrib_num, new_value);
     Serial.println(file.read());
   }
   file.close();
@@ -194,3 +215,19 @@ void deleteFile(fs::FS &fs, String path){
     Serial.println("Failed with deleting file" + path + "!");
   }
 }
+
+
+
+/* OLD READ FILE FUNCTION
+ * void readFile(fs::FS &fs, String path) {
+  Serial.println("Reading from file: " + path);
+  File file = fs.open(path, FILE_READ);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for reading!");
+    return;
+  }
+  while (file.available()) {
+    Serial.println(file.read());
+  }
+  file.close();
+}*/
