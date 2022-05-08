@@ -124,6 +124,17 @@ const char* WATER_PARAM_INPUT6 = "new-water-value-pause";
 
 const char* TIME_PARAM_INPUT = "new-update-value";
 
+        
+    bool pump_state = false;
+    bool air_heater_state = false;
+    bool air_humiditer_state = false;
+    bool water_heater_state = false;
+    bool fan_state = false;
+    bool outlet_fan_state = false;
+    bool phytolamp_state = false;
+    bool water_tank_filler_state = false;
+
+
 
   // Состояния кнопок контроля
   bool temp_button_state = false;
@@ -1621,6 +1632,7 @@ void blinkBuildLED(){
   digitalWrite(ONBOARD_LED,LOW);  
 }
 
+
 void getSensorsReadings(){
 
     Serial1.write('S');
@@ -1630,24 +1642,57 @@ void getSensorsReadings(){
       temperature = Serial1.read();
       humidity = Serial1.read();
       light = Serial1.read();
-      int garbage1 = Serial1.read();
-      int garbage2 = Serial1.read();
-      int garbage3 = Serial1.read();
-
+//      carbon = Serial1.read();
+//      water_temperature = Serial1.read();
+//      water_level = Serial1.read();
+//      water = Serial1.read();
+      
+      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();//int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
+      
       // UPDATING SENSORS VALUES FROM ARDUINO MEGA
       CaseOne[0].set_value(0, temperature);
       CaseOne[2].set_value(0, humidity);
       CaseTwo[1].set_value(0, light);
   
       Serial.println();
-      Serial.println("Recieved values: ");
+      Serial.println("Recieved Sensors values: ");
       Serial.println();
-      Serial.print("temperature: ");
+      Serial.print("Temperature: ");
       Serial.println(temperature);
-      Serial.print("humidity: ");
+      Serial.print("Humidity: ");
       Serial.println(humidity);    
-      Serial.print("light: ");
+      Serial.print("Light: ");
       Serial.println(light);
+    }
+}
+
+
+void getActuatorsReadings(){
+
+    Serial1.write('A');
+//    delay(500);
+    
+    if (Serial1.available() > 0){
+      pump_state = Serial1.read();
+      air_heater_state = Serial1.read();
+      air_humiditer_state = Serial1.read();
+//      water_heater_state = Serial1.read();
+//      fan_state = Serial1.read();
+//      outlet_fan_state = Serial1.read();
+//      phytolamp_state = Serial1.read();
+//      water_tank_filler_state = Serial1.read();
+
+      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
+      
+      Serial.println();
+      Serial.println("Recieved Actuators values: ");
+      Serial.println();
+      Serial.print("Pump state: ");
+      Serial.println(pump_state);
+      Serial.print("Air heater state: ");
+      Serial.println(air_heater_state);    
+      Serial.print("Air humiditer state: ");
+      Serial.println(air_humiditer_state);
     }
 }
 

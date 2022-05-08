@@ -115,6 +115,10 @@ void loop() {
       Serial1.write(temperature);
       Serial1.write(humidity);
       Serial1.write(light);
+//      Serial1.write(carbon);
+//      Serial1.write(water_temperature);
+//      Serial1.write(water_level);
+//      Serial1.write(water_flow);
       
 //      // Сверка отправленных данных на ESP32
 //      Serial.println();
