@@ -118,7 +118,9 @@ void loop() {
 
 
 String filePathCreator(int which_system){
-  /*
+  /* 
+   *  !!! RELIES ON TITLES INDEXING PRINCIPLE !!!
+   *  
   which_system: 
     0 = "Temperature"
     1 = "CO2 Content"
@@ -128,6 +130,31 @@ String filePathCreator(int which_system){
     5 = "Watering"
     6 = "Lightening"
   */
+  String file_name;
+  
+  switch (which_system){
+    case 0:
+     file_name = "";
+    break;
+    case 1:
+     file_name = "";
+    break;
+    case 2:
+     file_name = "";
+    break;
+    case 3:
+     file_name = "";
+    break;
+    case 4:
+     file_name = "";
+    break;
+    case 5:
+     file_name = "";
+    break;
+    case 6:
+     file_name = "";
+    break;                    
+  }
   return "/" + L1system_titles[which_system].system_name + ".txt";
 }
 
@@ -181,10 +208,39 @@ void readFile(fs::FS &fs, String path, int which_system) {
     Serial.println("Failed to open file " + path + " for reading!");
     return;
   }
-  while (file.available()) {
-    CaseOne[which_system].set_value(attrib_num, new_value);
-    CaseOne[which_system].set_value(attrib_num, new_value);
-    Serial.println(file.read());
+  
+  if (file.available()){
+    int set_type = file.read();
+    int trash_comma = file.read();
+      
+    String list = file.readStringUntil('\r');
+    Serial.println(set_type);
+    Serial.println(list);
+    
+    String number;
+    int seq = 0;
+      
+    for (int i=0; i<list.length(); i++){
+      
+      String character;
+      
+      if (list[i]==','){        
+        Serial.println(seq);
+        Serial.println(stringToInt(number));
+        
+        // Reseting system values
+        system_setterBySD();        
+        
+        number = "";
+        seq++;
+      }
+      else{
+        character = list[i];
+        number+= character;  
+      }
+      
+    }
+    
   }
   file.close();
 }
@@ -213,6 +269,34 @@ void deleteFile(fs::FS &fs, String path){
   }
   else{
     Serial.println("Failed with deleting file" + path + "!");
+  }
+}
+
+
+
+void system_setterBySD(){
+  // CASE TWO
+  if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set]
+    CaseTwo[which_system-5].set_value(seq+1, number);
+    if (seq==4){CaseTwo[which_system].set_value(8, number);}
+  }
+  else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set]
+    CaseTwo[which_system-5].set_value(seq+5, number);
+    if (seq==2){CaseTwo[which_system].set_value(9, number);}
+  }
+  else if (set_type == 107){ // state [k,state,state_set]
+    CaseTwo[which_system-5].set_value(seq+7, number);
+    if (seq==1){CaseTwo[which_system].set_value(10, number);}
+  }
+
+  // CASE ONE
+  else if (set_type == 111){ // set
+    CaseOne[which_system].set_value(seq+1, number);
+    if (seq==1){CaseTwo[which_system].set_value(3, number);}
+  }
+  else if (set_type == 115){ // state
+    CaseOne[which_system].set_value(seq+2, number);
+    if (seq==1){CaseTwo[which_system].set_value(4, number);}
   }
 }
 
