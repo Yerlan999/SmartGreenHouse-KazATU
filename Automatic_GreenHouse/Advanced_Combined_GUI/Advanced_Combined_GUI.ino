@@ -2032,104 +2032,6 @@ void update_display(){
   display_time();  
 }
 
-void set_current_system(){
-  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
-  // CASES 1
-  if (systems_pointer < 5){
-    
-    if (levels_pointer == 1){
-      bool current_state = CaseOne[systems_pointer].get_value(3);
-      bool other_state = CaseOne[systems_pointer].get_value(4);
-      
-      if (current_state){
-        CaseOne[systems_pointer].set_value(3, false);
-      }
-      else if (!other_state){
-        CaseOne[systems_pointer].set_value(3, true);
-      }
-    }
-    else if (levels_pointer == 2){
-      bool current_state = CaseOne[systems_pointer].get_value(4);
-      bool other_state = CaseOne[systems_pointer].get_value(3);
-      
-      if (current_state){
-        CaseOne[systems_pointer].set_value(4, false);
-      }
-      else if (!other_state){
-        CaseOne[systems_pointer].set_value(4, true);
-      }      
-  
-    }
-  
-  }
-  // CASES 2
-  else {
-   
-    if (levels_pointer == 1){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
-      }  
-    }
-    else if (levels_pointer == 2){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
-      }      
-    }
-    else if (levels_pointer == 3){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
-      }      
-    }    
-  
-  }
-
-}
-
-
-void initHardTimeModule(){
-  if (! rtc.begin()) {
-//    Serial.println("Couldn't find RTC");
-    while (1);
-  }
- 
-  if (rtc.lostPower()) {
-//    Serial.println("RTC lost power, lets set the time!");
-    // Задать время для модуля через время системы (ОС) при загрузке скетча
-    rtc.adjust(DateTime(__DATE__, __TIME__));
-    // Задать время для модуля вручную
-    // Январь 21, 2014 и 3 часа ночи:
-//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
-
-  }  
-//  rtc.adjust(DateTime(__DATE__, __TIME__));  
-}
-
-
-String filePathCreator(int which_system){
-  return "/" + L1system_titles[which_system].system_name + ".txt";
-}
-
 
 
 void writeFile(fs::FS &fs, String path, String message) {
@@ -2257,6 +2159,12 @@ void deleteFile(fs::FS &fs, String path){
 }
 
 
+
+String filePathCreator(int which_system){
+  return "/" + L1system_titles[which_system].system_name + ".txt";
+}
+
+
 void makeSnapShot(int which_system, String values){  
   writeFile(SD, filePathCreator(which_system), values);
 }
@@ -2264,6 +2172,109 @@ void makeSnapShot(int which_system, String values){
 void readSnapShot(int which_system){
   readFile(SD, filePathCreator(which_system), which_system);
 }
+
+
+void set_current_system(){
+  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
+  // CASES 1
+  if (systems_pointer < 5){
+    
+    if (levels_pointer == 1){
+      bool current_state = CaseOne[systems_pointer].get_value(3);
+      bool other_state = CaseOne[systems_pointer].get_value(4);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(3, false);
+        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(3, true);
+        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
+      }
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseOne[systems_pointer].get_value(4);
+      bool other_state = CaseOne[systems_pointer].get_value(3);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(4, false);
+        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(4, true);
+        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
+      }      
+  
+    }
+  
+  }
+  // CASES 2
+  else {
+   
+    if (levels_pointer == 1){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
+        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
+        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
+      }  
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
+        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
+        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
+      }      
+    }
+    else if (levels_pointer == 3){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
+        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
+        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
+      }      
+    }      
+  }
+}
+
+
+void initHardTimeModule(){
+  if (! rtc.begin()) {
+//    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+ 
+  if (rtc.lostPower()) {
+//    Serial.println("RTC lost power, lets set the time!");
+    // Задать время для модуля через время системы (ОС) при загрузке скетча
+    rtc.adjust(DateTime(__DATE__, __TIME__));
+    // Задать время для модуля вручную
+    // Январь 21, 2014 и 3 часа ночи:
+//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
+
+  }  
+//  rtc.adjust(DateTime(__DATE__, __TIME__));  
+}
+
 
 
 void init_sd_card(){
@@ -2292,9 +2303,8 @@ void init_sd_card(){
 void prepare_main_files(){
 
   // Delete if needed
-//  deleteFile(SD, "/lighting.txt");
-//  deleteFile(SD, "/watering.txt");
-
+//  deleteFile(SD, "/Watering.txt");
+  
 
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
@@ -2595,7 +2605,7 @@ void setup() {
         }
       }
     }
-    CaseTwo[0].set_value(7, stringToInt(light_button_state));
+    CaseTwo[0].set_value(7, int(light_button_state));
     
     CaseTwo[0].set_value(8, false);
     CaseTwo[0].set_value(9, false);
@@ -2716,7 +2726,7 @@ void setup() {
         }
       }
     }
-    CaseTwo[1].set_value(7, stringToInt(water_button_state));
+    CaseTwo[1].set_value(7, int(water_button_state));
     
     CaseTwo[1].set_value(8, false);
     CaseTwo[1].set_value(9, false);
@@ -2756,7 +2766,11 @@ void setup() {
               is_temp_set = true;  
             }    
           }
-        }  
+        }
+      CaseOne[0].set_value(1, stringToInt(temp_message));
+      CaseOne[0].set_value(3, true);
+      
+      makeSnapShot(0, "s,"+temp_message+","+"1,");  
       }
           
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
@@ -2777,7 +2791,12 @@ void setup() {
             }      
           temp_set_value_f = 0.00;
           }
+      CaseOne[0].set_value(2, int(temp_button_state));
+      CaseOne[0].set_value(4, temp_button_state);
+      
+      makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");   
       };
+      
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -2808,7 +2827,11 @@ void setup() {
               is_hum_set = true;  
             }    
           }
-        }  
+        }
+      CaseOne[1].set_value(1, stringToInt(hum_message));
+      CaseOne[1].set_value(3, true);
+      
+      makeSnapShot(1, "s,"+hum_message+","+"1,");        
       }
           
       else if (request->hasParam(HUM_PARAM_INPUT2)) {
@@ -2829,7 +2852,13 @@ void setup() {
             }      
           hum_set_value_f = 0.00;
           }
+          
+      CaseOne[1].set_value(2, int(hum_button_state));
+      CaseOne[1].set_value(4, hum_button_state);
+      
+      makeSnapShot(1, "o,"+String(int(hum_button_state))+","+String(int(hum_button_state))+",");      
       };
+      
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -2860,7 +2889,11 @@ void setup() {
               is_carbon_set = true;  
             }    
           }
-        }  
+        }
+      CaseOne[2].set_value(1, stringToInt(carbon_message));
+      CaseOne[2].set_value(3, true);
+      
+      makeSnapShot(2, "s,"+carbon_message+","+"1,");                  
       }
           
       else if (request->hasParam(CARBON_PARAM_INPUT2)) {
@@ -2881,7 +2914,13 @@ void setup() {
             }      
           carbon_set_value_f = 0.00;
           }
+      
+      CaseOne[2].set_value(2, int(carbon_button_state));
+      CaseOne[2].set_value(4, carbon_button_state);
+      
+      makeSnapShot(2, "o,"+String(int(carbon_button_state))+","+String(int(carbon_button_state))+",");          
       };
+      
       request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -2913,6 +2952,10 @@ void setup() {
             }    
           }
         }  
+      CaseOne[3].set_value(1, stringToInt(water_temp_message));
+      CaseOne[3].set_value(3, true);
+      
+      makeSnapShot(3, "s,"+water_temp_message+","+"1,");                        
       }
           
       else if (request->hasParam(WATER_TEMP_PARAM_INPUT2)) {
@@ -2933,6 +2976,10 @@ void setup() {
             }      
           water_temp_set_value_f = 0.00;
           }
+      CaseOne[3].set_value(2, int(water_temp_button_state));
+      CaseOne[3].set_value(4, water_temp_button_state);
+      
+      makeSnapShot(3, "o,"+String(int(water_temp_button_state))+","+String(int(water_temp_button_state))+",");                
       };
       request->send_P(200, "text/html", index_html, processor);
   });
@@ -2965,6 +3012,10 @@ void setup() {
             }    
           }
         }  
+      CaseOne[4].set_value(1, stringToInt(water_level_message));
+      CaseOne[4].set_value(3, true);
+      
+      makeSnapShot(4, "s,"+water_level_message+","+"1,");                            
       }
           
       else if (request->hasParam(WATER_LEVEL_PARAM_INPUT2)) {
@@ -2985,25 +3036,27 @@ void setup() {
             }      
           water_level_set_value_f = 0.00;
           }
+      
+      CaseOne[4].set_value(2, int(water_level_button_state));
+      CaseOne[4].set_value(4, water_level_button_state);
+      
+      makeSnapShot(4, "o,"+String(int(water_level_button_state))+","+String(int(water_level_button_state))+",");                      
       };
+      
       request->send_P(200, "text/html", index_html, processor);
   });
 
   
 
-  // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА
+  // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА !!! НЕ ИСПОЛЬЗУЕТСЯ (ПОКА) !!!
   server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
-      String fan_message;
-      
+      String fan_message; 
       // Контроль ВЕНТИЛЯТОРА          
       if (request->hasParam(FAN_PARAM_INPUT)) {
           fan_message = request->getParam(FAN_PARAM_INPUT)->value();
       }
-
       Serial1.write('F');
-      
-      if (getFeedBack()){
-           
+      if (getFeedBack()){     
         if (fan_message == "toggle-fan"){     
           if (fan_button_state){
             fan_button_state = false;
@@ -3015,6 +3068,9 @@ void setup() {
       }
       request->send_P(200, "text/html", index_html, processor);
   });
+
+
+
     
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
