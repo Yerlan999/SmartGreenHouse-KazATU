@@ -10,11 +10,16 @@
 #include <Adafruit_Sensor.h>
 #include "GyverEncoder.h"
 #include "RTClib.h"
+#include "FS.h"
+#include "SD.h"
+#include <SPI.h>
+
 /* 
   CLK == S1
   DT == S2
   SW == Key 
 */
+
 #define CLK 33 // S1
 #define DT 25  // S2
 #define SW 32  // Key
@@ -22,6 +27,7 @@
 #define RXD2 16
 #define TXD2 17
 #define ONBOARD_LED  2
+#define SD_CS 5
 
 
 // Назначение статического IP адреса
@@ -276,7 +282,6 @@ void getDummySensorReadings(){
 }
 
 
-
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
 float stringToFloat(String s)
 {
@@ -323,21 +328,18 @@ void initWiFi() {
 
     if(wifiMulti.run() == WL_CONNECTED) {
       Serial.println(WiFi.SSID());
-      gui_control_mode = "web-based";
+      gui_control_mode = "manual";   // en fait c'est web-based
       Serial.println("Web-Based GUI");
- 
+      
+      timeClient.begin();
+      timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
+      
       display_wifi_info();
     }
     else{
       Serial.println("Manual GUI");
       gui_control_mode = "manual";
     }
-    
-
-
-//    Serial.println(WiFi.localIP());
-    timeClient.begin();
-    timeClient.setTimeOffset(21600);   // 21600 GMT +6 Для Астаны
 }
 
 void wifi_try_counter_incrementer(){
@@ -1533,12 +1535,12 @@ typedef struct {
 } L1systems;
 const L1systems L1system_titles[] {
     {0, "Temperature"},
-    {1, "CO2 Content"},
-    {2, "Humidity"},
+    {1, "Humidity"},
+    {2, "CO2 Content"},
     {3, "Water Temp."},
     {4, "Water Level"},
-    {5, "Watering"},
-    {6, "Lightening"},
+    {5, "Lightening"},
+    {6, "Watering"},
 };
 
 typedef struct { 
@@ -1547,12 +1549,12 @@ typedef struct {
 } L2systems;
 const L2systems L2system_titles[] {
     {0, "Temp Set Mode"},
-    {1, "CO2 Set Mode"},
-    {2, "Humid Set Mode"},
+    {1, "Humid Set Mode"},
+    {2, "CO2 Set Mode"},
     {3, "W.Temp. Set Mode"},
     {4, "W.Level Set Mode"},
-    {5, "Water Clock"},
-    {6, "Light Clock"},
+    {5, "Light Clock"},
+    {6, "Water Clock"},
 };
 
 typedef struct { 
@@ -1561,12 +1563,12 @@ typedef struct {
 } L3systems;
 const L3systems L3system_titles[] {
     {0, "Temp On-Off"},
-    {1, "CO2 On-Off"},
-    {2, "Humid On-Off"},
+    {1, "Humid On-Off"},
+    {2, "CO2 On-Off"},
     {3, "W.Temp. On-Off"},
     {4, "W.Level On-Off"},
-    {5, "Water Inter."},
-    {6, "Light Inter."},
+    {5, "Light Inter."},
+    {6, "Water Inter."},
 };
 
 typedef struct { 
@@ -1574,8 +1576,8 @@ typedef struct {
   String system_name;
 } L4systems;
 const L4systems L4system_titles[] {
-    {0, "Water On-Off"},
-    {1, "Light On-Off"},
+    {0, "Light On-Off"},
+    {1, "Water On-Off"},
 };
 
 
@@ -1651,8 +1653,8 @@ void getSensorsReadings(){
       
       // UPDATING SENSORS VALUES FROM ARDUINO MEGA
       CaseOne[0].set_value(0, temperature);
-      CaseOne[2].set_value(0, humidity);
-      CaseTwo[1].set_value(0, light);
+      CaseOne[1].set_value(0, humidity);
+      CaseTwo[0].set_value(0, light);
   
       Serial.println();
       Serial.println("Recieved Sensors values: ");
@@ -1982,6 +1984,9 @@ void update_menu(){
     }
     // CASE 2
     else{
+//      Serial.println("Following...");
+//      Serial.println(systems_pointer-(countof(L1system_titles)-2));
+      
       lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("time:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h) + ":" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m));
 
@@ -2120,11 +2125,237 @@ void initHardTimeModule(){
 }
 
 
+String filePathCreator(int which_system){
+
+  String file_name;
+  
+  switch (which_system){
+    case 0:
+     file_name = "temperature";
+    break;
+    case 1:
+     file_name = "humidity";
+    break;
+    case 2:
+     file_name = "carbon";
+    break;
+    case 3:
+     file_name = "water_temperature";
+    break;
+    case 4:
+     file_name = "water_level";
+    break;
+    case 5:
+     file_name = "lighting";
+    break;
+    case 6:
+     file_name = "watering";
+    break;                    
+  }
+  return "/" + file_name + ".txt";
+}
+
+
+
+void writeFile(fs::FS &fs, String path, String message) {
+  Serial.println("Writing to file: " + path);
+  File file = fs.open(path, FILE_WRITE);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for writing!");
+    return;
+  }
+  if(file.print(message)) {
+    Serial.println("Message to file " + path + " is written!");
+  } else {
+    Serial.println("Write to file " + path + " failed!");
+  }
+  file.close();    
+}
+
+
+void appendFile(fs::FS &fs, String path, String message) {
+  Serial.println("Appending to file: " + path);
+  File file = fs.open(path, FILE_APPEND);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for appending!");
+    return;
+  }
+  if(file.print(message)) {
+    Serial.println("Message appended to file " + path + "!");
+  } else {
+    Serial.println("Append failed to file " + path + "!");
+  }
+  file.close();
+}
+
+
+void readFile(fs::FS &fs, String path, int which_system) {
+  Serial.println("Reading from file: " + path);
+  File file = fs.open(path, FILE_READ);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for reading!");
+    return;
+  }
+  
+  if (file.available()){
+    int set_type = file.read();
+    int trash_comma = file.read();
+      
+    String list = file.readStringUntil('\r');
+//    Serial.println(set_type);
+//    Serial.println(list);
+    
+    String number;
+    int seq = 0;
+      
+    for (int i=0; i<list.length(); i++){
+      
+      String character;
+      
+      if (list[i]==','){        
+        
+        // Reseting system values
+        
+        // CASE TWO
+        if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set]
+          Serial.println(which_system-5);
+          CaseTwo[which_system-5].set_value(seq+1, stringToInt(number));
+          if (seq==4){CaseTwo[which_system-5].set_value(8, stringToInt(number));}
+        }
+        else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set]
+          CaseTwo[which_system-5].set_value(seq+5, stringToInt(number));
+          if (seq==2){CaseTwo[which_system-5].set_value(9, stringToInt(number));}
+        }
+        else if (set_type == 107){ // state [k,state,state_set]
+          CaseTwo[which_system-5].set_value(seq+7, stringToInt(number));
+          if (seq==1){CaseTwo[which_system-5].set_value(10, stringToInt(number));}
+        }
+      
+        // CASE ONE
+        else if (set_type == 111){ // set
+          CaseOne[which_system].set_value(seq+1, stringToInt(number));
+          if (seq==1){CaseTwo[which_system].set_value(3, stringToInt(number));}
+        }
+        else if (set_type == 115){ // state
+          CaseOne[which_system].set_value(seq+2, stringToInt(number));
+          if (seq==1){CaseTwo[which_system].set_value(4, stringToInt(number));}
+        }        
+        
+        number = "";
+        seq++;
+      }
+      else{
+        character = list[i];
+        number+= character;  
+      }
+      
+    }
+    
+  }
+  file.close();
+}
+
+
+void cleanFile(fs::FS &fs, String path) {
+  
+  Serial.println("Cleaning file: " + path);
+  File file = fs.open(path, FILE_WRITE);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for cleaning!");
+    return;
+  }
+  if(file.print(' ')) {
+    Serial.println("File " + path + " cleaned!");
+  } else {
+    Serial.println("Cleaning failed for file " + path + "!");
+  }
+  file.close();
+}
+
+
+void deleteFile(fs::FS &fs, String path){
+  if (fs.remove(path)){
+    Serial.println("Successfully deleted file " + path + "!");
+  }
+  else{
+    Serial.println("Failed with deleting file" + path + "!");
+  }
+}
+
+
+void makeSnapShot(int which_system, String values){  
+  writeFile(SD, filePathCreator(which_system), values);
+}
+
+void readSnapShot(int which_system){
+  readFile(SD, filePathCreator(which_system), which_system);
+}
+
+
+void init_sd_card(){
+  
+  // Initialize SD card
+  SD.begin(SD_CS);  
+  if(!SD.begin(SD_CS)) {
+    Serial.println("Card Mount Failed!");Serial.println(" ");
+  }
+  else {
+    Serial.println("Card reader initialized successfully!");Serial.println(" ");
+  }
+  
+  uint8_t cardType = SD.cardType();
+  if(cardType == CARD_NONE) {
+    Serial.println("No SD card attached!");Serial.println(" ");
+    return;
+  }
+  else{
+    Serial.println("Card has been found. Ok!");Serial.println(" ");
+  }
+}
+
+
+
+void prepare_main_files(){
+
+  // Delete if needed
+//  deleteFile(SD, "/sersors_logger.txt");
+//  deleteFile(SD, "/actuators_logger.txt");
+
+
+  if(!SD.exists("/sersors_logger.txt")) {
+    Serial.println("'/sersors_logger.txt' file doens't exist");
+    Serial.println("Creating file...'/sersors_logger.txt'");
+    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
+  }
+  else {
+    Serial.println("'/sersors_logger.txt' file already exists!");Serial.println(" ");
+  }
+
+  if(!SD.exists("/actuators_logger.txt")) {
+    Serial.println("'/actuators_logger.txt' file doens't exist");
+    Serial.println("Creating file...'/actuators_logger.txt'");
+    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
+  }
+  else {
+    Serial.println("'/actuators_logger.txt' file already exists!");Serial.println(" ");
+  }  
+}
+
+
+
 void setup() {
   Serial.begin(baud, SERIAL_8N1);
   Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
   
   pinMode(ONBOARD_LED,OUTPUT);
+
+  // Инициализация Модуля SD Памяти 
+  init_sd_card();
+  prepare_main_files();
+  
+  // deleting if needed 
+  makeSnapShot(6, "c,7,7,7,0,1");
+  readSnapShot(6);
   
   // Инициализация Модуля Реального Времени
   initHardTimeModule();

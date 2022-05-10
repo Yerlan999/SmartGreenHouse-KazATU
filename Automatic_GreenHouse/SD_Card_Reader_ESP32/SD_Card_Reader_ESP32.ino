@@ -3,11 +3,6 @@
 #include <SPI.h>
 
 
-int test_var1;
-float test_var2;
-bool test_var3;
-
-
 
 // ФУНКЦИЯ ДЛЯ КОНВЕРТАЦИИ СТРОКИ В ЦИСЛО ПЛАВАЮЩЕЙ ТОЧКОЙ
 float stringToFloat(String s)
@@ -26,20 +21,6 @@ int stringToInt(String s)
     return atoi(arr);
 }
 
-
-typedef struct { 
-  uint8_t system_num;
-  String system_name;
-} L1systems;
-const L1systems L1system_titles[] {
-    {0, "Temperature"},
-    {1, "CO2 Content"},
-    {2, "Humidity"},
-    {3, "Water Temp."},
-    {4, "Water Level"},
-    {5, "Watering"},
-    {6, "Lightening"},
-};
 
 
 // Define CS pin for the SD card module
@@ -118,44 +99,33 @@ void loop() {
 
 
 String filePathCreator(int which_system){
-  /* 
-   *  !!! RELIES ON TITLES INDEXING PRINCIPLE !!!
-   *  
-  which_system: 
-    0 = "Temperature"
-    1 = "CO2 Content"
-    2 = "Humidity"
-    3 = "Water Temp."
-    4 = "Water Level"
-    5 = "Watering"
-    6 = "Lightening"
-  */
+
   String file_name;
   
   switch (which_system){
     case 0:
-     file_name = "";
+     file_name = "temperature";
     break;
     case 1:
-     file_name = "";
+     file_name = "humidity";
     break;
     case 2:
-     file_name = "";
+     file_name = "carbon";
     break;
     case 3:
-     file_name = "";
+     file_name = "water_temperature";
     break;
     case 4:
-     file_name = "";
+     file_name = "water_level";
     break;
     case 5:
-     file_name = "";
+     file_name = "lighting";
     break;
     case 6:
-     file_name = "";
+     file_name = "watering";
     break;                    
   }
-  return "/" + L1system_titles[which_system].system_name + ".txt";
+  return "/" + file_name + ".txt";
 }
 
 
