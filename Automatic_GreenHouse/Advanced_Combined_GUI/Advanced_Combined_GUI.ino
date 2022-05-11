@@ -271,6 +271,849 @@ wifi_template wifi_dict[] {
 
 
 
+struct case_one_params{ 
+  
+  int system_val; // 0
+  
+  int system_set_val; // 1
+  
+  bool system_state; // 2
+  
+  bool is_system_set; // 3
+  bool is_state_set; // 4
+  
+  uint8_t system_num; // 5
+
+
+  int get_value(int which){
+    if (which == 0){
+      return this->system_val;
+    }
+    else if(which == 3){
+      return int(this->is_system_set);
+    }
+    else if(which == 1){
+      return this->system_set_val;
+    }
+    else if(which == 2){
+      return int(this->system_state);
+    }
+    else if(which == 4){
+      return int(this->is_state_set);
+    }  
+  }
+
+
+  void set_value(int which, int new_value){
+    if (which == 0){
+      this->system_val = new_value;
+    }
+    else if(which == 3){
+      this->is_system_set = bool(new_value);
+    }
+    else if(which == 1){
+      this->system_set_val = new_value;
+    }
+    else if(which == 2){
+      this->system_state = bool(new_value);
+    }
+    else if(which == 4){
+      this->is_state_set = bool(new_value);
+    }
+  }
+};
+case_one_params CaseOne[] {
+    {temperature, temperature_set_value, temperature_state, temperature_set, temperature_state_set, 0},
+    {humidity, humidity_set_value, humidity_state, humidity_set, humidity_state_set, 1},
+    {carbon, carbon_set_value, carbon_state, carbon_set, carbon_state_set, 2},
+    {water_temperature, water_temp_set_value, water_temp_state, water_temp_set, water_temp_state_set, 3},
+    {water_level, water_level_set_value, water_level_state, water_level_set, water_level_state_set, 4},
+};
+
+
+struct case_two_params{ 
+
+  int system_val; // 0
+  
+  int system_time_h;  // 1
+  int system_time_m; // 2
+  int system_dur1; // 3
+  bool system_rep; // 4
+
+  int system_dur2; // 5
+  int system_pause; // 6
+  
+  bool system_state; // 7
+  
+  bool is_clock_set; // 8
+  bool is_inter_set; // 9
+  bool is_state_set; // 10
+  
+  uint8_t system_num; // 11
+  
+
+  int get_value(int which){
+    
+    if (which == 0){
+      return this->system_val;
+    }
+    
+    else if(which == 8){
+      return int(this->is_clock_set);
+    }
+    else if(which == 9){
+      return int(this->is_inter_set);
+    }
+    else if(which == 10){
+      return int(this->is_state_set);
+    }
+    
+    else if(which == 1){
+      return this->system_time_h;
+    }
+    else if(which == 2){
+      return this->system_time_m;
+    }
+    else if(which == 3){
+      return this->system_dur1;
+    }
+    else if(which == 4){
+      return int(this->system_rep);
+    }
+    
+    else if(which == 7){
+      return int(this->system_state);
+    }  
+
+    else if(which == 5){
+      return int(this->system_dur2);
+    }
+    else if(which == 6){
+      return int(this->system_pause);
+    }
+  }
+
+  
+  void set_value(int which, int new_value){
+    if (which == 0){
+      this->system_val = new_value;
+    }
+
+    else if(which == 8){
+      this->is_clock_set = bool(new_value);
+    }
+    else if(which == 9){
+      this->is_inter_set = bool(new_value);
+    }
+    else if(which == 10){
+      this->is_state_set = bool(new_value);
+    }
+
+       
+    else if(which == 1){
+      this->system_time_h = new_value;
+    }
+    else if(which == 2){
+      this->system_time_m = new_value;
+    }
+    else if(which == 3){
+      this->system_dur1 = new_value;
+    }
+    else if(which == 4){
+      this->system_rep = bool(new_value);
+    }
+
+    else if(which == 5){
+      this->system_dur2 = new_value;
+    }
+    else if(which == 6){
+      this->system_pause = new_value;
+    }
+    
+    else if(which == 7){
+      this->system_state = bool(new_value);
+    }
+  }
+};
+case_two_params CaseTwo[] {
+    {light, lighting_time_hour, lighting_time_minute, lighting_duration1, lighting_time_repeat, lighting_duration2, lighting_pause, lighting_state, lighting_clock_set, lighting_inter_set, lighting_state_set, 5},
+    {water, watering_time_hour, watering_time_minute, watering_duration1, watering_time_repeat, watering_duration2, watering_pause, watering_state, watering_clock_set, watering_inter_set, watering_state_set, 6},
+};
+
+
+
+typedef struct { 
+  uint8_t place;
+  uint8_t row;
+  uint8_t col;
+} coordinates;
+const coordinates options[] {
+    {0, 0, 1},
+    {1, 1, 0},
+    {2, 1, 11},
+    {3, 2, 0},
+};
+
+
+typedef struct { 
+  uint8_t system_num;
+  String system_name;
+} L1systems;
+const L1systems L1system_titles[] {
+    {0, "Temperature"},
+    {1, "Humidity"},
+    {2, "CO2 Content"},
+    {3, "Water Temp."},
+    {4, "Water Level"},
+    {5, "Lightening"},
+    {6, "Watering"},
+};
+
+typedef struct { 
+  uint8_t system_num;
+  String system_name;
+} L2systems;
+const L2systems L2system_titles[] {
+    {0, "Temp Set Mode"},
+    {1, "Humid Set Mode"},
+    {2, "CO2 Set Mode"},
+    {3, "W.Temp. Set Mode"},
+    {4, "W.Level Set Mode"},
+    {5, "Light Clock"},
+    {6, "Water Clock"},
+};
+
+typedef struct { 
+  uint8_t system_num;
+  String system_name;
+} L3systems;
+const L3systems L3system_titles[] {
+    {0, "Temp On-Off"},
+    {1, "Humid On-Off"},
+    {2, "CO2 On-Off"},
+    {3, "W.Temp. On-Off"},
+    {4, "W.Level On-Off"},
+    {5, "Light Inter."},
+    {6, "Water Inter."},
+};
+
+typedef struct { 
+  uint8_t system_num;
+  String system_name;
+} L4systems;
+const L4systems L4system_titles[] {
+    {0, "Light On-Off"},
+    {1, "Water On-Off"},
+};
+
+
+typedef struct { 
+  uint8_t case_num;
+  uint8_t case_level_deepness;
+} casedeepness;
+const casedeepness case_deepness[] {
+    {0, 2},
+    {1, 3},
+};
+
+
+int levels_pointer = 0; // CaseOne[0 to 2] or CaseTwo[0 to 3]
+int systems_pointer = 0; // from 0 to 6
+int places_pointer = 0; // The Devil Knows...
+
+char hover_cursor = '>';   // for mode 0
+char select_cursor = '-';  // for mode 1
+char switch_cursor = '=';  // for mode 2
+
+int editing_mode = 0;
+bool current_case = 0; // 0 for CaseOne, 1 for CaseTwo
+int current_case_level_deepness = 2;
+
+
+bool getFeedBack(){
+  
+  delay(500);
+  if (Serial1.available() > 0){
+    bool feedBack = Serial1.read();
+    bool grepper1 = Serial1.read();
+    bool grepper2 = Serial1.read();
+    bool grepper3 = Serial1.read();
+    bool grepper4 = Serial1.read();
+    bool grepper5 = Serial1.read();
+    
+//    Serial.print("FeedBack message: ");
+//    Serial.println(feedBack);
+
+    if (feedBack){
+      return true;
+    }
+    else{
+      return false;
+    }  
+  }
+}
+
+
+void blinkBuildLED(){
+  digitalWrite(ONBOARD_LED,HIGH);
+  delay(200);
+  digitalWrite(ONBOARD_LED,LOW);  
+}
+
+
+void getSensorsReadings(){
+
+    Serial1.write('S');
+//    delay(500);
+    
+    if (Serial1.available() > 0){
+      temperature = Serial1.read();
+      humidity = Serial1.read();
+      light = Serial1.read();
+//      carbon = Serial1.read();
+//      water_temperature = Serial1.read();
+//      water_level = Serial1.read();
+//      water = Serial1.read();
+      
+      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();//int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
+      
+      // UPDATING SENSORS VALUES FROM ARDUINO MEGA
+      CaseOne[0].set_value(0, temperature);
+      CaseOne[1].set_value(0, humidity);
+      CaseTwo[0].set_value(0, light);
+  
+//      Serial.println();
+//      Serial.println("Recieved Sensors values: ");
+//      Serial.println();
+//      Serial.print("Temperature: ");
+//      Serial.println(temperature);
+//      Serial.print("Humidity: ");
+//      Serial.println(humidity);    
+//      Serial.print("Light: ");
+//      Serial.println(light);
+    }
+}
+
+
+void getActuatorsReadings(){
+
+    Serial1.write('A');
+//    delay(500);
+    
+    if (Serial1.available() > 0){
+      pump_state = Serial1.read();
+      air_heater_state = Serial1.read();
+      air_humiditer_state = Serial1.read();
+//      water_heater_state = Serial1.read();
+//      fan_state = Serial1.read();
+//      outlet_fan_state = Serial1.read();
+//      phytolamp_state = Serial1.read();
+//      water_tank_filler_state = Serial1.read();
+
+      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
+      
+      Serial.println();
+      Serial.println("Recieved Actuators values: ");
+      Serial.println();
+      Serial.print("Pump state: ");
+      Serial.println(pump_state);
+      Serial.print("Air heater state: ");
+      Serial.println(air_heater_state);    
+      Serial.print("Air humiditer state: ");
+      Serial.println(air_humiditer_state);
+    }
+}
+
+
+void get_date_time(){
+  DateTime now = rtc.now();
+  printDateTime(now);
+  DateTimeStamp = datestring;
+}
+
+void display_time(){
+  get_date_time();
+  lcd.setCursor(1 , 3);
+  lcd.print(DateTimeStamp);
+}
+
+int places_pointer_restrictor(){
+  if (levels_pointer == 0){
+    return 0;
+  }
+  else if (levels_pointer > 0 && systems_pointer < 5){
+    return 1;
+  }
+  else{
+    if (levels_pointer == 1){
+      return 3;
+    }
+    else if (levels_pointer == 2){
+      return 2;
+    }
+    else{
+      return 1;
+    }
+  }
+}
+
+
+int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
+  
+  int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
+  bool is_system_set = CaseOne[systems_pointer].get_value(3);
+  
+  if (!is_system_set){
+    if (where < 0 && starter_value < hight_end){
+      starter_value++;
+    }
+    else if (where > 0 && starter_value > low_end){
+      starter_value--;
+    };
+  }
+  return starter_value;
+}
+
+
+int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
+  
+  int starter_value = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(which);
+  bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(7);
+
+  if (!is_system_set){
+    if (where < 0 && starter_value < hight_end){
+      starter_value++; 
+    }
+    else if (where > 0 && starter_value > low_end){
+      starter_value--;
+    };
+  }
+  return starter_value;
+}
+
+
+void editing_values(int where){
+//  Serial.println("Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
+  
+  // LEVEL 1 or LEVEL 2  
+  if (levels_pointer == 1 || levels_pointer == 2){
+    if (systems_pointer < 5){ // CASE 1
+      CaseOne[systems_pointer].set_value(levels_pointer, value_changer_with_restrictionsONE(where, 0, 99));
+    }
+    else {
+      // CASE 2 CLOCK AND INTERVAL MENUES
+      
+      // CLOCK MENU
+      if (levels_pointer == 1 && places_pointer == 1){
+        if (editing_mode == 1){ // HOURS
+          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(1, value_changer_with_restrictionsTWO(where, 0, 23, 1));
+        }
+        else if (editing_mode == 2){ // MINUTES
+          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(2, value_changer_with_restrictionsTWO(where, 0, 59, 2));
+        }
+      }
+      else if (levels_pointer == 1 && places_pointer == 2){ // DURATION 1
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, 3));
+      }
+      else if (levels_pointer == 1 && places_pointer == 3){ // REPEAT
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
+      }      
+    
+      // INTERVAL MENU
+      if (levels_pointer == 2 && places_pointer == 1){ // DURATION 2
+       CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
+      }
+      else if (levels_pointer == 2 && places_pointer == 2){ // PAUSE
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
+      }
+    }
+    
+  }
+  // LEVEL 3 EXLUSIVE FOR CASE 2
+  else{
+    // CASE 2 STATE MENU
+    CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
+  }
+}
+
+void update_place(int where){
+  if (editing_mode == 0){
+    if (where < 0 && places_pointer < places_pointer_restrictor()){
+      places_pointer++;
+    }
+    else if (where > 0 && places_pointer > 0){
+      places_pointer--;
+    };
+  }
+  else{  // IN THE EDITING MODE
+    // FUNCTION FOR APPLYING EDITING VALUES HERE MUST BE
+    editing_values(where);
+  }
+}
+
+void update_system(int where){
+  if (places_pointer == 0){
+    if (where < 0 && systems_pointer < countof(L1system_titles)-1){
+      systems_pointer++;
+    }
+    else if (where > 0 && systems_pointer > 0){
+      systems_pointer--;
+    };
+  
+    if (systems_pointer < countof(L1system_titles)-2){
+      current_case = 0;
+    }
+    else{
+      current_case = 1;
+    }
+  }
+}
+
+void update_level(){
+  if (places_pointer == 0){
+    if (levels_pointer < case_deepness[current_case].case_level_deepness){
+      levels_pointer++;  
+    }
+    else{
+      levels_pointer = 0;
+    }  
+  }
+}
+
+void track_cursor(){
+  Serial.println("On Level: " + String(levels_pointer)+ "; On System: " +String(systems_pointer) + "; On Place: " + String(places_pointer));
+}
+
+
+void toggle_editing_mode(){
+  if (places_pointer != 0){
+
+    if (editing_mode == 1 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
+      editing_mode = 2;
+    }
+    else if(editing_mode == 2 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
+      editing_mode = 0;
+    }
+    else if(editing_mode == 0 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
+      editing_mode = 1;
+    }
+
+    else if(editing_mode == 0 && systems_pointer > 4 && levels_pointer != 1){
+      editing_mode = 1;
+    }
+    else if(editing_mode == 1 && systems_pointer > 4 && levels_pointer != 1){
+      editing_mode = 0;
+    }
+
+    else if(editing_mode == 0 && systems_pointer > 4 && levels_pointer == 1){
+      editing_mode = 1;
+    }
+    else if(editing_mode == 1 && systems_pointer > 4 && levels_pointer == 1){
+      editing_mode = 0;
+    }
+    
+    else if (editing_mode == 1 && systems_pointer < 5){
+      editing_mode = 0;
+    }
+    else if (editing_mode == 0 && systems_pointer < 5){
+      editing_mode = 1;
+    }
+  }
+}
+
+
+char update_cursor_type(){
+  if (editing_mode == 0){
+    return hover_cursor;
+  }
+  else if (editing_mode == 1){
+    return select_cursor;
+  }
+  else{
+    return switch_cursor;
+  }
+}
+
+void update_cursor(){
+  lcd.setCursor(options[places_pointer].col, options[places_pointer].row);
+  lcd.print(update_cursor_type());  
+}
+
+char system_set_icon(){
+  if (levels_pointer > 0){
+    if (systems_pointer < 5){
+      bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
+      if (is_set){
+        return set_symbol;  
+      }    
+    }
+    else{
+      bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
+      if (is_set){
+        return set_symbol;
+      }
+    }
+    return ' ';
+  }
+  else{
+    return ' ';
+  }
+}
+
+String current_title(){
+  
+  switch (levels_pointer) {
+  case 0:
+    return L1system_titles[systems_pointer].system_name;  
+    break;
+  case 1:
+    return L2system_titles[systems_pointer].system_name; 
+    break;
+  case 2:
+    return L3system_titles[systems_pointer].system_name;
+    break;
+  case 3:
+    return L4system_titles[bool(systems_pointer-(countof(L1system_titles)-2))].system_name;
+    break;
+}
+ 
+}
+
+void update_title(){
+  lcd.setCursor(options[0].col+1, options[0].row);
+  lcd.print(current_title());
+  lcd.setCursor(19, 0);
+  lcd.print(system_set_icon());
+}
+
+void update_menu(){
+//  levels_pointer, systems_pointer, places_pointer
+// options[0].row.col
+
+  // LEVEL 1
+  if (levels_pointer == 0){
+    // CASE 1
+    if (systems_pointer < 5){
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("curr value:" + String(CaseOne[systems_pointer].system_val));
+    }
+    // CASE 2
+    else{
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("curr value:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_val));
+    }    
+  }
+  
+  // LEVEL 2
+  else if (levels_pointer == 1){
+    // CASE 1
+    if (systems_pointer < 5){
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("set value:" + String(CaseOne[systems_pointer].system_set_val));
+    }
+    // CASE 2
+    else{
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("time:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h) + ":" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m));
+
+      lcd.setCursor(options[2].col+1, options[2].row);
+      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1));
+      
+      lcd.setCursor(options[3].col+1, options[3].row);
+      lcd.print("repeat:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep));
+    }
+  }
+
+  // LEVEL 3
+  else if (levels_pointer == 2){
+    // CASE 1
+    if (systems_pointer < 5){
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("state:" + String(CaseOne[systems_pointer].system_state));
+    }
+    // CASE 2
+    else{
+      lcd.setCursor(options[1].col+1, options[1].row);
+      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2));
+
+      lcd.setCursor(options[2].col+1, options[2].row);
+      lcd.print("pause:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause));
+    }
+  }
+
+  // LEVEL 4
+  else if (levels_pointer == 3){
+    // CASE 2
+    lcd.setCursor(options[1].col+1, options[1].row);
+    lcd.print("state:" + String(CaseTwo[bool(systems_pointer-(countof(L1system_titles)-2))].system_state));
+  }
+}
+
+void update_display(){
+  lcd.clear();
+  update_cursor();
+  update_title();
+  update_menu();
+  display_time();  
+}
+
+
+
+
+void set_current_system(){
+  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
+  // CASES 1
+  if (systems_pointer < 5){
+    
+    if (levels_pointer == 1){
+      bool current_state = CaseOne[systems_pointer].get_value(3);
+      bool other_state = CaseOne[systems_pointer].get_value(4);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(3, false);
+        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(3, true);
+        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
+      }
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseOne[systems_pointer].get_value(4);
+      bool other_state = CaseOne[systems_pointer].get_value(3);
+      
+      if (current_state){
+        CaseOne[systems_pointer].set_value(4, false);
+        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
+      }
+      else if (!other_state){
+        CaseOne[systems_pointer].set_value(4, true);
+        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
+      }      
+  
+    }
+  
+  }
+  // CASES 2
+  else {
+   
+    if (levels_pointer == 1){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
+        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
+        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
+      }  
+    }
+    else if (levels_pointer == 2){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
+        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
+        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
+      }      
+    }
+    else if (levels_pointer == 3){
+      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
+      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
+      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
+      
+      if (current_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
+        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
+      }
+      else if (!other_state && !another_state){
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
+        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
+      }      
+    }      
+  }
+}
+
+
+void initHardTimeModule(){
+  if (! rtc.begin()) {
+//    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+ 
+  if (rtc.lostPower()) {
+//    Serial.println("RTC lost power, lets set the time!");
+    // Задать время для модуля через время системы (ОС) при загрузке скетча
+    rtc.adjust(DateTime(__DATE__, __TIME__));
+    // Задать время для модуля вручную
+    // Январь 21, 2014 и 3 часа ночи:
+//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
+
+  }  
+//  rtc.adjust(DateTime(__DATE__, __TIME__));  
+}
+
+
+
+void init_sd_card(){
+  
+  // Initialize SD card
+  SD.begin(SD_CS);  
+  if(!SD.begin(SD_CS)) {
+    Serial.println("Card Mount Failed!");Serial.println(" ");
+  }
+  else {
+    Serial.println("Card reader initialized successfully!");Serial.println(" ");
+  }
+  
+  uint8_t cardType = SD.cardType();
+  if(cardType == CARD_NONE) {
+    Serial.println("No SD card attached!");Serial.println(" ");
+    return;
+  }
+  else{
+    Serial.println("Card has been found. Ok!");Serial.println(" ");
+  }
+}
+
+
+
+void prepare_main_files(){
+
+  // Delete if needed
+//  deleteFile(SD, filePathCreator(0));
+//  deleteFile(SD, filePathCreator(5));
+//  deleteFile(SD, filePathCreator(6));
+  
+  if(!SD.exists("/sersors_logger.txt")) {
+    Serial.println("'/sersors_logger.txt' file doens't exist");
+    Serial.println("Creating file...'/sersors_logger.txt'");
+    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
+  }
+  else {
+    Serial.println("'/sersors_logger.txt' file already exists!");Serial.println(" ");
+  }
+
+  if(!SD.exists("/actuators_logger.txt")) {
+    Serial.println("'/actuators_logger.txt' file doens't exist");
+    Serial.println("Creating file...'/actuators_logger.txt'");
+    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
+  }
+  else {
+    Serial.println("'/actuators_logger.txt' file already exists!");Serial.println(" ");
+  }  
+}
+
+
+
 // Состояния кнопок контроля
 struct button_state_creator{
 
@@ -336,7 +1179,7 @@ struct button_state_creator{
 };
 button_state_creator button_state_class[]{
   {temp_button_state,hum_button_state,carbon_button_state,water_temp_button_state,water_level_button_state,light_button_state,water_button_state},
-}
+};
 
 
 
@@ -411,7 +1254,7 @@ struct card_state_creator{
 };
 card_state_creator card_state_class[]{
   {is_temp_set,is_hum_set,is_carbon_set,is_water_temp_set,is_water_level_set,is_light_set,is_water_set},
-}
+};
 
 
 
@@ -483,7 +1326,7 @@ struct card_text_creator{
 };
 card_text_creator card_text_class[]{
   {temp_set_value_s,hum_set_value_s,carbon_set_value_s,water_temp_set_value_s,water_level_set_value_s,light_set_value_s,water_set_value_s},
-}
+};
 
 
 
@@ -519,11 +1362,266 @@ int stringToInt(String s)
 
 void display_wifi_info(){
   // Вывод IP адреса страницы и данных WiFi точки на LCD дисплей
+  lcd.clear();
   lcd.setCursor(0, 0);  
   lcd.print(WiFi.localIP());
   lcd.setCursor(0, 1);
   lcd.print(WiFi.SSID());  
 }
+
+
+
+
+void writeFile(fs::FS &fs, String path, String message) {
+  Serial.println("Writing to file: " + path);
+  File file = fs.open(path, FILE_WRITE);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for writing!");
+    return;
+  }
+  if(file.print(message)) {
+    Serial.println("Message to file " + path + " is written!");
+    Serial.println("(!)Message content: " + message);
+  } else {
+    Serial.println("Write to file " + path + " failed!");
+  }
+  file.close();    
+}
+
+
+void appendFile(fs::FS &fs, String path, String message) {
+  Serial.println("Appending to file: " + path);
+  File file = fs.open(path, FILE_APPEND);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for appending!");
+    return;
+  }
+  if(file.print(message)) {
+    Serial.println("Message appended to file " + path + "!");
+  } else {
+    Serial.println("Append failed to file " + path + "!");
+  }
+  file.close();
+}
+
+
+void readFile(fs::FS &fs, String path, int which_system) {
+  Serial.println("Reading from file: " + path);
+  File file = fs.open(path, FILE_READ);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for reading!");
+    return;
+  }
+  
+  if (file.available()){
+    int set_type = file.read();
+    int trash_comma = file.read();
+      
+    String list = file.readStringUntil('\r');
+    Serial.println(set_type);
+    Serial.println(list);
+    
+    String number;
+    int seq = 0;
+      
+    for (int i=0; i<list.length(); i++){
+      
+      String character;
+      
+      if (list[i]==','){        
+        
+        // Reseting system values
+        
+        // CASE TWO
+        if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set,]
+          CaseTwo[which_system-5].set_value(seq+1, stringToInt(number));
+          if (seq==4){CaseTwo[which_system-5].set_value(8, stringToInt(number));}
+        }
+        else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set,]
+          CaseTwo[which_system-5].set_value(seq+5, stringToInt(number));
+          if (seq==2){CaseTwo[which_system-5].set_value(9, stringToInt(number));}
+        }
+        else if (set_type == 107){ // state [k,state,state_set,]
+          CaseTwo[which_system-5].set_value(seq+7, stringToInt(number));
+          if (seq==1){CaseTwo[which_system-5].set_value(10, stringToInt(number));}
+        }
+      
+        // CASE ONE
+        else if (set_type == 115){ // set [s,system_set_val,is_system_set,]
+          if (seq==0){CaseOne[which_system].set_value(1, stringToInt(number));}
+          if (seq==1){CaseOne[which_system].set_value(3, stringToInt(number));}
+        }
+        else if (set_type == 111){ // state [0,state,state_set,]
+          if (seq==0){CaseOne[which_system].set_value(2, stringToInt(number));}
+          if (seq==1){CaseOne[which_system].set_value(4, stringToInt(number));}
+        }        
+        
+        number = "";
+        seq++;
+      }
+      else{
+        character = list[i];
+        number+= character;  
+      }
+      
+    }
+    
+  }
+  file.close();
+
+  // START !!! Applying read system values !!!
+  
+  // TEMPERATURE SYSTEM
+  if (CaseOne[0].is_system_set){
+    Serial.println(" !!! GONE THROGH! CONGRATULATOIN !!! ");
+    is_temp_set = true;
+    temp_button_state = true;  
+    temp_set_value_s = String(CaseOne[0].system_set_val);
+  }
+  else if (CaseOne[0].is_state_set){
+    Serial.println(" !!! GONE THROGH2! CONGRATULATOIN2 !!! ");
+    is_temp_set = true;
+    temp_button_state = true;
+  };  
+
+  // HUMIDITY SYSTEM
+  if (CaseOne[1].is_system_set){
+    is_hum_set = true;
+    hum_button_state = true;  
+    hum_set_value_s = String(CaseOne[1].system_set_val);
+  }
+  else if (CaseOne[1].is_state_set){
+    is_hum_set = true;
+    hum_button_state = true;
+  };
+
+  // CARBON SYSTEM
+  if (CaseOne[2].is_system_set){
+    is_carbon_set = true;
+    carbon_button_state = true;  
+    carbon_set_value_s = String(CaseOne[2].system_set_val);
+  }
+  else if (CaseOne[2].is_state_set){
+    is_carbon_set = true;
+    carbon_button_state = true;
+  };
+
+  // WATER TEMPERATURE SYSTEM
+  if (CaseOne[3].is_system_set){
+    is_water_temp_set = true;
+    water_temp_button_state = true;  
+    water_temp_set_value_s = String(CaseOne[3].system_set_val);
+  }
+  else if (CaseOne[3].is_state_set){
+    is_water_temp_set = true;
+    water_temp_button_state = true;
+  };
+
+  // WATER LEVEL SYSTEM
+  if (CaseOne[4].is_system_set){
+    is_water_level_set = true;
+    water_level_button_state = true;  
+    water_level_set_value_s = String(CaseOne[4].system_set_val);
+  }
+  else if (CaseOne[4].is_state_set){
+    is_water_level_set = true;
+    water_level_button_state = true;
+  };
+
+
+  
+  // LIGHTING SYSTEM
+  if (CaseTwo[0].is_clock_set){
+    is_light_set = true;
+    light_button_state = true;
+    if (CaseTwo[0].system_rep){
+      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин" + " (пов.)";  
+    }
+    else{
+      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин";  
+    }
+  }
+  else if (CaseTwo[0].is_inter_set){
+    is_light_set = true;
+    light_button_state = true;  
+    light_set_value_s = "В течение: " + String(CaseTwo[0].system_dur2) + " с паузой в: " + String(CaseTwo[0].system_pause) + " мин";
+  }
+  else if (CaseTwo[0].is_state_set){
+    is_light_set = true;
+    light_button_state = true;
+  };
+
+    
+  // WATERING SYSTEM
+  if (CaseTwo[1].is_clock_set){
+    is_water_set = true;
+    water_button_state = true;
+    if (CaseTwo[1].system_rep){
+      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин" + " (пов.)";  
+    }
+    else{
+      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин";  
+    }
+  }
+  else if (CaseTwo[1].is_inter_set){
+    is_water_set = true;
+    water_button_state = true;  
+    water_set_value_s = "В течение: " + String(CaseTwo[1].system_dur2) + " с паузой в: " + String(CaseTwo[1].system_pause) + " мин";
+  }
+  else if (CaseTwo[1].is_state_set){
+    is_water_set = true;
+    water_button_state = true;
+  };
+
+
+  // END !!! Applying read system values !!!
+
+}
+
+
+void cleanFile(fs::FS &fs, String path) {
+  
+  Serial.println("Cleaning file: " + path);
+  File file = fs.open(path, FILE_WRITE);
+  if(!file) {
+    Serial.println("Failed to open file " + path + " for cleaning!");
+    return;
+  }
+  if(file.print(' ')) {
+    Serial.println("File " + path + " cleaned!");
+  } else {
+    Serial.println("Cleaning failed for file " + path + "!");
+  }
+  file.close();
+}
+
+
+void deleteFile(fs::FS &fs, String path){
+  if (fs.remove(path)){
+    Serial.println("Successfully deleted file " + path + "!");
+  }
+  else{
+    Serial.println("Failed with deleting file" + path + "!");
+  }
+}
+
+
+
+String filePathCreator(int which_system){
+  return "/" + L1system_titles[which_system].system_name + ".txt";
+}
+
+
+void makeSnapShot(int which_system, String values){  
+  writeFile(SD, filePathCreator(which_system), values);
+}
+
+void readSnapShot(int which_system){
+  readFile(SD, filePathCreator(which_system), which_system);
+}
+
+
+
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
@@ -545,14 +1643,34 @@ void initWiFi() {
 
     if(wifiMulti.run() == WL_CONNECTED) {
       Serial.println(WiFi.SSID());
+      
+      // Reading system values if registered  
+      readSnapShot(0);
+      readSnapShot(1);
+      readSnapShot(2);
+      readSnapShot(3);
+      readSnapShot(4);
+      readSnapShot(5);
+      readSnapShot(6);
+      
       gui_control_mode = "web-based";
       Serial.println("Web-Based GUI");
       
       display_wifi_info();
     }
     else{
-      Serial.println("Manual GUI");
+      
+      // Reading system values if registered
+      readSnapShot(0);
+      readSnapShot(1);
+      readSnapShot(2);
+      readSnapShot(3);
+      readSnapShot(4);
+      readSnapShot(5);
+      readSnapShot(6);
+      
       gui_control_mode = "manual";
+      Serial.println("Manual GUI");
     }
 
     timeClient.begin();
@@ -566,7 +1684,7 @@ void wifi_try_counter_incrementer(){
   }
 }
 
-void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
+void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){   
   Serial.println("Successfully connected to Access Point");
   Serial.println("Web-Based GUI");
   gui_control_mode = "web-based";
@@ -586,6 +1704,16 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Disconnected from WIFI access point");
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.disconnected.reason);
+  
+  // Reading system values if registered
+  readSnapShot(0);
+  readSnapShot(1);
+  readSnapShot(2);
+  readSnapShot(3);
+  readSnapShot(4);
+  readSnapShot(5);
+  readSnapShot(6);  
+  
   gui_control_mode = "manual";
   
 //  Serial.println("Reconnecting...");  
@@ -617,7 +1745,7 @@ void getWiFiDateTime(){
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
     DateTimeStamp = dayStamp + " // " + timeStamp;
 //    Serial.println("Relying on Wifi Time...");
-//    Serial.println(DateTimeStamp);
+//    Serial.println(DateTimeStamp);    
 }
 
 
@@ -1566,987 +2694,6 @@ void notFound(AsyncWebServerRequest *request) {
 
 
 
-struct case_one_params{ 
-  
-  int system_val; // 0
-  
-  int system_set_val; // 1
-  
-  bool system_state; // 2
-  
-  bool is_system_set; // 3
-  bool is_state_set; // 4
-  
-  uint8_t system_num; // 5
-
-
-  int get_value(int which){
-    if (which == 0){
-      return this->system_val;
-    }
-    else if(which == 3){
-      return int(this->is_system_set);
-    }
-    else if(which == 1){
-      return this->system_set_val;
-    }
-    else if(which == 2){
-      return int(this->system_state);
-    }
-    else if(which == 4){
-      return int(this->is_state_set);
-    }  
-  }
-
-
-  void set_value(int which, int new_value){
-    if (which == 0){
-      this->system_val = new_value;
-    }
-    else if(which == 3){
-      this->is_system_set = bool(new_value);
-    }
-    else if(which == 1){
-      this->system_set_val = new_value;
-    }
-    else if(which == 2){
-      this->system_state = bool(new_value);
-    }
-    else if(which == 4){
-      this->is_state_set = bool(new_value);
-    }
-  }
-};
-case_one_params CaseOne[] {
-    {temperature, temperature_set_value, temperature_state, temperature_set, temperature_state_set, 0},
-    {humidity, humidity_set_value, humidity_state, humidity_set, humidity_state_set, 1},
-    {carbon, carbon_set_value, carbon_state, carbon_set, carbon_state_set, 2},
-    {water_temperature, water_temp_set_value, water_temp_state, water_temp_set, water_temp_state_set, 3},
-    {water_level, water_level_set_value, water_level_state, water_level_set, water_level_state_set, 4},
-};
-
-
-struct case_two_params{ 
-
-  int system_val; // 0
-  
-  int system_time_h;  // 1
-  int system_time_m; // 2
-  int system_dur1; // 3
-  bool system_rep; // 4
-
-  int system_dur2; // 5
-  int system_pause; // 6
-  
-  bool system_state; // 7
-  
-  bool is_clock_set; // 8
-  bool is_inter_set; // 9
-  bool is_state_set; // 10
-  
-  uint8_t system_num; // 11
-  
-
-  int get_value(int which){
-    
-    if (which == 0){
-      return this->system_val;
-    }
-    
-    else if(which == 8){
-      return int(this->is_clock_set);
-    }
-    else if(which == 9){
-      return int(this->is_inter_set);
-    }
-    else if(which == 10){
-      return int(this->is_state_set);
-    }
-    
-    else if(which == 1){
-      return this->system_time_h;
-    }
-    else if(which == 2){
-      return this->system_time_m;
-    }
-    else if(which == 3){
-      return this->system_dur1;
-    }
-    else if(which == 4){
-      return int(this->system_rep);
-    }
-    
-    else if(which == 7){
-      return int(this->system_state);
-    }  
-
-    else if(which == 5){
-      return int(this->system_dur2);
-    }
-    else if(which == 6){
-      return int(this->system_pause);
-    }
-  }
-
-  
-  void set_value(int which, int new_value){
-    if (which == 0){
-      this->system_val = new_value;
-    }
-
-    else if(which == 8){
-      this->is_clock_set = bool(new_value);
-    }
-    else if(which == 9){
-      this->is_inter_set = bool(new_value);
-    }
-    else if(which == 10){
-      this->is_state_set = bool(new_value);
-    }
-
-       
-    else if(which == 1){
-      this->system_time_h = new_value;
-    }
-    else if(which == 2){
-      this->system_time_m = new_value;
-    }
-    else if(which == 3){
-      this->system_dur1 = new_value;
-    }
-    else if(which == 4){
-      this->system_rep = bool(new_value);
-    }
-
-    else if(which == 5){
-      this->system_dur2 = new_value;
-    }
-    else if(which == 6){
-      this->system_pause = new_value;
-    }
-    
-    else if(which == 7){
-      this->system_state = bool(new_value);
-    }
-  }
-};
-case_two_params CaseTwo[] {
-    {light, lighting_time_hour, lighting_time_minute, lighting_duration1, lighting_time_repeat, lighting_duration2, lighting_pause, lighting_state, lighting_clock_set, lighting_inter_set, lighting_state_set, 5},
-    {water, watering_time_hour, watering_time_minute, watering_duration1, watering_time_repeat, watering_duration2, watering_pause, watering_state, watering_clock_set, watering_inter_set, watering_state_set, 6},
-};
-
-
-
-typedef struct { 
-  uint8_t place;
-  uint8_t row;
-  uint8_t col;
-} coordinates;
-const coordinates options[] {
-    {0, 0, 1},
-    {1, 1, 0},
-    {2, 1, 11},
-    {3, 2, 0},
-};
-
-
-typedef struct { 
-  uint8_t system_num;
-  String system_name;
-} L1systems;
-const L1systems L1system_titles[] {
-    {0, "Temperature"},
-    {1, "Humidity"},
-    {2, "CO2 Content"},
-    {3, "Water Temp."},
-    {4, "Water Level"},
-    {5, "Lightening"},
-    {6, "Watering"},
-};
-
-typedef struct { 
-  uint8_t system_num;
-  String system_name;
-} L2systems;
-const L2systems L2system_titles[] {
-    {0, "Temp Set Mode"},
-    {1, "Humid Set Mode"},
-    {2, "CO2 Set Mode"},
-    {3, "W.Temp. Set Mode"},
-    {4, "W.Level Set Mode"},
-    {5, "Light Clock"},
-    {6, "Water Clock"},
-};
-
-typedef struct { 
-  uint8_t system_num;
-  String system_name;
-} L3systems;
-const L3systems L3system_titles[] {
-    {0, "Temp On-Off"},
-    {1, "Humid On-Off"},
-    {2, "CO2 On-Off"},
-    {3, "W.Temp. On-Off"},
-    {4, "W.Level On-Off"},
-    {5, "Light Inter."},
-    {6, "Water Inter."},
-};
-
-typedef struct { 
-  uint8_t system_num;
-  String system_name;
-} L4systems;
-const L4systems L4system_titles[] {
-    {0, "Light On-Off"},
-    {1, "Water On-Off"},
-};
-
-
-typedef struct { 
-  uint8_t case_num;
-  uint8_t case_level_deepness;
-} casedeepness;
-const casedeepness case_deepness[] {
-    {0, 2},
-    {1, 3},
-};
-
-
-int levels_pointer = 0; // CaseOne[0 to 2] or CaseTwo[0 to 3]
-int systems_pointer = 0; // from 0 to 6
-int places_pointer = 0; // The Devil Knows...
-
-char hover_cursor = '>';   // for mode 0
-char select_cursor = '-';  // for mode 1
-char switch_cursor = '=';  // for mode 2
-
-int editing_mode = 0;
-bool current_case = 0; // 0 for CaseOne, 1 for CaseTwo
-int current_case_level_deepness = 2;
-
-
-bool getFeedBack(){
-  
-  delay(500);
-  if (Serial1.available() > 0){
-    bool feedBack = Serial1.read();
-    bool grepper1 = Serial1.read();
-    bool grepper2 = Serial1.read();
-    bool grepper3 = Serial1.read();
-    bool grepper4 = Serial1.read();
-    bool grepper5 = Serial1.read();
-    
-//    Serial.print("FeedBack message: ");
-//    Serial.println(feedBack);
-
-    if (feedBack){
-      return true;
-    }
-    else{
-      return false;
-    }  
-  }
-}
-
-
-void blinkBuildLED(){
-  digitalWrite(ONBOARD_LED,HIGH);
-  delay(200);
-  digitalWrite(ONBOARD_LED,LOW);  
-}
-
-
-void getSensorsReadings(){
-
-    Serial1.write('S');
-//    delay(500);
-    
-    if (Serial1.available() > 0){
-      temperature = Serial1.read();
-      humidity = Serial1.read();
-      light = Serial1.read();
-//      carbon = Serial1.read();
-//      water_temperature = Serial1.read();
-//      water_level = Serial1.read();
-//      water = Serial1.read();
-      
-      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();//int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
-      
-      // UPDATING SENSORS VALUES FROM ARDUINO MEGA
-      CaseOne[0].set_value(0, temperature);
-      CaseOne[1].set_value(0, humidity);
-      CaseTwo[0].set_value(0, light);
-  
-//      Serial.println();
-//      Serial.println("Recieved Sensors values: ");
-//      Serial.println();
-//      Serial.print("Temperature: ");
-//      Serial.println(temperature);
-//      Serial.print("Humidity: ");
-//      Serial.println(humidity);    
-//      Serial.print("Light: ");
-//      Serial.println(light);
-    }
-}
-
-
-void getActuatorsReadings(){
-
-    Serial1.write('A');
-//    delay(500);
-    
-    if (Serial1.available() > 0){
-      pump_state = Serial1.read();
-      air_heater_state = Serial1.read();
-      air_humiditer_state = Serial1.read();
-//      water_heater_state = Serial1.read();
-//      fan_state = Serial1.read();
-//      outlet_fan_state = Serial1.read();
-//      phytolamp_state = Serial1.read();
-//      water_tank_filler_state = Serial1.read();
-
-      int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
-      
-      Serial.println();
-      Serial.println("Recieved Actuators values: ");
-      Serial.println();
-      Serial.print("Pump state: ");
-      Serial.println(pump_state);
-      Serial.print("Air heater state: ");
-      Serial.println(air_heater_state);    
-      Serial.print("Air humiditer state: ");
-      Serial.println(air_humiditer_state);
-    }
-}
-
-
-void get_date_time(){
-  DateTime now = rtc.now();
-  printDateTime(now);
-  DateTimeStamp = datestring;
-}
-
-void display_time(){
-  get_date_time();
-  lcd.setCursor(1 , 3);
-  lcd.print(DateTimeStamp);
-}
-
-int places_pointer_restrictor(){
-  if (levels_pointer == 0){
-    return 0;
-  }
-  else if (levels_pointer > 0 && systems_pointer < 5){
-    return 1;
-  }
-  else{
-    if (levels_pointer == 1){
-      return 3;
-    }
-    else if (levels_pointer == 2){
-      return 2;
-    }
-    else{
-      return 1;
-    }
-  }
-}
-
-
-int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
-  
-  int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
-  bool is_system_set = CaseOne[systems_pointer].get_value(3);
-  
-  if (!is_system_set){
-    if (where < 0 && starter_value < hight_end){
-      starter_value++;
-    }
-    else if (where > 0 && starter_value > low_end){
-      starter_value--;
-    };
-  }
-  return starter_value;
-}
-
-
-int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
-  
-  int starter_value = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(which);
-  bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(7);
-
-  if (!is_system_set){
-    if (where < 0 && starter_value < hight_end){
-      starter_value++; 
-    }
-    else if (where > 0 && starter_value > low_end){
-      starter_value--;
-    };
-  }
-  return starter_value;
-}
-
-
-void editing_values(int where){
-//  Serial.println("Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
-  
-  // LEVEL 1 or LEVEL 2  
-  if (levels_pointer == 1 || levels_pointer == 2){
-    if (systems_pointer < 5){ // CASE 1
-      CaseOne[systems_pointer].set_value(levels_pointer, value_changer_with_restrictionsONE(where, 0, 99));
-    }
-    else {
-      // CASE 2 CLOCK AND INTERVAL MENUES
-      
-      // CLOCK MENU
-      if (levels_pointer == 1 && places_pointer == 1){
-        if (editing_mode == 1){ // HOURS
-          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(1, value_changer_with_restrictionsTWO(where, 0, 23, 1));
-        }
-        else if (editing_mode == 2){ // MINUTES
-          CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(2, value_changer_with_restrictionsTWO(where, 0, 59, 2));
-        }
-      }
-      else if (levels_pointer == 1 && places_pointer == 2){ // DURATION 1
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(3, value_changer_with_restrictionsTWO(where, 0, 23, 3));
-      }
-      else if (levels_pointer == 1 && places_pointer == 3){ // REPEAT
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
-      }      
-    
-      // INTERVAL MENU
-      if (levels_pointer == 2 && places_pointer == 1){ // DURATION 2
-       CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
-      }
-      else if (levels_pointer == 2 && places_pointer == 2){ // PAUSE
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
-      }
-    }
-    
-  }
-  // LEVEL 3 EXLUSIVE FOR CASE 2
-  else{
-    // CASE 2 STATE MENU
-    CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
-  }
-}
-
-void update_place(int where){
-  if (editing_mode == 0){
-    if (where < 0 && places_pointer < places_pointer_restrictor()){
-      places_pointer++;
-    }
-    else if (where > 0 && places_pointer > 0){
-      places_pointer--;
-    };
-  }
-  else{  // IN THE EDITING MODE
-    // FUNCTION FOR APPLYING EDITING VALUES HERE MUST BE
-    editing_values(where);
-  }
-}
-
-void update_system(int where){
-  if (places_pointer == 0){
-    if (where < 0 && systems_pointer < countof(L1system_titles)-1){
-      systems_pointer++;
-    }
-    else if (where > 0 && systems_pointer > 0){
-      systems_pointer--;
-    };
-  
-    if (systems_pointer < countof(L1system_titles)-2){
-      current_case = 0;
-    }
-    else{
-      current_case = 1;
-    }
-  }
-}
-
-void update_level(){
-  if (places_pointer == 0){
-    if (levels_pointer < case_deepness[current_case].case_level_deepness){
-      levels_pointer++;  
-    }
-    else{
-      levels_pointer = 0;
-    }  
-  }
-}
-
-void track_cursor(){
-  Serial.println("On Level: " + String(levels_pointer)+ "; On System: " +String(systems_pointer) + "; On Place: " + String(places_pointer));
-}
-
-
-void toggle_editing_mode(){
-  if (places_pointer != 0){
-
-    if (editing_mode == 1 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
-      editing_mode = 2;
-    }
-    else if(editing_mode == 2 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
-      editing_mode = 0;
-    }
-    else if(editing_mode == 0 && systems_pointer > 4 && places_pointer == 1 && levels_pointer == 1){
-      editing_mode = 1;
-    }
-
-    else if(editing_mode == 0 && systems_pointer > 4 && levels_pointer != 1){
-      editing_mode = 1;
-    }
-    else if(editing_mode == 1 && systems_pointer > 4 && levels_pointer != 1){
-      editing_mode = 0;
-    }
-
-    else if(editing_mode == 0 && systems_pointer > 4 && levels_pointer == 1){
-      editing_mode = 1;
-    }
-    else if(editing_mode == 1 && systems_pointer > 4 && levels_pointer == 1){
-      editing_mode = 0;
-    }
-    
-    else if (editing_mode == 1 && systems_pointer < 5){
-      editing_mode = 0;
-    }
-    else if (editing_mode == 0 && systems_pointer < 5){
-      editing_mode = 1;
-    }
-  }
-}
-
-
-char update_cursor_type(){
-  if (editing_mode == 0){
-    return hover_cursor;
-  }
-  else if (editing_mode == 1){
-    return select_cursor;
-  }
-  else{
-    return switch_cursor;
-  }
-}
-
-void update_cursor(){
-  lcd.setCursor(options[places_pointer].col, options[places_pointer].row);
-  lcd.print(update_cursor_type());  
-}
-
-char system_set_icon(){
-  if (levels_pointer > 0){
-    if (systems_pointer < 5){
-      bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
-      if (is_set){
-        return set_symbol;  
-      }    
-    }
-    else{
-      bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
-      if (is_set){
-        return set_symbol;
-      }
-    }
-    return ' ';
-  }
-  else{
-    return ' ';
-  }
-}
-
-String current_title(){
-  
-  switch (levels_pointer) {
-  case 0:
-    return L1system_titles[systems_pointer].system_name;  
-    break;
-  case 1:
-    return L2system_titles[systems_pointer].system_name; 
-    break;
-  case 2:
-    return L3system_titles[systems_pointer].system_name;
-    break;
-  case 3:
-    return L4system_titles[bool(systems_pointer-(countof(L1system_titles)-2))].system_name;
-    break;
-}
- 
-}
-
-void update_title(){
-  lcd.setCursor(options[0].col+1, options[0].row);
-  lcd.print(current_title());
-  lcd.setCursor(19, 0);
-  lcd.print(system_set_icon());
-}
-
-void update_menu(){
-//  levels_pointer, systems_pointer, places_pointer
-// options[0].row.col
-
-  // LEVEL 1
-  if (levels_pointer == 0){
-    // CASE 1
-    if (systems_pointer < 5){
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("curr value:" + String(CaseOne[systems_pointer].system_val));
-    }
-    // CASE 2
-    else{
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("curr value:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_val));
-    }    
-  }
-  
-  // LEVEL 2
-  else if (levels_pointer == 1){
-    // CASE 1
-    if (systems_pointer < 5){
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("set value:" + String(CaseOne[systems_pointer].system_set_val));
-    }
-    // CASE 2
-    else{
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("time:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h) + ":" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m));
-
-      lcd.setCursor(options[2].col+1, options[2].row);
-      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1));
-      
-      lcd.setCursor(options[3].col+1, options[3].row);
-      lcd.print("repeat:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep));
-    }
-  }
-
-  // LEVEL 3
-  else if (levels_pointer == 2){
-    // CASE 1
-    if (systems_pointer < 5){
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("state:" + String(CaseOne[systems_pointer].system_state));
-    }
-    // CASE 2
-    else{
-      lcd.setCursor(options[1].col+1, options[1].row);
-      lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2));
-
-      lcd.setCursor(options[2].col+1, options[2].row);
-      lcd.print("pause:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause));
-    }
-  }
-
-  // LEVEL 4
-  else if (levels_pointer == 3){
-    // CASE 2
-    lcd.setCursor(options[1].col+1, options[1].row);
-    lcd.print("state:" + String(CaseTwo[bool(systems_pointer-(countof(L1system_titles)-2))].system_state));
-  }
-}
-
-void update_display(){
-  lcd.clear();
-  update_cursor();
-  update_title();
-  update_menu();
-  display_time();  
-}
-
-
-
-void writeFile(fs::FS &fs, String path, String message) {
-  Serial.println("Writing to file: " + path);
-  File file = fs.open(path, FILE_WRITE);
-  if(!file) {
-    Serial.println("Failed to open file " + path + " for writing!");
-    return;
-  }
-  if(file.print(message)) {
-    Serial.println("Message to file " + path + " is written!");
-    Serial.println("(!)Message content: " + message);
-  } else {
-    Serial.println("Write to file " + path + " failed!");
-  }
-  file.close();    
-}
-
-
-void appendFile(fs::FS &fs, String path, String message) {
-  Serial.println("Appending to file: " + path);
-  File file = fs.open(path, FILE_APPEND);
-  if(!file) {
-    Serial.println("Failed to open file " + path + " for appending!");
-    return;
-  }
-  if(file.print(message)) {
-    Serial.println("Message appended to file " + path + "!");
-  } else {
-    Serial.println("Append failed to file " + path + "!");
-  }
-  file.close();
-}
-
-
-void readFile(fs::FS &fs, String path, int which_system) {
-  Serial.println("Reading from file: " + path);
-  File file = fs.open(path, FILE_READ);
-  if(!file) {
-    Serial.println("Failed to open file " + path + " for reading!");
-    return;
-  }
-  
-  if (file.available()){
-    int set_type = file.read();
-    int trash_comma = file.read();
-      
-    String list = file.readStringUntil('\r');
-    Serial.println(set_type);
-    Serial.println(list);
-    
-    String number;
-    int seq = 0;
-      
-    for (int i=0; i<list.length(); i++){
-      
-      String character;
-      
-      if (list[i]==','){        
-        
-        // Reseting system values
-        
-        // CASE TWO
-        if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set,]
-          CaseTwo[which_system-5].set_value(seq+1, stringToInt(number));
-          if (seq==4){CaseTwo[which_system-5].set_value(8, stringToInt(number));}
-        }
-        else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set,]
-          CaseTwo[which_system-5].set_value(seq+5, stringToInt(number));
-          if (seq==2){CaseTwo[which_system-5].set_value(9, stringToInt(number));}
-        }
-        else if (set_type == 107){ // state [k,state,state_set,]
-          CaseTwo[which_system-5].set_value(seq+7, stringToInt(number));
-          if (seq==1){CaseTwo[which_system-5].set_value(10, stringToInt(number));}
-        }
-      
-        // CASE ONE
-        else if (set_type == 111){ // set [s,system_set_val,is_system_set,]
-          if (seq==0){CaseOne[which_system].set_value(1, stringToInt(number));}
-          if (seq==1){CaseOne[which_system].set_value(3, stringToInt(number));}
-        }
-        else if (set_type == 115){ // state [0,state,state_set,]
-          if (seq==0){CaseOne[which_system].set_value(2, stringToInt(number));}
-          if (seq==1){CaseOne[which_system].set_value(4, stringToInt(number));}
-        }        
-        
-        number = "";
-        seq++;
-      }
-      else{
-        character = list[i];
-        number+= character;  
-      }
-      
-    }
-    
-  }
-  file.close();
-}
-
-
-void cleanFile(fs::FS &fs, String path) {
-  
-  Serial.println("Cleaning file: " + path);
-  File file = fs.open(path, FILE_WRITE);
-  if(!file) {
-    Serial.println("Failed to open file " + path + " for cleaning!");
-    return;
-  }
-  if(file.print(' ')) {
-    Serial.println("File " + path + " cleaned!");
-  } else {
-    Serial.println("Cleaning failed for file " + path + "!");
-  }
-  file.close();
-}
-
-
-void deleteFile(fs::FS &fs, String path){
-  if (fs.remove(path)){
-    Serial.println("Successfully deleted file " + path + "!");
-  }
-  else{
-    Serial.println("Failed with deleting file" + path + "!");
-  }
-}
-
-
-
-String filePathCreator(int which_system){
-  return "/" + L1system_titles[which_system].system_name + ".txt";
-}
-
-
-void makeSnapShot(int which_system, String values){  
-  writeFile(SD, filePathCreator(which_system), values);
-}
-
-void readSnapShot(int which_system){
-  readFile(SD, filePathCreator(which_system), which_system);
-}
-
-
-void set_current_system(){
-  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
-  // CASES 1
-  if (systems_pointer < 5){
-    
-    if (levels_pointer == 1){
-      bool current_state = CaseOne[systems_pointer].get_value(3);
-      bool other_state = CaseOne[systems_pointer].get_value(4);
-      
-      if (current_state){
-        CaseOne[systems_pointer].set_value(3, false);
-        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
-      }
-      else if (!other_state){
-        CaseOne[systems_pointer].set_value(3, true);
-        makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
-      }
-    }
-    else if (levels_pointer == 2){
-      bool current_state = CaseOne[systems_pointer].get_value(4);
-      bool other_state = CaseOne[systems_pointer].get_value(3);
-      
-      if (current_state){
-        CaseOne[systems_pointer].set_value(4, false);
-        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
-      }
-      else if (!other_state){
-        CaseOne[systems_pointer].set_value(4, true);
-        makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
-      }      
-  
-    }
-  
-  }
-  // CASES 2
-  else {
-   
-    if (levels_pointer == 1){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
-        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
-        makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
-      }  
-    }
-    else if (levels_pointer == 2){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
-        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
-        makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
-      }      
-    }
-    else if (levels_pointer == 3){
-      bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
-      bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      
-      if (current_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
-        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
-      }
-      else if (!other_state && !another_state){
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
-        makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
-      }      
-    }      
-  }
-}
-
-
-void initHardTimeModule(){
-  if (! rtc.begin()) {
-//    Serial.println("Couldn't find RTC");
-    while (1);
-  }
- 
-  if (rtc.lostPower()) {
-//    Serial.println("RTC lost power, lets set the time!");
-    // Задать время для модуля через время системы (ОС) при загрузке скетча
-    rtc.adjust(DateTime(__DATE__, __TIME__));
-    // Задать время для модуля вручную
-    // Январь 21, 2014 и 3 часа ночи:
-//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
-
-  }  
-//  rtc.adjust(DateTime(__DATE__, __TIME__));  
-}
-
-
-
-void init_sd_card(){
-  
-  // Initialize SD card
-  SD.begin(SD_CS);  
-  if(!SD.begin(SD_CS)) {
-    Serial.println("Card Mount Failed!");Serial.println(" ");
-  }
-  else {
-    Serial.println("Card reader initialized successfully!");Serial.println(" ");
-  }
-  
-  uint8_t cardType = SD.cardType();
-  if(cardType == CARD_NONE) {
-    Serial.println("No SD card attached!");Serial.println(" ");
-    return;
-  }
-  else{
-    Serial.println("Card has been found. Ok!");Serial.println(" ");
-  }
-}
-
-
-
-void prepare_main_files(){
-
-  // Delete if needed
-//  deleteFile(SD, filePathCreator(0));
-//  deleteFile(SD, filePathCreator(5));
-//  deleteFile(SD, filePathCreator(6));
-  
-  if(!SD.exists("/sersors_logger.txt")) {
-    Serial.println("'/sersors_logger.txt' file doens't exist");
-    Serial.println("Creating file...'/sersors_logger.txt'");
-    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
-  }
-  else {
-    Serial.println("'/sersors_logger.txt' file already exists!");Serial.println(" ");
-  }
-
-  if(!SD.exists("/actuators_logger.txt")) {
-    Serial.println("'/actuators_logger.txt' file doens't exist");
-    Serial.println("Creating file...'/actuators_logger.txt'");
-    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
-  }
-  else {
-    Serial.println("'/actuators_logger.txt' file already exists!");Serial.println(" ");
-  }  
-}
-
 
 
 void setup() {
@@ -2558,121 +2705,6 @@ void setup() {
   // Инициализация Модуля SD Памяти 
   init_sd_card();
   prepare_main_files();
-
-  // Reading system values if registered
-  readSnapShot(0);
-  readSnapShot(1);
-  readSnapShot(2);
-  readSnapShot(3);
-  readSnapShot(4);
-  readSnapShot(5);
-  readSnapShot(6);
-
-  // START !!! Applying read system values !!! WILL BE SEPARETE FUNCTION IN THE FUTURE
-  
-  // TEMPERATURE SYSTEM
-  if (CaseOne[0].is_system_set){
-    is_temp_set = true;
-    temp_button_state = true;  
-    temp_set_value_s = to + String(CaseOne[0].system_set_val);
-  }
-  else if (CaseOne[0].is_state_set){
-    is_temp_set = true;
-    temp_button_state = true;
-  };  
-
-  // HUMIDITY SYSTEM
-  if (CaseOne[1].is_system_set){
-    is_hum_set = true;
-    hum_button_state = true;  
-    hum_set_value_s = to + String(CaseOne[1].system_set_val);
-  }
-  else if (CaseOne[1].is_state_set){
-    is_hum_set = true;
-    hum_button_state = true;
-  };
-
-  // CARBON SYSTEM
-  if (CaseOne[2].is_system_set){
-    is_carbon_set = true;
-    carbon_button_state = true;  
-    carbon_set_value_s = to + String(CaseOne[2].system_set_val);
-  }
-  else if (CaseOne[2].is_state_set){
-    is_carbon_set = true;
-    carbon_button_state = true;
-  };
-
-  // WATER TEMPERATURE SYSTEM
-  if (CaseOne[3].is_system_set){
-    is_water_temp_set = true;
-    water_temp_button_state = true;  
-    water_temp_set_value_s = to + String(CaseOne[3].system_set_val);
-  }
-  else if (CaseOne[3].is_state_set){
-    is_water_temp_set = true;
-    water_temp_button_state = true;
-  };
-
-  // WATER LEVEL SYSTEM
-  if (CaseOne[4].is_system_set){
-    is_water_level_set = true;
-    water_level_button_state = true;  
-    water_level_set_value_s = to + String(CaseOne[4].system_set_val);
-  }
-  else if (CaseOne[4].is_state_set){
-    is_water_level_set = true;
-    water_level_button_state = true;
-  };
-
-
-  
-  // LIGHTING SYSTEM
-  if (CaseTwo[0].is_clock_set){
-    is_light_set = true;
-    light_button_state = true;
-    if (CaseTwo[0].system_rep){
-      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин" + " (пов.)";  
-    }
-    else{
-      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин";  
-    }
-  }
-  else if (CaseTwo[0].is_inter_set){
-    is_light_set = true;
-    light_button_state = true;  
-    light_set_value_s = "В течение: " + String(CaseTwo[0].system_dur2) + " с паузой в: " + String(CaseTwo[0].system_pause) + " мин";
-  }
-  else if (CaseTwo[0].is_state_set){
-    is_light_set = true;
-    light_button_state = true;
-  };
-
-    
-  // WATERING SYSTEM
-  if (CaseTwo[1].is_clock_set){
-    is_water_set = true;
-    water_button_state = true;
-    if (CaseTwo[1].system_rep){
-      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин" + " (пов.)";  
-    }
-    else{
-      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин";  
-    }
-  }
-  else if (CaseTwo[1].is_inter_set){
-    is_water_set = true;
-    water_button_state = true;  
-    water_set_value_s = "В течение: " + String(CaseTwo[1].system_dur2) + " с паузой в: " + String(CaseTwo[1].system_pause) + " мин";
-  }
-  else if (CaseTwo[1].is_state_set){
-    is_water_set = true;
-    water_button_state = true;
-  };
-
-
-  // END !!! Applying read system values !!! WILL BE SEPARETE FUNCTION IN THE FUTURE
-
 
   
   // Инициализация Модуля Реального Времени
@@ -3012,9 +3044,12 @@ void setup() {
             }      
           temp_set_value_f = 0.00;
           }
+      // State
       CaseOne[0].set_value(2, int(temp_button_state));
       CaseOne[0].set_value(4, temp_button_state);
-      
+      // Set
+      CaseOne[0].set_value(3, temp_button_state);
+            
       makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");   
       };
       
@@ -3403,8 +3438,7 @@ void loop() {
     dummy_humidity = humidity;
     dummy_light = light;
 
-    // Вывод IP адреса и времени на LCD дисплей
-    lcd.clear();  
+    // Вывод IP адреса и времени на LCD дисплей  
     display_wifi_info();
     lcd.setCursor(0, 3);  
     lcd.print(DateTimeStamp);
