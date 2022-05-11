@@ -1660,15 +1660,15 @@ void getSensorsReadings(){
       CaseOne[1].set_value(0, humidity);
       CaseTwo[0].set_value(0, light);
   
-      Serial.println();
-      Serial.println("Recieved Sensors values: ");
-      Serial.println();
-      Serial.print("Temperature: ");
-      Serial.println(temperature);
-      Serial.print("Humidity: ");
-      Serial.println(humidity);    
-      Serial.print("Light: ");
-      Serial.println(light);
+//      Serial.println();
+//      Serial.println("Recieved Sensors values: ");
+//      Serial.println();
+//      Serial.print("Temperature: ");
+//      Serial.println(temperature);
+//      Serial.print("Humidity: ");
+//      Serial.println(humidity);    
+//      Serial.print("Light: ");
+//      Serial.println(light);
     }
 }
 
@@ -1740,8 +1740,6 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
   
   int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
   bool is_system_set = CaseOne[systems_pointer].get_value(3);
-  
-  Serial.println("Starter Value: " + String(starter_value));
   
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -1920,19 +1918,24 @@ void update_cursor(){
 }
 
 char system_set_icon(){
-  if (systems_pointer < 5){
-    bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
-    if (is_set){
-      return set_symbol;  
-    }    
+  if (levels_pointer > 0){
+    if (systems_pointer < 5){
+      bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
+      if (is_set){
+        return set_symbol;  
+      }    
+    }
+    else{
+      bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
+      if (is_set){
+        return set_symbol;
+      }
+    }
+    return ' ';
   }
   else{
-    bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
-    if (is_set){
-      return set_symbol;
-    }
+    return ' ';
   }
-  return ' ';
 }
 
 String current_title(){
@@ -2043,6 +2046,7 @@ void writeFile(fs::FS &fs, String path, String message) {
   }
   if(file.print(message)) {
     Serial.println("Message to file " + path + " is written!");
+    Serial.println("(!)Message content: " + message);
   } else {
     Serial.println("Write to file " + path + " failed!");
   }
@@ -2079,8 +2083,8 @@ void readFile(fs::FS &fs, String path, int which_system) {
     int trash_comma = file.read();
       
     String list = file.readStringUntil('\r');
-//    Serial.println(set_type);
-//    Serial.println(list);
+    Serial.println(set_type);
+    Serial.println(list);
     
     String number;
     int seq = 0;
@@ -2110,11 +2114,11 @@ void readFile(fs::FS &fs, String path, int which_system) {
         // CASE ONE
         else if (set_type == 111){ // set [s,system_set_val,is_system_set,]
           if (seq==0){CaseOne[which_system].set_value(1, stringToInt(number));}
-          if (seq==1){CaseTwo[which_system].set_value(3, stringToInt(number));}
+          if (seq==1){CaseOne[which_system].set_value(3, stringToInt(number));}
         }
         else if (set_type == 115){ // state [0,state,state_set,]
           if (seq==0){CaseOne[which_system].set_value(2, stringToInt(number));}
-          if (seq==1){CaseTwo[which_system].set_value(4, stringToInt(number));}
+          if (seq==1){CaseOne[which_system].set_value(4, stringToInt(number));}
         }        
         
         number = "";
@@ -2348,12 +2352,16 @@ void setup() {
 
   // START !!! Applying read system values !!! WILL BE SEPARETE FUNCTION IN THE FUTURE
 
+  Serial.println("***CHECK***");
+  Serial.println(CaseOne[0].is_system_set);
   
   // TEMPERATURE SYSTEM
   if (CaseOne[0].is_system_set){
+    Serial.println("***GOT VALUES FROM MANUAL MODE***");
+    Serial.println(CaseOne[0].is_system_set);
     is_temp_set = true;
     temp_button_state = true;  
-    temp_set_value_s = to + CaseOne[0].system_set_val;
+    temp_set_value_s = to + String(CaseOne[0].system_set_val);
   }
   else if (CaseOne[0].is_state_set){
     is_temp_set = true;
@@ -2364,7 +2372,7 @@ void setup() {
   if (CaseOne[1].is_system_set){
     is_hum_set = true;
     hum_button_state = true;  
-    hum_set_value_s = to + CaseOne[1].system_set_val;
+    hum_set_value_s = to + String(CaseOne[1].system_set_val);
   }
   else if (CaseOne[1].is_state_set){
     is_hum_set = true;
@@ -2375,7 +2383,7 @@ void setup() {
   if (CaseOne[2].is_system_set){
     is_carbon_set = true;
     carbon_button_state = true;  
-    carbon_set_value_s = to + CaseOne[2].system_set_val;
+    carbon_set_value_s = to + String(CaseOne[2].system_set_val);
   }
   else if (CaseOne[2].is_state_set){
     is_carbon_set = true;
@@ -2386,7 +2394,7 @@ void setup() {
   if (CaseOne[3].is_system_set){
     is_water_temp_set = true;
     water_temp_button_state = true;  
-    water_temp_set_value_s = to + CaseOne[3].system_set_val;
+    water_temp_set_value_s = to + String(CaseOne[3].system_set_val);
   }
   else if (CaseOne[3].is_state_set){
     is_water_temp_set = true;
@@ -2397,7 +2405,7 @@ void setup() {
   if (CaseOne[4].is_system_set){
     is_water_level_set = true;
     water_level_button_state = true;  
-    water_level_set_value_s = to + CaseOne[4].system_set_val;
+    water_level_set_value_s = to + String(CaseOne[4].system_set_val);
   }
   else if (CaseOne[4].is_state_set){
     is_water_level_set = true;
@@ -3153,6 +3161,9 @@ void loop() {
 
 
     if ((millis() - lastTime) > timerDelay) {
+      // TRYING TO REACH WIFI SIGNAL
+      initWiFi();
+      
       // Read the sersors reading
       getSensorsReadings();
       blinkBuildLED();
