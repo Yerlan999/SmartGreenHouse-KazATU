@@ -270,6 +270,223 @@ wifi_template wifi_dict[] {
 };
 
 
+
+// Состояния кнопок контроля
+struct button_state_creator{
+
+  bool temp_button_state;
+  bool hum_button_state;
+  bool carbon_button_state;
+  bool water_temp_button_state;
+  bool water_level_button_state;
+  bool light_button_state;
+  bool water_button_state;
+
+  bool get_value(int which){
+
+    if (which == 0){
+      return this->temp_button_state;
+    }
+    else if (which == 1){
+      return this->hum_button_state;
+    }
+    else if (which == 2){
+      return this->carbon_button_state;
+    }
+    else if (which == 3){
+      return this->water_temp_button_state;
+    }
+    else if (which == 4){
+      return this->water_level_button_state;
+    }
+    else if (which == 5){
+      return this->light_button_state;
+    }
+    else if (which == 6){
+      return this->water_button_state;
+    }
+  }
+
+
+  void set_value(int which, bool new_value){
+
+    if (which == 0){
+      this->temp_button_state = new_value;
+    }
+    else if (which == 1){
+      this->hum_button_state = new_value;
+    }
+    else if (which == 2){
+      this->carbon_button_state = new_value;
+    }
+    else if (which == 3){
+      this->water_temp_button_state = new_value;
+    }
+    else if (which == 4){
+      this->water_level_button_state = new_value;
+    }
+    else if (which == 5){
+      this->light_button_state = new_value;
+    }
+    else if (which == 6){
+      this->water_button_state = new_value;
+    }
+  }
+
+};
+button_state_creator button_state_class[]{
+  {temp_button_state,hum_button_state,carbon_button_state,water_temp_button_state,water_level_button_state,light_button_state,water_button_state},
+}
+
+
+
+
+
+
+
+
+// Состояние карточек отображения показании
+struct card_state_creator{
+
+  bool is_temp_set;
+  bool is_hum_set;
+  bool is_carbon_set;
+  bool is_water_temp_set;
+  bool is_water_level_set;
+  bool is_light_set;
+  bool is_water_set;
+
+
+  bool get_value(int which){
+
+    if (which == 0){
+      return this->is_temp_set;
+    }
+    else if (which == 1){
+      return this->is_hum_set;
+    }
+    else if (which == 2){
+      return this->is_carbon_set;
+    }
+    else if (which == 3){
+      return this->is_water_temp_set;
+    }
+    else if (which == 4){
+      return this->is_water_level_set;
+    }
+    else if (which == 5){
+      return this->is_light_set;
+    }
+    else if (which == 6){
+      return this->is_water_set;
+    }
+  }
+
+
+  void set_value(int which, bool new_value){
+
+    if (which == 0){
+      this->is_temp_set = new_value;
+    }
+    else if (which == 1){
+      this->is_hum_set = new_value;
+    }
+    else if (which == 2){
+      this->is_carbon_set = new_value;
+    }
+    else if (which == 3){
+      this->is_water_temp_set = new_value;
+    }
+    else if (which == 4){
+      this->is_water_level_set = new_value;
+    }
+    else if (which == 5){
+      this->is_light_set = new_value;
+    }
+    else if (which == 6){
+      this->is_water_set = new_value;
+    }
+  }
+
+};
+card_state_creator card_state_class[]{
+  {is_temp_set,is_hum_set,is_carbon_set,is_water_temp_set,is_water_level_set,is_light_set,is_water_set},
+}
+
+
+
+
+
+// Текст карточек отображения показании
+struct card_text_creator{
+
+  String temp_set_value_s;
+  String hum_set_value_s;
+  String carbon_set_value_s;
+  String water_temp_set_value_s;
+  String water_level_set_value_s;
+  String light_set_value_s;
+  String water_set_value_s;
+
+
+  String get_value(int which){
+
+    if (which == 0){
+      return this->temp_set_value_s;
+    }
+    else if (which == 1){
+      return this->hum_set_value_s;
+    }
+    else if (which == 2){
+      return this->carbon_set_value_s;
+    }
+    else if (which == 3){
+      return this->water_temp_set_value_s;
+    }
+    else if (which == 4){
+      return this->water_level_set_value_s;
+    }
+    else if (which == 5){
+      return this->light_set_value_s;
+    }
+    else if (which == 6){
+      return this->water_set_value_s;
+    }
+  }
+
+
+  void set_value(int which, String new_value){
+
+    if (which == 0){
+      this->temp_set_value_s = new_value;
+    }
+    else if (which == 1){
+      this->hum_set_value_s = new_value;
+    }
+    else if (which == 2){
+      this->carbon_set_value_s = new_value;
+    }
+    else if (which == 3){
+      this->water_temp_set_value_s = new_value;
+    }
+    else if (which == 4){
+      this->water_level_set_value_s = new_value;
+    }
+    else if (which == 5){
+      this->light_set_value_s = new_value;
+    }
+    else if (which == 6){
+      this->water_set_value_s = new_value;
+    }
+  }
+
+};
+card_text_creator card_text_class[]{
+  {temp_set_value_s,hum_set_value_s,carbon_set_value_s,water_temp_set_value_s,water_level_set_value_s,light_set_value_s,water_set_value_s},
+}
+
+
+
 // ФУНКЦИЯ ДЛЯ СЧИТЫВАНИЯ С ДАТЧИКОВ ПОКАЗАНИИ  (ТЕСТОВАЯ/НАЧАЛЬНАЯ)
 void getDummySensorReadings(){
     temperature = dummy_temperature;
@@ -2307,9 +2524,10 @@ void init_sd_card(){
 void prepare_main_files(){
 
   // Delete if needed
-//  deleteFile(SD, "/Watering.txt");
+//  deleteFile(SD, filePathCreator(0));
+//  deleteFile(SD, filePathCreator(5));
+//  deleteFile(SD, filePathCreator(6));
   
-
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
     Serial.println("Creating file...'/sersors_logger.txt'");
@@ -2351,14 +2569,9 @@ void setup() {
   readSnapShot(6);
 
   // START !!! Applying read system values !!! WILL BE SEPARETE FUNCTION IN THE FUTURE
-
-  Serial.println("***CHECK***");
-  Serial.println(CaseOne[0].is_system_set);
   
   // TEMPERATURE SYSTEM
   if (CaseOne[0].is_system_set){
-    Serial.println("***GOT VALUES FROM MANUAL MODE***");
-    Serial.println(CaseOne[0].is_system_set);
     is_temp_set = true;
     temp_button_state = true;  
     temp_set_value_s = to + String(CaseOne[0].system_set_val);
