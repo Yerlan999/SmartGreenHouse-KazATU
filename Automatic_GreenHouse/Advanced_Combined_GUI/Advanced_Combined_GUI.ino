@@ -3161,14 +3161,16 @@ void loop() {
 
 
     if ((millis() - lastTime) > timerDelay) {
-      // TRYING TO REACH WIFI SIGNAL
-      initWiFi();
       
       // Read the sersors reading
       getSensorsReadings();
       blinkBuildLED();
       update_display();
       // Update screen values
+
+
+      // TRYING TO REACH WIFI SIGNAL
+      initWiFi();
       
       lastTime = millis();   
     }
