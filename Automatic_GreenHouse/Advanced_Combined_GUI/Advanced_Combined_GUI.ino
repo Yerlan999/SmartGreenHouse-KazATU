@@ -88,6 +88,7 @@ String timeStamp;
 String DateTimeStamp;
 char datestring[20];
 
+int led_brightness = 15; // from 0 to 255;
 
 // Используются для вывода переданных со страницы данных
 const char* FAN_PARAM_INPUT = "new-fan-value";
@@ -129,6 +130,7 @@ const char* WATER_PARAM_INPUT6 = "new-water-value-pause";
 
 
 const char* TIME_PARAM_INPUT = "new-update-value";
+const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
 
         
     bool pump_state = false;
@@ -2082,7 +2084,11 @@ String processor(const String& var){
     
   else if (var == "UPDATE_SPAN"){
     return String(timerDelay/1000);  
+  }
+  else if (var == "LED_BRIGHTNESS"){
+    return String(led_brightness);  
   };
+  
   return String();
 }
 
@@ -2631,7 +2637,15 @@ const char settings_html[] PROGMEM = R"rawliteral(
     </form>
     
     <br><br>
+
+    <form id="update-form" class="" action="/getupd">
+      Яркость светодиодной ленты: <input type="number" name="new-brightness-value" placeholder=%LED_BRIGHTNESS%>
+      <input id="update-value" class="button-submmit" type="submit" value="Задать">
+    </form>
     
+    <br><br>
+
+   
     <button type="button" class="button-submmit"><a href="/">Главная</a></button>
 
   </div>
@@ -2680,6 +2694,28 @@ if (!!window.EventSource) {
   console.log("LOADED!!!");
   
  }, false);
+
+
+
+source.addEventListener('refresher', function(e) {
+//  console.log("myevent", e.data);
+  window.location = "/settings";
+  }, false)
+
+ document.addEventListener('DOMContentLoaded', function(e){
+  console.log("LOADED!!!");
+  console.log(document.URL);
+  console.log(document.URL.slice(0, 31));
+  
+  if (document.URL.length > 33){
+    window.location = "/settings";
+  }
+  else{
+    console.log("shorter than 22");  
+  }
+ }, false);
+
+
 }
 
 
@@ -2740,11 +2776,26 @@ void setup() {
   // Задание значения интервала обновления показании датчиков
   server.on("/getupd", HTTP_GET, [](AsyncWebServerRequest *request){
     String new_update_span;
+    String new_brightness_value;
+    
     if (request->hasParam(TIME_PARAM_INPUT)) {
         new_update_span = request->getParam(TIME_PARAM_INPUT)->value();
-        new_update_span = stringToInt(new_update_span)*1000;
-        timerDelay = stringToInt(new_update_span);
-    }     
+        if (new_update_span != ""){
+          Serial.println("TIME HAS VALUE");
+          new_update_span = stringToInt(new_update_span)*1000;
+          timerDelay = stringToInt(new_update_span);
+        }
+    }
+    if (request->hasParam(LED_BRIGHTNESS_INPUT)) {
+        new_brightness_value = request->getParam(LED_BRIGHTNESS_INPUT)->value();
+        if (new_brightness_value != ""){
+          Serial.println("BRIGHTNESS HAS VALUE");
+          new_brightness_value = stringToInt(new_brightness_value);
+          led_brightness = stringToInt(new_brightness_value);
+        }
+        Serial1.print("123"); // Setting BRIGHTNESS OF LED 
+    }
+         
     request->send_P(200, "text/html", settings_html, processor);
   });
 
@@ -3044,10 +3095,9 @@ void setup() {
             }      
           temp_set_value_f = 0.00;
           }
-      // State
+   
       CaseOne[0].set_value(2, int(temp_button_state));
       CaseOne[0].set_value(4, temp_button_state);
-      // Set
       CaseOne[0].set_value(3, temp_button_state);
             
       makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");   
@@ -3111,6 +3161,7 @@ void setup() {
           
       CaseOne[1].set_value(2, int(hum_button_state));
       CaseOne[1].set_value(4, hum_button_state);
+      CaseOne[1].set_value(3, hum_button_state);
       
       makeSnapShot(1, "o,"+String(int(hum_button_state))+","+String(int(hum_button_state))+",");      
       };
@@ -3173,6 +3224,7 @@ void setup() {
       
       CaseOne[2].set_value(2, int(carbon_button_state));
       CaseOne[2].set_value(4, carbon_button_state);
+      CaseOne[2].set_value(3, carbon_button_state);
       
       makeSnapShot(2, "o,"+String(int(carbon_button_state))+","+String(int(carbon_button_state))+",");          
       };
@@ -3234,6 +3286,7 @@ void setup() {
           }
       CaseOne[3].set_value(2, int(water_temp_button_state));
       CaseOne[3].set_value(4, water_temp_button_state);
+      CaseOne[3].set_value(3, water_temp_button_state);
       
       makeSnapShot(3, "o,"+String(int(water_temp_button_state))+","+String(int(water_temp_button_state))+",");                
       };
@@ -3295,6 +3348,7 @@ void setup() {
       
       CaseOne[4].set_value(2, int(water_level_button_state));
       CaseOne[4].set_value(4, water_level_button_state);
+      CaseOne[4].set_value(3, water_level_button_state);
       
       makeSnapShot(4, "o,"+String(int(water_level_button_state))+","+String(int(water_level_button_state))+",");                      
       };
@@ -3305,25 +3359,25 @@ void setup() {
   
 
   // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА !!! НЕ ИСПОЛЬЗУЕТСЯ (ПОКА) !!!
-  server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
-      String fan_message; 
-      // Контроль ВЕНТИЛЯТОРА          
-      if (request->hasParam(FAN_PARAM_INPUT)) {
-          fan_message = request->getParam(FAN_PARAM_INPUT)->value();
-      }
-      Serial1.write('F');
-      if (getFeedBack()){     
-        if (fan_message == "toggle-fan"){     
-          if (fan_button_state){
-            fan_button_state = false;
-          }
-          else{
-            fan_button_state = true;
-          }
-        }     
-      }
-      request->send_P(200, "text/html", index_html, processor);
-  });
+//  server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
+//      String fan_message; 
+//      // Контроль ВЕНТИЛЯТОРА          
+//      if (request->hasParam(FAN_PARAM_INPUT)) {
+//          fan_message = request->getParam(FAN_PARAM_INPUT)->value();
+//      }
+//      Serial1.write('F');
+//      if (getFeedBack()){     
+//        if (fan_message == "toggle-fan"){     
+//          if (fan_button_state){
+//            fan_button_state = false;
+//          }
+//          else{
+//            fan_button_state = true;
+//          }
+//        }     
+//      }
+//      request->send_P(200, "text/html", index_html, processor);
+//  });
 
 
 

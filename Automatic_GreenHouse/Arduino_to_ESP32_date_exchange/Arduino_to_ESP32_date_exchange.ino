@@ -49,6 +49,8 @@ bool tank_fill_relay_state = false;
 bool first_floor_relay_state = false;
 bool second_floor_relay_state = false;
 bool third_floor_relay_state = false;
+  
+int led_brightness;
 
 DHT dht(DHTPIN, DHTTYPE);
 CRGB leds[NUM_LEDS];
@@ -146,7 +148,7 @@ void loop() {
       Serial1.write(outlet_fan_state);
       Serial1.write(phytolamp_state);
       Serial1.write(water_tank_filler_state);
-      
+    }   
       
     // Принятие флага о ВКЛ/ВЫКЛ реле
     
@@ -332,9 +334,18 @@ void loop() {
       break;  
     }
 
-  
+    else if (inByte == 0){
+      Serial.print(' ');
+    }
+    
+    else{ // RECIEVING LED BRIGHTNESS
+      Serial.println(inByte);
+    };
  
- }  
+ }
+   
+ 
+  
   // !!! Исполнение управляющих воздействии от ESP32 !!!
   if(pump_state){digitalWrite(relay1, LOW);}else{digitalWrite(relay1, HIGH);}
   if(air_heater_state){digitalWrite(relay2, LOW);}else{digitalWrite(relay2, HIGH);}
