@@ -783,6 +783,7 @@ void update_level(){
 }
 
 void track_cursor(){
+  Serial.println(" ");
   Serial.println("On Level: " + String(levels_pointer)+ "; On System: " +String(systems_pointer) + "; On Place: " + String(places_pointer));
 }
 
@@ -1066,7 +1067,7 @@ void initHardTimeModule(){
 
 
 void init_sd_card(){
-  
+  Serial.println(" ");
   // Initialize SD card
   SD.begin(SD_CS);  
   if(!SD.begin(SD_CS)) {
@@ -1082,14 +1083,14 @@ void init_sd_card(){
     return;
   }
   else{
-    Serial.println("Card has been found. Ok!");Serial.println(" ");
+    Serial.println("Card has been found. Ok!");
   }
 }
 
 
 
 void prepare_main_files(){
-
+  Serial.println(" ");
   // Delete if needed
 //  deleteFile(SD, filePathCreator(0));
 //  deleteFile(SD, filePathCreator(5));
@@ -1110,7 +1111,7 @@ void prepare_main_files(){
     writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
   }
   else {
-    Serial.println("'/actuators_logger.txt' file already exists!");Serial.println(" ");
+    Serial.println("'/actuators_logger.txt' file already exists!");
   }  
 }
 
@@ -1375,6 +1376,7 @@ void display_wifi_info(){
 
 
 void writeFile(fs::FS &fs, String path, String message) {
+  Serial.println(" ");
   Serial.println("Writing to file: " + path);
   File file = fs.open(path, FILE_WRITE);
   if(!file) {
@@ -1383,7 +1385,7 @@ void writeFile(fs::FS &fs, String path, String message) {
   }
   if(file.print(message)) {
     Serial.println("Message to file " + path + " is written!");
-    Serial.println("(!)Message content: " + message);
+    Serial.println("(!)Message content written: " + message);
   } else {
     Serial.println("Write to file " + path + " failed!");
   }
@@ -1392,6 +1394,7 @@ void writeFile(fs::FS &fs, String path, String message) {
 
 
 void appendFile(fs::FS &fs, String path, String message) {
+  Serial.println(" ");
   Serial.println("Appending to file: " + path);
   File file = fs.open(path, FILE_APPEND);
   if(!file) {
@@ -1408,6 +1411,7 @@ void appendFile(fs::FS &fs, String path, String message) {
 
 
 void readFile(fs::FS &fs, String path, int which_system) {
+  Serial.println(" ");
   Serial.println("Reading from file: " + path);
   File file = fs.open(path, FILE_READ);
   if(!file) {
@@ -1420,8 +1424,8 @@ void readFile(fs::FS &fs, String path, int which_system) {
     int trash_comma = file.read();
       
     String list = file.readStringUntil('\r');
-    Serial.println(set_type);
-    Serial.println(list);
+    Serial.print("(!)Head code: "); Serial.println(set_type);
+    Serial.print("(!)Message content read: "); Serial.println(list);
     
     String number;
     int seq = 0;
@@ -1474,68 +1478,41 @@ void readFile(fs::FS &fs, String path, int which_system) {
   // START !!! Applying read system values !!!
   
   // TEMPERATURE SYSTEM
-  if (CaseOne[0].is_system_set){
-    Serial.println(" !!! GONE THROGH! CONGRATULATOIN !!! ");
-    is_temp_set = true;
-    temp_button_state = true;  
-    temp_set_value_s = String(CaseOne[0].system_set_val);
-  }
-  else if (CaseOne[0].is_state_set){
-    Serial.println(" !!! GONE THROGH2! CONGRATULATOIN2 !!! ");
-    is_temp_set = true;
-    temp_button_state = true;
-  };  
+  is_temp_set = CaseOne[0].is_system_set;
+  temp_button_state = CaseOne[0].is_system_set || (CaseOne[0].is_state_set && CaseOne[0].system_state);  
+  temp_set_value_s = String(CaseOne[0].system_set_val);
+    
 
-  // HUMIDITY SYSTEM
-  if (CaseOne[1].is_system_set){
-    is_hum_set = true;
-    hum_button_state = true;  
-    hum_set_value_s = String(CaseOne[1].system_set_val);
-  }
-  else if (CaseOne[1].is_state_set){
-    is_hum_set = true;
-    hum_button_state = true;
-  };
+  // HUMIDITY SYSTEM  
+  is_hum_set = CaseOne[1].is_system_set;
+  hum_button_state = CaseOne[1].is_system_set || (CaseOne[1].is_state_set && CaseOne[1].system_state);  
+  hum_set_value_s = String(CaseOne[1].system_set_val);
+  
 
-  // CARBON SYSTEM
-  if (CaseOne[2].is_system_set){
-    is_carbon_set = true;
-    carbon_button_state = true;  
-    carbon_set_value_s = String(CaseOne[2].system_set_val);
-  }
-  else if (CaseOne[2].is_state_set){
-    is_carbon_set = true;
-    carbon_button_state = true;
-  };
+  // CARBON SYSTEM 
+  is_carbon_set = CaseOne[2].is_system_set;
+  carbon_button_state = CaseOne[2].is_system_set || (CaseOne[2].is_state_set && CaseOne[2].system_state);  
+  carbon_set_value_s = String(CaseOne[2].system_set_val);
+  
 
-  // WATER TEMPERATURE SYSTEM
-  if (CaseOne[3].is_system_set){
-    is_water_temp_set = true;
-    water_temp_button_state = true;  
-    water_temp_set_value_s = String(CaseOne[3].system_set_val);
-  }
-  else if (CaseOne[3].is_state_set){
-    is_water_temp_set = true;
-    water_temp_button_state = true;
-  };
+  // WATER TEMPERATURE SYSTEM  
+  is_water_temp_set = CaseOne[3].is_system_set;
+  water_temp_button_state = CaseOne[3].is_system_set || (CaseOne[3].is_state_set && CaseOne[3].system_state);  
+  water_temp_set_value_s = String(CaseOne[3].system_set_val);
 
-  // WATER LEVEL SYSTEM
-  if (CaseOne[4].is_system_set){
-    is_water_level_set = true;
-    water_level_button_state = true;  
-    water_level_set_value_s = String(CaseOne[4].system_set_val);
-  }
-  else if (CaseOne[4].is_state_set){
-    is_water_level_set = true;
-    water_level_button_state = true;
-  };
+
+  // WATER LEVEL SYSTEM  
+  is_water_level_set = CaseOne[4].is_system_set;
+  water_level_button_state = CaseOne[4].is_system_set || (CaseOne[4].is_state_set && CaseOne[4].system_state);  
+  water_level_set_value_s = String(CaseOne[4].system_set_val);
 
 
   
   // LIGHTING SYSTEM
+  is_light_set = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set;
+  light_button_state = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set || (CaseTwo[0].is_state_set && CaseTwo[0].system_state);
+  
   if (CaseTwo[0].is_clock_set){
-    is_light_set = true;
-    light_button_state = true;
     if (CaseTwo[0].system_rep){
       light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин" + " (пов.)";  
     }
@@ -1544,20 +1521,16 @@ void readFile(fs::FS &fs, String path, int which_system) {
     }
   }
   else if (CaseTwo[0].is_inter_set){
-    is_light_set = true;
-    light_button_state = true;  
     light_set_value_s = "В течение: " + String(CaseTwo[0].system_dur2) + " с паузой в: " + String(CaseTwo[0].system_pause) + " мин";
   }
-  else if (CaseTwo[0].is_state_set){
-    is_light_set = true;
-    light_button_state = true;
-  };
+
 
     
   // WATERING SYSTEM
+  is_water_set = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set;
+  water_button_state = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set || (CaseTwo[1].is_state_set && CaseTwo[1].system_state);
+  
   if (CaseTwo[1].is_clock_set){
-    is_water_set = true;
-    water_button_state = true;
     if (CaseTwo[1].system_rep){
       water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин" + " (пов.)";  
     }
@@ -1566,14 +1539,8 @@ void readFile(fs::FS &fs, String path, int which_system) {
     }
   }
   else if (CaseTwo[1].is_inter_set){
-    is_water_set = true;
-    water_button_state = true;  
     water_set_value_s = "В течение: " + String(CaseTwo[1].system_dur2) + " с паузой в: " + String(CaseTwo[1].system_pause) + " мин";
   }
-  else if (CaseTwo[1].is_state_set){
-    is_water_set = true;
-    water_button_state = true;
-  };
 
 
   // END !!! Applying read system values !!!
@@ -1582,7 +1549,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
 
 
 void cleanFile(fs::FS &fs, String path) {
-  
+  Serial.println(" ");
   Serial.println("Cleaning file: " + path);
   File file = fs.open(path, FILE_WRITE);
   if(!file) {
@@ -1599,6 +1566,7 @@ void cleanFile(fs::FS &fs, String path) {
 
 
 void deleteFile(fs::FS &fs, String path){
+  Serial.println(" ");
   if (fs.remove(path)){
     Serial.println("Successfully deleted file " + path + "!");
   }
@@ -1627,7 +1595,7 @@ void readSnapShot(int which_system){
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
 void initWiFi() {
-  
+  Serial.println(" ");
   // Применение конфигурации для IP адреса
 //  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
 //    Serial.println("STA Failed to configure");
@@ -1656,6 +1624,7 @@ void initWiFi() {
       readSnapShot(6);
       
       gui_control_mode = "web-based";
+      Serial.println(" ");
       Serial.println("Web-Based GUI");
       
       display_wifi_info();
@@ -1672,6 +1641,7 @@ void initWiFi() {
       readSnapShot(6);
       
       gui_control_mode = "manual";
+      Serial.println(" ");
       Serial.println("Manual GUI");
     }
 
@@ -1686,7 +1656,8 @@ void wifi_try_counter_incrementer(){
   }
 }
 
-void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){   
+void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println(" ");   
   Serial.println("Successfully connected to Access Point");
   Serial.println("Web-Based GUI");
   gui_control_mode = "web-based";
@@ -1695,6 +1666,7 @@ void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
 }
 
 void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println(" ");
   Serial.println("WIFI is connected!");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
@@ -1703,6 +1675,7 @@ void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
 }
 
 void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println(" ");
   Serial.println("Disconnected from WIFI access point");
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.disconnected.reason);
@@ -2789,11 +2762,11 @@ void setup() {
     if (request->hasParam(LED_BRIGHTNESS_INPUT)) {
         new_brightness_value = request->getParam(LED_BRIGHTNESS_INPUT)->value();
         if (new_brightness_value != ""){
+          Serial1.print(new_brightness_value); // Setting BRIGHTNESS OF LED 
           Serial.println("BRIGHTNESS HAS VALUE");
           new_brightness_value = stringToInt(new_brightness_value);
           led_brightness = stringToInt(new_brightness_value);
         }
-        Serial1.print("123"); // Setting BRIGHTNESS OF LED 
     }
          
     request->send_P(200, "text/html", settings_html, processor);
@@ -3098,7 +3071,7 @@ void setup() {
    
       CaseOne[0].set_value(2, int(temp_button_state));
       CaseOne[0].set_value(4, temp_button_state);
-      CaseOne[0].set_value(3, temp_button_state);
+      CaseOne[0].set_value(3, is_temp_set);
             
       makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");   
       };
@@ -3161,7 +3134,7 @@ void setup() {
           
       CaseOne[1].set_value(2, int(hum_button_state));
       CaseOne[1].set_value(4, hum_button_state);
-      CaseOne[1].set_value(3, hum_button_state);
+      CaseOne[1].set_value(3, is_hum_set);
       
       makeSnapShot(1, "o,"+String(int(hum_button_state))+","+String(int(hum_button_state))+",");      
       };
@@ -3224,7 +3197,7 @@ void setup() {
       
       CaseOne[2].set_value(2, int(carbon_button_state));
       CaseOne[2].set_value(4, carbon_button_state);
-      CaseOne[2].set_value(3, carbon_button_state);
+      CaseOne[2].set_value(3, is_carbon_set);
       
       makeSnapShot(2, "o,"+String(int(carbon_button_state))+","+String(int(carbon_button_state))+",");          
       };
@@ -3286,7 +3259,7 @@ void setup() {
           }
       CaseOne[3].set_value(2, int(water_temp_button_state));
       CaseOne[3].set_value(4, water_temp_button_state);
-      CaseOne[3].set_value(3, water_temp_button_state);
+      CaseOne[3].set_value(3, is_water_temp_set);
       
       makeSnapShot(3, "o,"+String(int(water_temp_button_state))+","+String(int(water_temp_button_state))+",");                
       };
@@ -3348,7 +3321,7 @@ void setup() {
       
       CaseOne[4].set_value(2, int(water_level_button_state));
       CaseOne[4].set_value(4, water_level_button_state);
-      CaseOne[4].set_value(3, water_level_button_state);
+      CaseOne[4].set_value(3, is_water_level_set);
       
       makeSnapShot(4, "o,"+String(int(water_level_button_state))+","+String(int(water_level_button_state))+",");                      
       };
@@ -3395,6 +3368,7 @@ void setup() {
 
 
   if (gui_control_mode == "web-based"){
+    Serial.println(" ");
     Serial.println("Everything is OK");
   }
   else{
