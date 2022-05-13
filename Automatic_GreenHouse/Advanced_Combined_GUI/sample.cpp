@@ -65,7 +65,7 @@ CaseTwo
   uint8_t system_num; // 11
 
 
-
+ *** Unused yet ***
 button_state_class.old_variable_name
 card_state_class.old_variable_name
 card_text_class.old_variable_name

@@ -65,7 +65,7 @@ String gui_control_mode = "web-based"; // "web-based" or "manual"
 
 // Параметры сети WI-FI
 const char* main_ssid = "Le petit dejeuner 2";
-const char* main_password = "DoesGodReallyExist404";
+const char* main_password = "DoesGodReallyExist";
 
 const char* other_ssid = "HUAWEI Y6 2019";
 const char* other_password = "mama1963";
@@ -1061,7 +1061,7 @@ void initHardTimeModule(){
 //     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
 
   }  
-//  rtc.adjust(DateTime(__DATE__, __TIME__));  
+  rtc.adjust(DateTime(__DATE__, __TIME__));  
 }
 
 
@@ -1366,10 +1366,23 @@ int stringToInt(String s)
 void display_wifi_info(){
   // Вывод IP адреса страницы и данных WiFi точки на LCD дисплей
   lcd.clear();
+  
   lcd.setCursor(0, 0);  
   lcd.print(WiFi.localIP());
+  
   lcd.setCursor(0, 1);
-  lcd.print(WiFi.SSID());  
+  lcd.print(WiFi.SSID());
+  
+  lcd.setCursor(0, 2);
+  if (WiFi.SSID() == main_ssid){
+    lcd.print(main_password);
+  }
+  else if (WiFi.SSID() == other_ssid){
+    lcd.print(other_password);
+  }
+  else{
+    lcd.print(another_password); 
+  }
 }
 
 
@@ -1718,7 +1731,7 @@ void getWiFiDateTime(){
     dayStamp = formattedDate.substring(0, splitT);
     // Extract time
     timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
-    DateTimeStamp = dayStamp + " // " + timeStamp;
+    DateTimeStamp = dayStamp + " " + timeStamp;
 //    Serial.println("Relying on Wifi Time...");
 //    Serial.println(DateTimeStamp);    
 }
@@ -3438,73 +3451,73 @@ void loop() {
       }
 
 
-    if ((millis() - lastTime) > timerDelay) {
-      
-      // Read the sersors reading
-      getSensorsReadings();
-      blinkBuildLED();
-      update_display();
-      // Update screen values
-
-
-      // TRYING TO REACH WIFI SIGNAL
-      initWiFi();
-      
-      lastTime = millis();   
-    }
+      if ((millis() - lastTime) > timerDelay) {
+        
+        // Read the sersors reading
+        getSensorsReadings();
+        blinkBuildLED();
+        update_display();
+        // Update screen values
+  
+  
+        // TRYING TO REACH WIFI SIGNAL
+        initWiFi();
+        
+        lastTime = millis();   
+      }
   
   }
   else{ // WEB BASED MODE 
 
 
-  // Сверка значении датчиков и обновление страницы каждые timerDelay секунд (настраиваемые).
-  if ((millis() - lastTime) > timerDelay) {
-    
-    // Получение данных о времени и значении с датчиковы
-    getWiFiDateTime();
-    getSensorsReadings();
-    
-    dummy_temperature = temperature;
-    dummy_humidity = humidity;
-    dummy_light = light;
-
-    // Вывод IP адреса и времени на LCD дисплей  
-    display_wifi_info();
-    lcd.setCursor(0, 3);  
-    lcd.print(DateTimeStamp);
-
-
-//  ********************************  ДЕБАГГИНГ  ***********************************
-
-//    Serial.println(temp_set_value_f);
-//    if (temp_set_value_f != 0){
-//      if (temp_set_value_f <= temperature){
-//       
-//        Serial1.println('b');
-//        temp_button_state = false;
-//        is_temp_set = false;
-//        events.send("Refresh the page","refresher",millis());        
-//      }
-//      else{
-//        Serial1.println('d');
-//      }
-//    }
-    
-//  ********************************  ДЕБАГГИНГ  ***********************************
-
-    
-    // Отправка и Обновление значении на Веб-странице
-    events.send("ping",NULL,millis());    
-    events.send(String(DateTimeStamp).c_str(),"datetime",millis());
-    events.send(String(temperature).c_str(),"temperature",millis());
-    events.send(String(humidity).c_str(),"humidity",millis());
-    events.send(String(light).c_str(),"light",millis());
-    
-    lastTime = millis();
-  }
+    // Сверка значении датчиков и обновление страницы каждые timerDelay секунд (настраиваемые).
+    if ((millis() - lastTime) > timerDelay) {
+      
+      // Получение данных о времени и значении с датчиковы
+      getWiFiDateTime();
+      getSensorsReadings();
+      
+      dummy_temperature = temperature;
+      dummy_humidity = humidity;
+      dummy_light = light;
   
+      // Вывод IP адреса и времени на LCD дисплей  
+      display_wifi_info();
+      lcd.setCursor(1, 3);  
+      lcd.print(DateTimeStamp);
+  
+  
+  //  ********************************  ДЕБАГГИНГ  ***********************************
+  
+  //    Serial.println(temp_set_value_f);
+  //    if (temp_set_value_f != 0){
+  //      if (temp_set_value_f <= temperature){
+  //       
+  //        Serial1.println('b');
+  //        temp_button_state = false;
+  //        is_temp_set = false;
+  //        events.send("Refresh the page","refresher",millis());        
+  //      }
+  //      else{
+  //        Serial1.println('d');
+  //      }
+  //    }
+      
+  //  ********************************  ДЕБАГГИНГ  ***********************************
+  
+      
+      // Отправка и Обновление значении на Веб-странице
+      events.send("ping",NULL,millis());    
+      events.send(String(DateTimeStamp).c_str(),"datetime",millis());
+      events.send(String(temperature).c_str(),"temperature",millis());
+      events.send(String(humidity).c_str(),"humidity",millis());
+      events.send(String(light).c_str(),"light",millis());
+      
+      lastTime = millis();
+    }
     
-  }
+      
+    }
 
 
 
