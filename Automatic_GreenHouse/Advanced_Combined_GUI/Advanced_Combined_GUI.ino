@@ -3463,7 +3463,14 @@ void loop() {
   
   
         // TRYING TO REACH WIFI SIGNAL
-        initWiFi();
+        int networks = WiFi.scanNetworks();
+        if (networks){
+          for (int i = 0; i < networks; i++){
+            if (WiFi.SSID(i) == main_ssid || WiFi.SSID(i) == other_ssid || WiFi.SSID(i) == another_ssid){
+              initWiFi();  
+            }
+          }
+        }
         
         lastTime = millis();   
       }
