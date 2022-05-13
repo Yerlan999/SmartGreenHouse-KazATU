@@ -458,6 +458,20 @@ const coordinates options[] {
 
 
 typedef struct { 
+  uint8_t place;
+  uint8_t row;
+  uint8_t col;
+} Scoordinates;
+const Scoordinates Soptions[] {
+    {0, 0, 1},
+    {1, 1, 0},
+    {2, 2, 0},
+    {3, 1, 11},
+    {4, 2, 11},
+};
+
+
+typedef struct { 
   uint8_t system_num;
   String system_name;
 } L1systems;
@@ -640,6 +654,11 @@ void display_time(){
 }
 
 int places_pointer_restrictor(){
+  
+  if (levels_pointer == 0 && systems_pointer == 7){
+    return 2;
+  };
+  
   if (levels_pointer == 0){
     return 0;
   }
@@ -657,6 +676,28 @@ int places_pointer_restrictor(){
       return 1;
     }
   }
+}
+
+
+int value_changer_with_restrictions(String what, int where, int low_end, int hight_end){
+  
+  int starter_value;
+  
+  if (what == "time"){
+    starter_value = timerDelay/1000;
+  }
+  else if (what == "brightness"){
+    starter_value = led_brightness;
+  }
+  
+  if (where < 0 && starter_value < hight_end){
+    starter_value++;
+  }
+  else if (where > 0 && starter_value > low_end){
+    starter_value--;
+  };
+  
+  return starter_value;
 }
 
 
@@ -696,6 +737,14 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, in
 
 void editing_values(int where){
 //  Serial.println("Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
+
+  if (systems_pointer == 7 && levels_pointer == 0 && places_pointer == 1){
+    timerDelay = value_changer_with_restrictions("time", where, 0, 1800)*1000;
+  }
+  else if (systems_pointer == 7 && levels_pointer == 0 && places_pointer == 2){
+    led_brightness = value_changer_with_restrictions("brightness", where, 0, 255);
+    Serial1.println(String(led_brightness));
+  }
   
   // LEVEL 1 or LEVEL 2  
   if (levels_pointer == 1 || levels_pointer == 2){
@@ -734,7 +783,9 @@ void editing_values(int where){
   // LEVEL 3 EXLUSIVE FOR CASE 2
   else{
     // CASE 2 STATE MENU
-    CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
+    if (systems_pointer != 7){
+      CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(7, value_changer_with_restrictionsTWO(where, 0, 1, 7));
+    }
   }
 }
 
@@ -755,14 +806,14 @@ void update_place(int where){
 
 void update_system(int where){
   if (places_pointer == 0){
-    if (where < 0 && systems_pointer < countof(L1system_titles)-1){
+    if (where < 0 && systems_pointer < countof(L1system_titles)){
       systems_pointer++;
     }
     else if (where > 0 && systems_pointer > 0){
       systems_pointer--;
     };
   
-    if (systems_pointer < countof(L1system_titles)-2){
+    if (systems_pointer < countof(L1system_titles)-1){
       current_case = 0;
     }
     else{
@@ -772,7 +823,7 @@ void update_system(int where){
 }
 
 void update_level(){
-  if (places_pointer == 0){
+  if (places_pointer == 0 && systems_pointer != 7){
     if (levels_pointer < case_deepness[current_case].case_level_deepness){
       levels_pointer++;  
     }
@@ -838,7 +889,12 @@ char update_cursor_type(){
 }
 
 void update_cursor(){
-  lcd.setCursor(options[places_pointer].col, options[places_pointer].row);
+  if (systems_pointer == 7 && levels_pointer == 0){
+    lcd.setCursor(Soptions[places_pointer].col, Soptions[places_pointer].row);
+  }
+  else{
+    lcd.setCursor(options[places_pointer].col, options[places_pointer].row);
+  }
   lcd.print(update_cursor_type());  
 }
 
@@ -864,6 +920,9 @@ char system_set_icon(){
 }
 
 String current_title(){
+  if (systems_pointer == 7){
+    return "Settings";
+  };
   
   switch (levels_pointer) {
   case 0:
@@ -890,11 +949,19 @@ void update_title(){
 }
 
 void update_menu(){
-//  levels_pointer, systems_pointer, places_pointer
-// options[0].row.col
 
+  if (systems_pointer == 7 && levels_pointer == 0){
+    lcd.setCursor(Soptions[1].col+1, Soptions[1].row);
+    lcd.print("timing:" + String(timerDelay/1000));
+
+    lcd.setCursor(Soptions[2].col+1, Soptions[2].row);
+    lcd.print("led bright:" + String(led_brightness));  
+    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");  
+  }
+  
+  
   // LEVEL 1
-  if (levels_pointer == 0){
+  if (levels_pointer == 0 && systems_pointer != 7){
     // CASE 1
     if (systems_pointer < 5){
       lcd.setCursor(options[1].col+1, options[1].row);
@@ -964,7 +1031,7 @@ void update_display(){
 
 
 void set_current_system(){
-  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer));
+  Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer) + " Place: " + String(places_pointer));
   // CASES 1
   if (systems_pointer < 5){
     
@@ -1474,6 +1541,12 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==0){CaseOne[which_system].set_value(2, stringToInt(number));}
           if (seq==1){CaseOne[which_system].set_value(4, stringToInt(number));}
         }        
+
+        // settings
+        else if (set_type == 103){
+          if (seq==0){timerDelay = stringToInt(number);}
+          if (seq==1){led_brightness = stringToInt(number);}         
+        }
         
         number = "";
         seq++;
@@ -1489,6 +1562,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
   file.close();
 
   // START !!! Applying read system values !!!
+  Serial1.println(String(led_brightness)); 
   
   // TEMPERATURE SYSTEM
   is_temp_set = CaseOne[0].is_system_set;
@@ -1592,7 +1666,12 @@ void deleteFile(fs::FS &fs, String path){
 
 
 String filePathCreator(int which_system){
-  return "/" + L1system_titles[which_system].system_name + ".txt";
+  if (which_system == 7){
+    return "/settings.txt";
+  }
+  else{
+    return "/" + L1system_titles[which_system].system_name + ".txt";
+  }
 }
 
 
@@ -1637,6 +1716,7 @@ void initWiFi() {
       readSnapShot(4);
       readSnapShot(5);
       readSnapShot(6);
+      readSnapShot(7);
       
       gui_control_mode = "web-based";
       Serial.println(" ");
@@ -1654,6 +1734,7 @@ void initWiFi() {
       readSnapShot(4);
       readSnapShot(5);
       readSnapShot(6);
+      readSnapShot(7);
       
       gui_control_mode = "manual";
       Serial.println(" ");
@@ -1702,7 +1783,8 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   readSnapShot(3);
   readSnapShot(4);
   readSnapShot(5);
-  readSnapShot(6);  
+  readSnapShot(6);
+  readSnapShot(7);  
   
   gui_control_mode = "manual";
   
@@ -2785,7 +2867,8 @@ void setup() {
           led_brightness = stringToInt(new_brightness_value);
         }
     }
-         
+    
+    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");     
     request->send_P(200, "text/html", settings_html, processor);
   });
 
