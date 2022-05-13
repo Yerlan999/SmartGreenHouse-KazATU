@@ -65,6 +65,27 @@ CaseTwo
   uint8_t system_num; // 11
 
 
+
+   [0-6(7)]          [0-2(3)]
+systems_pointer / levels_pointer / places_pointer
+
+
+ DISPLAY LAYOUT
+
+| |0| | | | | | | | | | | | | | | | | | |
+|1| | | | | | | | | |2| | | | | | | | | |
+|3| | | | | | | | | | | | | | | | | | | |
+| | | | | | | | | | | | | | | | | | | | |
+      r  c
+ 0 - {0, 1}
+ 1 - {1, 0}
+ 2 - {1, 11}
+ 3 - {2, 0}
+
+                [0-19] [0-3]
+API = lcd.print(column, row)
+
+
  *** Unused yet ***
 button_state_class.old_variable_name
 card_state_class.old_variable_name
