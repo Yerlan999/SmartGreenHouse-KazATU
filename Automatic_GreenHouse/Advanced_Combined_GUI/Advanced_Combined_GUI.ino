@@ -565,7 +565,7 @@ void blinkBuildLED(){
 
 void getSensorsReadings(){
 
-    Serial1.write('S');
+    Serial1.println('S');
 //    delay(500);
     
     if (Serial1.available() > 0){
@@ -583,7 +583,7 @@ void getSensorsReadings(){
       CaseOne[0].set_value(0, temperature);
       CaseOne[1].set_value(0, humidity);
       CaseTwo[0].set_value(0, light);
-  
+ 
 //      Serial.println();
 //      Serial.println("Recieved Sensors values: ");
 //      Serial.println();
@@ -599,7 +599,7 @@ void getSensorsReadings(){
 
 void getActuatorsReadings(){
 
-    Serial1.write('A');
+    Serial1.println('A');
 //    delay(500);
     
     if (Serial1.available() > 0){
@@ -2762,8 +2762,10 @@ void setup() {
     if (request->hasParam(LED_BRIGHTNESS_INPUT)) {
         new_brightness_value = request->getParam(LED_BRIGHTNESS_INPUT)->value();
         if (new_brightness_value != ""){
-          Serial1.print(new_brightness_value); // Setting BRIGHTNESS OF LED 
+          Serial1.println(new_brightness_value); // Setting BRIGHTNESS OF LED
+          Serial.println(" "); 
           Serial.println("BRIGHTNESS HAS VALUE");
+          Serial.println(new_brightness_value);
           new_brightness_value = stringToInt(new_brightness_value);
           led_brightness = stringToInt(new_brightness_value);
         }
@@ -2792,7 +2794,7 @@ void setup() {
         if (light_message_time != "" && light_message_duration1 != ""){
           
           if (!light_button_state && !is_light_set){
-            Serial1.write('L');  
+            Serial1.println('L');  
           }
           
           if (getFeedBack()){
@@ -2833,7 +2835,7 @@ void setup() {
         if (light_message_pause != "" && light_message_duration2 != ""){
           
           if (!light_button_state && !is_light_set){
-            Serial1.write('L');  
+            Serial1.println('L');  
           }
           if (getFeedBack()){
             // HAVING SET VALUE FOR LIGHTENING
@@ -2868,7 +2870,7 @@ void setup() {
         light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
     }
 
-    Serial1.write('L');
+    Serial1.println('L');
       
     if (getFeedBack()){
     
@@ -2913,7 +2915,7 @@ void setup() {
         if (water_message_time != "" && water_message_duration1 != ""){
           
           if (!water_button_state && !is_water_set){
-            Serial1.write('W');  
+            Serial1.println('W');  
           }
           
           if (getFeedBack()){
@@ -2954,7 +2956,7 @@ void setup() {
         if (water_message_pause != "" && water_message_duration2 != ""){
           
           if (!water_button_state && !is_water_set){
-            Serial1.write('W');  
+            Serial1.println('W');  
           }
           if (getFeedBack()){
             
@@ -2989,7 +2991,7 @@ void setup() {
         water_message_toggle = request->getParam(WATER_PARAM_INPUT3)->value();
     }
 
-    Serial1.write('W');
+    Serial1.println('W');
       
     if (getFeedBack()){
     
@@ -3032,7 +3034,7 @@ void setup() {
           temp_set_value_f = stringToFloat(temp_message);
           
           if (!temp_button_state && !is_temp_set){
-            Serial1.write('T');  
+            Serial1.println('T');  
           }
            
           if (getFeedBack()){
@@ -3053,7 +3055,7 @@ void setup() {
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
           temp_message = request->getParam(TEMP_PARAM_INPUT2)->value();
 
-          Serial1.write('T');
+          Serial1.println('T');
            
           if (getFeedBack()){
           
@@ -3095,7 +3097,7 @@ void setup() {
           hum_set_value_f = stringToFloat(hum_message);
           
           if (!hum_button_state && !is_hum_set){
-            Serial1.write('H');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.println('H');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3116,7 +3118,7 @@ void setup() {
       else if (request->hasParam(HUM_PARAM_INPUT2)) {
           hum_message = request->getParam(HUM_PARAM_INPUT2)->value();
 
-          Serial1.write('H');
+          Serial1.println('H');
            
           if (getFeedBack()){
           
@@ -3158,7 +3160,7 @@ void setup() {
           carbon_set_value_f = stringToFloat(carbon_message);
           
           if (!carbon_button_state && !is_carbon_set){
-            Serial1.write('C');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.println('C');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3179,7 +3181,7 @@ void setup() {
       else if (request->hasParam(CARBON_PARAM_INPUT2)) {
           carbon_message = request->getParam(CARBON_PARAM_INPUT2)->value();
 
-          Serial1.write('C');
+          Serial1.println('C');
            
           if (getFeedBack()){
           
@@ -3221,7 +3223,7 @@ void setup() {
           water_temp_set_value_f = stringToFloat(water_temp_message);
           
           if (!water_temp_button_state && !is_water_temp_set){
-            Serial1.write('X');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.println('X');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3242,7 +3244,7 @@ void setup() {
       else if (request->hasParam(WATER_TEMP_PARAM_INPUT2)) {
           water_temp_message = request->getParam(WATER_TEMP_PARAM_INPUT2)->value();
 
-          Serial1.write('X');
+          Serial1.println('X');
            
           if (getFeedBack()){
           
@@ -3282,7 +3284,7 @@ void setup() {
           water_level_set_value_f = stringToFloat(water_level_message);
           
           if (!water_level_button_state && !is_water_level_set){
-            Serial1.write('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
+            Serial1.println('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3303,7 +3305,7 @@ void setup() {
       else if (request->hasParam(WATER_LEVEL_PARAM_INPUT2)) {
           water_level_message = request->getParam(WATER_LEVEL_PARAM_INPUT2)->value();
 
-          Serial1.write('Y');
+          Serial1.println('Y');
            
           if (getFeedBack()){
           
@@ -3338,7 +3340,7 @@ void setup() {
 //      if (request->hasParam(FAN_PARAM_INPUT)) {
 //          fan_message = request->getParam(FAN_PARAM_INPUT)->value();
 //      }
-//      Serial1.write('F');
+//      Serial1.println('F');
 //      if (getFeedBack()){     
 //        if (fan_message == "toggle-fan"){     
 //          if (fan_button_state){
@@ -3478,13 +3480,13 @@ void loop() {
 //    if (temp_set_value_f != 0){
 //      if (temp_set_value_f <= temperature){
 //       
-//        Serial1.write('b');
+//        Serial1.println('b');
 //        temp_button_state = false;
 //        is_temp_set = false;
 //        events.send("Refresh the page","refresher",millis());        
 //      }
 //      else{
-//        Serial1.write('d');
+//        Serial1.println('d');
 //      }
 //    }
     
