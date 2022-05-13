@@ -1579,13 +1579,14 @@ void cleanFile(fs::FS &fs, String path) {
 
 
 void deleteFile(fs::FS &fs, String path){
+  if (SD.exists(path)){
   Serial.println(" ");
   if (fs.remove(path)){
     Serial.println("Successfully deleted file " + path + "!");
   }
   else{
     Serial.println("Failed with deleting file" + path + "!");
-  }
+  }}
 }
 
 
@@ -1600,7 +1601,8 @@ void makeSnapShot(int which_system, String values){
 }
 
 void readSnapShot(int which_system){
-  readFile(SD, filePathCreator(which_system), which_system);
+  if (SD.exists(filePathCreator(which_system))){
+  readFile(SD, filePathCreator(which_system), which_system);}
 }
 
 
