@@ -86,10 +86,62 @@ systems_pointer / levels_pointer / places_pointer
 API = lcd.print(column, row)
 
 
+ *** *** COMMANDS TO CONTROL RELAYS *** ***
+
+T - toggle Temperature
+  a - turn on Temperature
+  b - turn off Temperaure (!)
+
+H - toggle Humidity
+  g - turn on Humidity
+  h - turn off Humidity (!)
+
+C - toggle Carbon
+  i - turn on Carbon
+  j - turn off Carbon (!)
+
+X - toggle Water Temperature
+  k - turn on Water Temperature
+  l -  turn off Water Temperaure (!)
+
+Y - toggle Water Level
+  m - turn on Water Level
+  n - turn off Water Level (!)
+
+L - toggle Light
+  c - turn on Light
+  d - turn off Light (!)
+
+W - toggle Water
+  o - turn on Water
+  p - turn off Water (!)
+
+
+
+F - toggle Fan (not deployed)
+  e - turn on Fan
+  f - turn off Fan
+
+
+DateTimeStamp = "yyyy-mm-dd hh:mm"
+
+
  *** Unused yet ***
 button_state_class.old_variable_name
 card_state_class.old_variable_name
 card_text_class.old_variable_name
+
+
+
+  int system_time_h;  // 1
+  int system_time_m; // 2
+  int system_dur1; // 3
+  bool system_rep; // 4
+
+
+  left =
+
+
 
 */
 

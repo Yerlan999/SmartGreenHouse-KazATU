@@ -255,7 +255,13 @@ bool carbon_state = false;
 bool water_temp_state = false;
 bool water_level_state = false;
 
-
+bool is_working_temperature = false;
+bool is_working_humidity = false;
+bool is_working_carbon = false;
+bool is_working_water_temp = false;
+bool is_working_water_level = false;
+bool is_working_light = false;
+bool is_working_water = false;
 
 // **** Main Structures for storing Data **** 
 
@@ -598,15 +604,15 @@ void getSensorsReadings(){
       CaseOne[1].set_value(0, humidity);
       CaseTwo[0].set_value(0, light);
  
-//      Serial.println();
-//      Serial.println("Recieved Sensors values: ");
-//      Serial.println();
-//      Serial.print("Temperature: ");
-//      Serial.println(temperature);
-//      Serial.print("Humidity: ");
-//      Serial.println(humidity);    
-//      Serial.print("Light: ");
-//      Serial.println(light);
+      Serial.println();
+      Serial.println("Recieved Sensors values: ");
+      Serial.println();
+      Serial.print("Temperature: ");
+      Serial.println(temperature);
+      Serial.print("Humidity: ");
+      Serial.println(humidity);    
+      Serial.print("Light: ");
+      Serial.println(light);
     }
 }
 
@@ -1548,6 +1554,17 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==1){led_brightness = stringToInt(number);}         
         }
         
+        // relays state
+        else if (set_type == 114){
+          if (seq==0){is_working_temperature = bool(stringToInt(number));}
+          if (seq==1){is_working_humidity = bool(stringToInt(number));}
+          if (seq==2){is_working_carbon = bool(stringToInt(number));}
+          if (seq==3){is_working_water_temp = bool(stringToInt(number));}
+          if (seq==4){is_working_water_level = bool(stringToInt(number));}
+          if (seq==5){is_working_light = bool(stringToInt(number));}
+          if (seq==6){is_working_water = bool(stringToInt(number));}         
+        }
+        
         number = "";
         seq++;
       }
@@ -1669,6 +1686,9 @@ String filePathCreator(int which_system){
   if (which_system == 7){
     return "/settings.txt";
   }
+  else if (which_system == 8){
+    return "/relays.txt";
+  }
   else{
     return "/" + L1system_titles[which_system].system_name + ".txt";
   }
@@ -1717,6 +1737,7 @@ void initWiFi() {
       readSnapShot(5);
       readSnapShot(6);
       readSnapShot(7);
+      readSnapShot(8);
       
       gui_control_mode = "web-based";
       Serial.println(" ");
@@ -1735,6 +1756,7 @@ void initWiFi() {
       readSnapShot(5);
       readSnapShot(6);
       readSnapShot(7);
+      readSnapShot(8);
       
       gui_control_mode = "manual";
       Serial.println(" ");
@@ -1784,7 +1806,8 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   readSnapShot(4);
   readSnapShot(5);
   readSnapShot(6);
-  readSnapShot(7);  
+  readSnapShot(7);
+  readSnapShot(8);  
   
   gui_control_mode = "manual";
   
@@ -2800,6 +2823,156 @@ void notFound(AsyncWebServerRequest *request) {
 
 
 
+void TrackSystems(){
+  
+  // TEMPERAURE
+  if (CaseOne[0].is_system_set){
+    if ((CaseOne[0].system_set_val < CaseOne[0].system_val) && !is_working_temperature){
+      Serial1.println("a");
+      is_working_temperature = true;              
+    }
+    else if ((CaseOne[0].system_set_val < CaseOne[0].system_val) && is_working_temperature){
+      Serial.println(" ");
+      Serial.println("CONTINUE CONTROL ON TEMPERATURE");       
+    }
+    else{
+      Serial1.println("b");
+      is_working_temperature = false;
+    }
+  }
+  else if ((CaseOne[0].is_state_set && CaseOne[0].system_state) && !is_working_temperature){
+    Serial1.println("a");
+    is_working_temperature = true; 
+  }
+  else if (!CaseOne[0].is_state_set && is_working_temperature){
+    Serial1.println("b");
+    is_working_temperature = false;
+  };
+  
+
+  // HUMIDITY
+  if (CaseOne[1].is_system_set){
+    if ((CaseOne[1].system_set_val < CaseOne[1].system_val) && !is_working_humidity){
+      Serial1.println("g");
+      is_working_humidity = true;              
+    }
+    else if ((CaseOne[1].system_set_val < CaseOne[1].system_val) && is_working_humidity){
+      Serial.println(" ");
+      Serial.println("CONTINUE CONTROL ON HUMIDITY");      
+    }
+    else{
+      Serial1.println("h");
+      is_working_humidity = false;
+    }
+  }
+  else if ((CaseOne[1].is_state_set && CaseOne[1].system_state) && !is_working_humidity){
+    Serial1.println("g");
+    is_working_humidity = true; 
+  }
+  else if (!CaseOne[1].is_state_set && is_working_humidity){
+    Serial1.println("h");
+    is_working_humidity = false;
+  };
+
+
+  // CARBON
+  if (CaseOne[2].is_system_set){
+    if ((CaseOne[2].system_set_val < CaseOne[2].system_val) && !is_working_carbon){
+      Serial1.println("i");
+      is_working_carbon = true;              
+    }
+    else if ((CaseOne[2].system_set_val < CaseOne[2].system_val) && is_working_carbon){
+      Serial.println(" ");
+      Serial.println("CONTINUE CONTROL ON CARBON");       
+    }
+    else{
+      Serial1.println("j");
+      is_working_carbon = false;
+    }
+  }
+  else if ((CaseOne[2].is_state_set && CaseOne[2].system_state) && !is_working_carbon){
+    Serial1.println("i");
+    is_working_carbon = true; 
+  }
+  else if (!CaseOne[2].is_state_set && is_working_carbon){
+    Serial1.println("j");
+    is_working_carbon = false;
+  };
+
+
+  // WATER TEMPERAURE
+  if (CaseOne[3].is_system_set){
+    if ((CaseOne[3].system_set_val < CaseOne[3].system_val) && !is_working_water_temp){
+      Serial1.println("k");
+      is_working_water_temp = true;              
+    }
+    else if((CaseOne[3].system_set_val < CaseOne[3].system_val) && is_working_water_temp){
+      Serial.println(" ");
+      Serial.println("CONTINUE CONTROL ON WATER TEMPEATURE");    
+    }
+    else{
+      Serial1.println("l");
+      is_working_water_temp = false;
+    }
+  }
+  else if ((CaseOne[3].is_state_set && CaseOne[3].system_state) && !is_working_water_temp){
+    Serial1.println("k");
+    is_working_water_temp = true; 
+  }
+  else if (!CaseOne[3].is_state_set && is_working_water_temp){
+    Serial1.println("l");
+    is_working_water_temp = false;
+  };
+
+  
+  // WATER LEVEL
+  if (CaseOne[4].is_system_set){
+    if ((CaseOne[4].system_set_val < CaseOne[4].system_val) && !is_working_water_level){
+      Serial1.println("m");
+      is_working_water_level = true;              
+    }
+    else if ((CaseOne[4].system_set_val < CaseOne[4].system_val) && is_working_water_level){
+      Serial.println(" ");
+      Serial.println("CONTINUE CONTROL ON WATER LEVEL");
+    }
+    else{
+      Serial1.println("n");
+      is_working_water_level = false;
+    }
+  }
+  else if ((CaseOne[4].is_state_set && CaseOne[4].system_state) && !is_working_water_level){
+    Serial1.println("m");
+    is_working_water_level = true; 
+  }
+  else if (!CaseOne[4].is_state_set && is_working_water_level){
+    Serial1.println("n");
+    is_working_water_level = false;
+  };
+
+
+  // LIGHTING
+  if ((CaseTwo[0].is_state_set && CaseTwo[0].system_state) && !is_working_light){
+    Serial1.println("c");
+    is_working_light = true;
+  }
+  else if (!CaseTwo[0].is_state_set && is_working_light){
+    Serial1.println("d");
+    is_working_light = false;
+  }
+  else if (CaseTwo[0].is_clock_set){
+    String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
+    int right_now_hour = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
+    int right_now_minute = stringToInt(right_now.substring(0, right_now.indexOf(":")));
+    int time_left =     
+      
+  }
+  else if (CaseTwo[0].is_inter_set){
+    String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
+  };
+
+}
+
+
 
 
 void setup() {
@@ -2892,7 +3065,7 @@ void setup() {
         if (light_message_time != "" && light_message_duration1 != ""){
           
           if (!light_button_state && !is_light_set){
-            Serial1.println('L');  
+//            Serial1.println('L');  
           }
           
           if (getFeedBack()){
@@ -2933,7 +3106,7 @@ void setup() {
         if (light_message_pause != "" && light_message_duration2 != ""){
           
           if (!light_button_state && !is_light_set){
-            Serial1.println('L');  
+//            Serial1.println('L');  
           }
           if (getFeedBack()){
             // HAVING SET VALUE FOR LIGHTENING
@@ -2968,7 +3141,7 @@ void setup() {
         light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
     }
 
-    Serial1.println('L');
+//    Serial1.println('L');
       
     if (getFeedBack()){
     
@@ -3013,7 +3186,7 @@ void setup() {
         if (water_message_time != "" && water_message_duration1 != ""){
           
           if (!water_button_state && !is_water_set){
-            Serial1.println('W');  
+//            Serial1.println('W');  
           }
           
           if (getFeedBack()){
@@ -3054,7 +3227,7 @@ void setup() {
         if (water_message_pause != "" && water_message_duration2 != ""){
           
           if (!water_button_state && !is_water_set){
-            Serial1.println('W');  
+//            Serial1.println('W');  
           }
           if (getFeedBack()){
             
@@ -3089,7 +3262,7 @@ void setup() {
         water_message_toggle = request->getParam(WATER_PARAM_INPUT3)->value();
     }
 
-    Serial1.println('W');
+//    Serial1.println('W');
       
     if (getFeedBack()){
     
@@ -3132,7 +3305,7 @@ void setup() {
           temp_set_value_f = stringToFloat(temp_message);
           
           if (!temp_button_state && !is_temp_set){
-            Serial1.println('T');  
+//            Serial1.println('T');  
           }
            
           if (getFeedBack()){
@@ -3153,7 +3326,7 @@ void setup() {
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
           temp_message = request->getParam(TEMP_PARAM_INPUT2)->value();
 
-          Serial1.println('T');
+//          Serial1.println('T');
            
           if (getFeedBack()){
           
@@ -3195,7 +3368,7 @@ void setup() {
           hum_set_value_f = stringToFloat(hum_message);
           
           if (!hum_button_state && !is_hum_set){
-            Serial1.println('H');                   // !!! NEW VALUE FOR ARDUINO !!!
+//            Serial1.println('H');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3216,7 +3389,7 @@ void setup() {
       else if (request->hasParam(HUM_PARAM_INPUT2)) {
           hum_message = request->getParam(HUM_PARAM_INPUT2)->value();
 
-          Serial1.println('H');
+//          Serial1.println('H');
            
           if (getFeedBack()){
           
@@ -3258,7 +3431,7 @@ void setup() {
           carbon_set_value_f = stringToFloat(carbon_message);
           
           if (!carbon_button_state && !is_carbon_set){
-            Serial1.println('C');                   // !!! NEW VALUE FOR ARDUINO !!!
+//            Serial1.println('C');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3279,7 +3452,7 @@ void setup() {
       else if (request->hasParam(CARBON_PARAM_INPUT2)) {
           carbon_message = request->getParam(CARBON_PARAM_INPUT2)->value();
 
-          Serial1.println('C');
+//          Serial1.println('C');
            
           if (getFeedBack()){
           
@@ -3321,7 +3494,7 @@ void setup() {
           water_temp_set_value_f = stringToFloat(water_temp_message);
           
           if (!water_temp_button_state && !is_water_temp_set){
-            Serial1.println('X');                   // !!! NEW VALUE FOR ARDUINO !!!
+//            Serial1.println('X');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3342,7 +3515,7 @@ void setup() {
       else if (request->hasParam(WATER_TEMP_PARAM_INPUT2)) {
           water_temp_message = request->getParam(WATER_TEMP_PARAM_INPUT2)->value();
 
-          Serial1.println('X');
+//          Serial1.println('X');
            
           if (getFeedBack()){
           
@@ -3382,7 +3555,7 @@ void setup() {
           water_level_set_value_f = stringToFloat(water_level_message);
           
           if (!water_level_button_state && !is_water_level_set){
-            Serial1.println('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
+//            Serial1.println('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
            
           if (getFeedBack()){
@@ -3403,7 +3576,7 @@ void setup() {
       else if (request->hasParam(WATER_LEVEL_PARAM_INPUT2)) {
           water_level_message = request->getParam(WATER_LEVEL_PARAM_INPUT2)->value();
 
-          Serial1.println('Y');
+//          Serial1.println('Y');
            
           if (getFeedBack()){
           
@@ -3554,13 +3727,14 @@ void loop() {
             }
           }
         }
-        
+
+        TrackSystems();
+        makeSnapShot(8, "r,"+String(int(is_working_temperature))+","+String(int(is_working_humidity))+","+String(int(is_working_carbon))+","+String(int(is_working_water_temp))+","+String(int(is_working_water_level))+","+String(int(is_working_light))+","+String(int(is_working_water))+",");
         lastTime = millis();   
       }
   
   }
   else{ // WEB BASED MODE 
-
 
     // Сверка значении датчиков и обновление страницы каждые timerDelay секунд (настраиваемые).
     if ((millis() - lastTime) > timerDelay) {
@@ -3605,13 +3779,12 @@ void loop() {
       events.send(String(humidity).c_str(),"humidity",millis());
       events.send(String(light).c_str(),"light",millis());
       
+      TrackSystems();
+      makeSnapShot(8, "r,"+String(int(is_working_temperature))+","+String(int(is_working_humidity))+","+String(int(is_working_carbon))+","+String(int(is_working_water_temp))+","+String(int(is_working_water_level))+","+String(int(is_working_light))+","+String(int(is_working_water))+",");
       lastTime = millis();
-    }
-    
-      
-    }
+    }    
+  }
 
+    // ***** MAIN CONTROL FORM ESP32 AND COMMANDS SENDING TO ARDUINO MEGA  *****
 
-
-  
 }

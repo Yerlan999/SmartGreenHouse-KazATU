@@ -141,15 +141,15 @@ void loop() {
 //      Serial1.write(water_flow);
       
 //      // Сверка отправленных данных на ESP32
-//      Serial.println();
-//      Serial.println("Sent values: ");
-//      Serial.println();
-//      Serial.print("temperature: ");
-//      Serial.println(temperature);
-//      Serial.print("humidity: ");
-//      Serial.println(humidity);    
-//      Serial.print("light: ");
-//      Serial.println(light);
+      Serial.println();
+      Serial.println("Sent values: ");
+      Serial.println();
+      Serial.print("temperature: ");
+      Serial.println(temperature);
+      Serial.print("humidity: ");
+      Serial.println(humidity);    
+      Serial.print("light: ");
+      Serial.println(light);
 
       
     }
@@ -222,7 +222,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      phytolamp_state = false;
+      phytolamp_state = true;
       sendFeedBack();
       break;  
     }
@@ -230,7 +230,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
             
-      phytolamp_state = true;
+      phytolamp_state = false;
       sendFeedBack();
       break;  
     }
@@ -254,7 +254,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      fan_state = false;
+      fan_state = true;
       sendFeedBack();
       break;  
     }
@@ -262,7 +262,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      fan_state = true;
+      fan_state = false;
       sendFeedBack();
       break;  
     }
@@ -285,7 +285,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      air_humiditer_state = false;
+      air_humiditer_state = true;
       sendFeedBack();
       break;  
     }
@@ -293,7 +293,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      air_humiditer_state = true;
+      air_humiditer_state = false;
       sendFeedBack();
       break;  
     }
@@ -316,7 +316,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      outlet_fan_state = false;
+      outlet_fan_state = true;
       sendFeedBack();
       break;  
     }
@@ -324,7 +324,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      outlet_fan_state = true;
+      outlet_fan_state = false;
       sendFeedBack();
       break;  
     }
@@ -347,7 +347,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      water_heater_state = false;
+      water_heater_state = true;
       sendFeedBack();
       break;  
     }
@@ -355,7 +355,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
             
-      water_heater_state = true;
+      water_heater_state = false;
       sendFeedBack();
       break;  
     }
@@ -378,7 +378,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
             
-      water_tank_filler_state = false;
+      water_tank_filler_state = true;
       sendFeedBack();
       break;  
     }
@@ -386,7 +386,7 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      water_tank_filler_state = true;
+      water_tank_filler_state = false;
       sendFeedBack();
       break;  
     }
@@ -412,15 +412,15 @@ void loop() {
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      pump_state = false;
+      pump_state = true;
       sendFeedBack();
       break;  
     }
-    else if (inByte == 112){ // "9" == 112 в ASCII
+    else if (inByte == 112){ // "p" == 112 в ASCII
       Serial.print("Incoming byte: ");
       Serial.println(inByte);
       
-      pump_state = true;
+      pump_state = false;
       sendFeedBack();
       break;  
     }
