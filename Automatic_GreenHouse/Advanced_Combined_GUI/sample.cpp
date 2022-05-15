@@ -134,8 +134,3 @@ card_text_class.old_variable_name
 
 */
 
-
-
-
-
-

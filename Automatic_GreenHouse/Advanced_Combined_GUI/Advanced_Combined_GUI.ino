@@ -1567,6 +1567,22 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==5){is_working_light = bool(stringToInt(number));}
           if (seq==6){is_working_water = bool(stringToInt(number));}         
         }
+
+        // clock and interval helper variables values
+        else if (set_type == 118){
+          if (seq==0) {light_snap_workC = bool(stringToInt(number));}
+          if (seq==1) {light_track_workC = bool(stringToInt(number));}
+          if (seq==2) {light_snap_workI = bool(stringToInt(number));}
+          if (seq==3) {light_track_workI = bool(stringToInt(number));}
+          if (seq==4) {light_snap_pauseI = bool(stringToInt(number));}
+          if (seq==5) {light_track_pauseI = bool(stringToInt(number));}
+          if (seq==6) {water_snap_workC = bool(stringToInt(number));}
+          if (seq==7) {water_track_workC = bool(stringToInt(number));}
+          if (seq==8) {water_snap_workI = bool(stringToInt(number));}
+          if (seq==9) {water_track_workI = bool(stringToInt(number));}
+          if (seq==10) {water_snap_pauseI = bool(stringToInt(number));}
+          if (seq==11) {water_track_pauseI = bool(stringToInt(number));}       
+        }        
         
         number = "";
         seq++;
@@ -1692,6 +1708,9 @@ String filePathCreator(int which_system){
   else if (which_system == 8){
     return "/relays.txt";
   }
+  else if (which_system == 9){
+    return "/clock_inter.txt";
+  }
   else{
     return "/" + L1system_titles[which_system].system_name + ".txt";
   }
@@ -1741,6 +1760,7 @@ void initWiFi() {
       readSnapShot(6);
       readSnapShot(7);
       readSnapShot(8);
+      readSnapShot(9);
       
       gui_control_mode = "web-based";
       Serial.println(" ");
@@ -1760,6 +1780,7 @@ void initWiFi() {
       readSnapShot(6);
       readSnapShot(7);
       readSnapShot(8);
+      readSnapShot(9);
       
       gui_control_mode = "manual";
       Serial.println(" ");
@@ -1811,6 +1832,7 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   readSnapShot(6);
   readSnapShot(7);
   readSnapShot(8);  
+  readSnapShot(9);
   
   gui_control_mode = "manual";
   
@@ -3073,8 +3095,7 @@ void TrackSystems(){
       }
     }
   
-
-      
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");    
   }
   
   else if (CaseTwo[0].is_inter_set){
@@ -3128,7 +3149,8 @@ void TrackSystems(){
         light_track_pauseI = false;  
       }    
     }
-  
+    
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
   };
 
 
@@ -3194,8 +3216,7 @@ void TrackSystems(){
       }
     }
   
-
-      
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");    
   }
   
   else if (CaseTwo[1].is_inter_set){
@@ -3249,7 +3270,8 @@ void TrackSystems(){
         water_track_pauseI = false;  
       }    
     }
-  
+
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
   };
 
 }
