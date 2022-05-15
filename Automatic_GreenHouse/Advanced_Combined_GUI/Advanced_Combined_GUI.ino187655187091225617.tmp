@@ -2825,6 +2825,10 @@ void notFound(AsyncWebServerRequest *request) {
 int start_time_h;
 int start_time_m;
 
+bool started = false;
+bool pause = false;
+
+
 bool snap_work = true;
 bool track_work = false;
 bool snap_pause = false;
@@ -3010,8 +3014,7 @@ void TrackSystems(){
           track_work = false;        
         }
         else{
-          snap_work = true;
-          track_work = false; 
+          started = false; 
           CaseTwo[0].set_value(8, false);
         }  
       }

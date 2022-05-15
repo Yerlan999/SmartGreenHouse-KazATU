@@ -132,17 +132,6 @@ card_state_class.old_variable_name
 card_text_class.old_variable_name
 
 
-
-  int system_time_h;  // 1
-  int system_time_m; // 2
-  int system_dur1; // 3
-  bool system_rep; // 4
-
-
-  left =
-
-
-
 */
 
 

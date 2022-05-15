@@ -2824,11 +2824,8 @@ void notFound(AsyncWebServerRequest *request) {
 
 int start_time_h;
 int start_time_m;
-
-bool snap_work = true;
-bool track_work = false;
-bool snap_pause = false;
-bool track_pause = false;
+bool started = false;
+bool pause = false;
 
 
 bool compareTimes(int start_time_h, int start_time_m, int right_now_hour, int right_now_minute, int duration){
@@ -2990,28 +2987,25 @@ void TrackSystems(){
     int right_now_minute = stringToInt(right_now.substring(0, right_now.indexOf(":")));
     
     if (right_now_hour == CaseTwo[0].system_time_h && (2 > abs(right_now_minute - CaseTwo[0].system_time_m)) && (right_now_minute >= CaseTwo[0].system_time_m)){
-      if (snap_work){
+      if (!started){
         start_time_h = right_now_hour;
         start_time_m = right_now_minute;
         
-        snap_work = false;
-        track_work = true;
+        started = true;
         Serial.println("(!!!)Started tracking!");
         Serial1.println("c");
         is_working_light = true;
       }
       // tracking time
-      if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur1) && track_work){
+      if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur1) && started){
         Serial.println("(!!!)Completed tracking by min of duration!");
         Serial1.println("d");
         is_working_light = false;
         if (CaseTwo[0].system_rep){
-          snap_work = true;
-          track_work = false;        
+          started = false;        
         }
         else{
-          snap_work = true;
-          track_work = false; 
+          started = false; 
           CaseTwo[0].set_value(8, false);
         }  
       }
@@ -3026,40 +3020,34 @@ void TrackSystems(){
     int right_now_hour = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_minute = stringToInt(right_now.substring(0, right_now.indexOf(":")));
     
-    if (snap_work){
+    if (!started){
       start_time_h = right_now_hour;
       start_time_m = right_now_minute;
       
-      snap_work = false;
-      track_work = true;
+      started = true;
       Serial.println("(!!!)Started tracking!");
       Serial1.println("c");
       is_working_light = true;
     }
     // tracking time
-    if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2) && track_work){
+    if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2) && started){
       Serial.println("(!!!)Completed tracking by min of duration!");
       Serial1.println("d");
       is_working_light = false;
-      track_work = false;
-      snap_pause = true;  
+      started = false;
+      pause = true;   
     }
 
-    if (snap_pause){
-      start_time_h = right_now_hour;
-      start_time_m = right_now_minute;
+    if (pause){
       
-      Serial.println("(!!!)Started pausing!");
-      Serial1.println("c");
-      snap_pause = false; 
-      track_pause = true;     
     }
     // tracking pause
-    if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_pause) && track_pause){
-      Serial.println("(!!!)Completed tracking by min of pause!");
+    if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2) && started){
+      Serial.println("(!!!)Completed tracking by min of duration!");
       Serial1.println("d");
-      snap_work = true;
-      track_pause = false;  
+      is_working_light = false;
+      started = false;
+      pause = true;   
     }    
 
   
