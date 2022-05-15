@@ -605,6 +605,9 @@ void getSensorsReadings(){
       CaseTwo[0].set_value(0, light);
  
       Serial.println();
+      Serial.println("================================ NEW INTERATION =============================================");
+ 
+      Serial.println();
       Serial.println("Recieved Sensors values: ");
       Serial.println();
       Serial.print("Temperature: ");
@@ -2987,35 +2990,46 @@ void TrackSystems(){
 
   // LIGHTING
   if ((CaseTwo[0].is_state_set && CaseTwo[0].system_state) && !is_working_light){
+    Serial.println(" ");
+    Serial.println("Turning ON LIGHTS (TOGGLE)");
     Serial1.println("c");
     is_working_light = true;
   }
   else if (!CaseTwo[0].is_state_set && is_working_light && !CaseTwo[0].is_clock_set && !CaseTwo[0].is_inter_set){
+    Serial.println(" ");
+    Serial.println("Turning OFF LIGHTS (TOGGLE)");
     Serial1.println("d");
     is_working_light = false;
   }
   
   else if (CaseTwo[0].is_clock_set){
+    Serial.println(" ");
+    Serial.println("CLOCK LIGHTS IS SET");
+        
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
   
     
     if (right_now_hour >= CaseTwo[0].system_time_h && ((right_now_minute - CaseTwo[0].system_time_m) >= 0) && (right_now_minute >= CaseTwo[0].system_time_m)){
-      Serial.println("LIGHT IS MET TIME REQUIREMENTS");
+      Serial.println(" ");
+      Serial.println("LIGHT (CLOCK) IS MET TIME REQUIREMENTS");
       if (light_snap_workC){
         start_time_h = right_now_hour;
         start_time_m = right_now_minute;
         
         light_snap_workC = false;
         light_track_workC = true;
-        Serial.println("(!!!)Started tracking!");
+        
+        Serial.println(" ");
+        Serial.println("(!!!)Started tracking! (clock)");
         Serial1.println("c");
         is_working_light = true;
       }
       // tracking time
       if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur1) && light_track_workC){
-        Serial.println("(!!!)Completed tracking by min of duration!");
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of duration! (clock)");
         Serial1.println("d");
         is_working_light = false;
         if (CaseTwo[0].system_rep){
@@ -3039,6 +3053,9 @@ void TrackSystems(){
   }
   
   else if (CaseTwo[0].is_inter_set){
+    Serial.println(" ");
+    Serial.println("INTERVAL LIGHTS IS SET");
+        
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
@@ -3049,14 +3066,18 @@ void TrackSystems(){
       
       light_snap_workI = false;
       light_track_workI = true;
-      Serial.println("(!!!)Started tracking!");
+    
+      Serial.println(" ");
+      Serial.println("(!!!)Started tracking! (interval)");
       Serial1.println("c");
       is_working_light = true;
     }
     // tracking time
     if (light_track_workI){
       if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2)){
-        Serial.println("(!!!)Completed tracking by min of duration!");
+        
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of duration! (interval)");
         Serial1.println("d");
         is_working_light = false;
         light_track_workI = false;
@@ -3066,17 +3087,16 @@ void TrackSystems(){
     else if (light_snap_pauseI){
       start_time_h = right_now_hour;
       start_time_m = right_now_minute;
-            
-      Serial.println("(!!!)Started pausing!");
-      Serial1.println("c");
+      Serial.println(" ");
+      Serial.println("(!!!)Started pausing! (interval)");
       light_snap_pauseI = false; 
       light_track_pauseI = true;     
     }
     // tracking pause
     else if(light_track_pauseI){
       if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_pause)){
-        Serial.println("(!!!)Completed tracking by min of pause!");
-        Serial1.println("d");
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of pause! (interval)");
         light_snap_workI = true;
         light_track_pauseI = false;  
       }    
