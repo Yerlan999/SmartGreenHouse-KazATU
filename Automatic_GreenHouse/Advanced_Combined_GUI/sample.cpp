@@ -132,7 +132,6 @@ card_state_class.old_variable_name
 card_text_class.old_variable_name
 
 
-
 */
 
 

@@ -2825,8 +2825,8 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 
-int start_time_h;
-int start_time_m;
+int water_start_time_h;
+int water_start_time_m;
 
 bool water_snap_workC = true;
 bool water_track_workC = false;
@@ -2836,6 +2836,10 @@ bool water_track_workI = false;
 bool water_snap_pauseI = false;
 bool water_track_pauseI = false;
 
+
+int light_start_time_h;
+int light_start_time_m;
+
 bool light_snap_workC = true;
 bool light_track_workC = false;
 
@@ -2844,6 +2848,25 @@ bool light_track_workI = false;
 bool light_snap_pauseI = false;
 bool light_track_pauseI = false;
 
+void reset_light(){
+  is_working_light = false;
+  light_snap_workC = true;
+  light_track_workC = false;
+  light_snap_workI = true;
+  light_track_workI = false;
+  light_snap_pauseI = false;
+  light_track_pauseI = false;  
+}
+
+void reset_water(){
+  water_snap_workC = true;
+  water_track_workC = false;
+  
+  water_snap_workI = true;
+  water_track_workI = false;
+  water_snap_pauseI = false;
+  water_track_pauseI = false; 
+}
 
 bool compareTimes(int start_time_h, int start_time_m, int right_now_hour, int right_now_minute, int duration){
   int time_laps_inMins = (right_now_hour - start_time_h)*60 + (right_now_minute - start_time_m);  
@@ -2988,18 +3011,20 @@ void TrackSystems(){
   };
 
 
+
   // LIGHTING
   if ((CaseTwo[0].is_state_set && CaseTwo[0].system_state) && !is_working_light){
     Serial.println(" ");
     Serial.println("Turning ON LIGHTS (TOGGLE)");
     Serial1.println("c");
     is_working_light = true;
+    reset_light();
   }
   else if (!CaseTwo[0].is_state_set && is_working_light && !CaseTwo[0].is_clock_set && !CaseTwo[0].is_inter_set){
     Serial.println(" ");
     Serial.println("Turning OFF LIGHTS (TOGGLE)");
     Serial1.println("d");
-    is_working_light = false;
+    reset_light();
   }
   
   else if (CaseTwo[0].is_clock_set){
@@ -3015,8 +3040,8 @@ void TrackSystems(){
       Serial.println(" ");
       Serial.println("LIGHT (CLOCK) IS MET TIME REQUIREMENTS");
       if (light_snap_workC){
-        start_time_h = right_now_hour;
-        start_time_m = right_now_minute;
+        light_start_time_h = right_now_hour;
+        light_start_time_m = right_now_minute;
         
         light_snap_workC = false;
         light_track_workC = true;
@@ -3027,7 +3052,7 @@ void TrackSystems(){
         is_working_light = true;
       }
       // tracking time
-      if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur1) && light_track_workC){
+      if (compareTimes(light_start_time_h, light_start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur1) && light_track_workC){
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of duration! (clock)");
         Serial1.println("d");
@@ -3061,8 +3086,8 @@ void TrackSystems(){
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
     
     if (light_snap_workI){
-      start_time_h = right_now_hour;
-      start_time_m = right_now_minute;
+      light_start_time_h = right_now_hour;
+      light_start_time_m = right_now_minute;
       
       light_snap_workI = false;
       light_track_workI = true;
@@ -3074,7 +3099,7 @@ void TrackSystems(){
     }
     // tracking time
     if (light_track_workI){
-      if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2)){
+      if (compareTimes(light_start_time_h, light_start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2)){
         
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of duration! (interval)");
@@ -3085,8 +3110,9 @@ void TrackSystems(){
       }
     }
     else if (light_snap_pauseI){
-      start_time_h = right_now_hour;
-      start_time_m = right_now_minute;
+      light_start_time_h = right_now_hour;
+      light_start_time_m = right_now_minute;
+      
       Serial.println(" ");
       Serial.println("(!!!)Started pausing! (interval)");
       light_snap_pauseI = false; 
@@ -3094,11 +3120,133 @@ void TrackSystems(){
     }
     // tracking pause
     else if(light_track_pauseI){
-      if (compareTimes(start_time_h, start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_pause)){
+      if (compareTimes(light_start_time_h, light_start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_pause)){
+        
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of pause! (interval)");
         light_snap_workI = true;
         light_track_pauseI = false;  
+      }    
+    }
+  
+  };
+
+
+
+  // WATERING
+  if ((CaseTwo[1].is_state_set && CaseTwo[1].system_state) && !is_working_water){
+    Serial.println(" ");
+    Serial.println("Turning ON WATER (TOGGLE)");
+    Serial1.println("c");
+    is_working_water = true;
+    reset_water();
+  }
+  else if (!CaseTwo[1].is_state_set && is_working_water && !CaseTwo[1].is_clock_set && !CaseTwo[1].is_inter_set){
+    Serial.println(" ");
+    Serial.println("Turning OFF WATER (TOGGLE)");
+    Serial1.println("d");
+    reset_water();
+  }
+  
+  else if (CaseTwo[1].is_clock_set){
+    Serial.println(" ");
+    Serial.println("CLOCK WATER IS SET");
+        
+    String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
+    int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
+    int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
+  
+    
+    if (right_now_hour >= CaseTwo[1].system_time_h && ((right_now_minute - CaseTwo[1].system_time_m) >= 0) && (right_now_minute >= CaseTwo[1].system_time_m)){
+      Serial.println(" ");
+      Serial.println("WATER (CLOCK) IS MET TIME REQUIREMENTS");
+      if (water_snap_workC){
+        water_start_time_h = right_now_hour;
+        water_start_time_m = right_now_minute;
+        
+        water_snap_workC = false;
+        water_track_workC = true;
+        
+        Serial.println(" ");
+        Serial.println("(!!!)Started tracking! (clock)");
+        Serial1.println("c");
+        is_working_water = true;
+      }
+      // tracking time
+      if (compareTimes(water_start_time_h, water_start_time_m, right_now_hour, right_now_minute, CaseTwo[1].system_dur1) && water_track_workC){
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of duration! (clock)");
+        Serial1.println("d");
+        is_working_water = false;
+        if (CaseTwo[1].system_rep){
+          water_snap_workC = true;
+          water_track_workC = false;        
+        }
+        else{
+          water_snap_workC = true;
+          water_track_workC = false; 
+          CaseTwo[1].set_value(8, false);
+          
+          is_water_set = false;
+          water_button_state = false;
+          events.send("Refresh the page","refresher",millis());
+        }  
+      }
+    }
+  
+
+      
+  }
+  
+  else if (CaseTwo[1].is_inter_set){
+    Serial.println(" ");
+    Serial.println("INTERVAL WATER IS SET");
+        
+    String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
+    int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
+    int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
+    
+    if (water_snap_workI){
+      water_start_time_h = right_now_hour;
+      water_start_time_m = right_now_minute;
+      
+      water_snap_workI = false;
+      water_track_workI = true;
+    
+      Serial.println(" ");
+      Serial.println("(!!!)Started tracking! (interval)");
+      Serial1.println("c");
+      is_working_water = true;
+    }
+    // tracking time
+    if (water_track_workI){
+      if (compareTimes(water_start_time_h, water_start_time_m, right_now_hour, right_now_minute, CaseTwo[1].system_dur2)){
+        
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of duration! (interval)");
+        Serial1.println("d");
+        is_working_water = false;
+        water_track_workI = false;
+        water_snap_pauseI = true;          
+      }
+    }
+    else if (water_snap_pauseI){
+      water_start_time_h = right_now_hour;
+      water_start_time_m = right_now_minute;
+      
+      Serial.println(" ");
+      Serial.println("(!!!)Started pausing! (interval)");
+      water_snap_pauseI = false; 
+      water_track_pauseI = true;     
+    }
+    // tracking pause
+    else if(water_track_pauseI){
+      if (compareTimes(water_start_time_h, water_start_time_m, right_now_hour, right_now_minute, CaseTwo[1].system_pause)){
+        
+        Serial.println(" ");
+        Serial.println("(!!!)Completed tracking by min of pause! (interval)");
+        water_snap_workI = true;
+        water_track_pauseI = false;  
       }    
     }
   
