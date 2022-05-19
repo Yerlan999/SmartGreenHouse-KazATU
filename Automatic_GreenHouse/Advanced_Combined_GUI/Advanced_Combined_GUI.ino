@@ -1193,8 +1193,8 @@ void init_sd_card(){
 void prepare_main_files(){
   Serial.println(" ");
   // Delete if needed
-//  deleteFile(SD, "/sersors_logger.txt");
-//  deleteFile(SD, "/actuators_logger.txt");
+  deleteFile(SD, "/sersors_logger.txt");
+  deleteFile(SD, "/actuators_logger.txt");
   
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
@@ -1516,6 +1516,7 @@ void appendFile(fs::FS &fs, String path, String message) {
   }
   if(file.print(message)) {
     Serial.println("Message appended to file " + path + "!");
+    Serial.println("(!)Message content appended: " + message);
   } else {
     Serial.println("Append failed to file " + path + "!");
   }
