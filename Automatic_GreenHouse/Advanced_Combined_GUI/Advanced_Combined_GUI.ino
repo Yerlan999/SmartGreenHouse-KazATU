@@ -263,6 +263,31 @@ bool is_working_water_level = false;
 bool is_working_light = false;
 bool is_working_water = false;
 
+
+int water_start_time_h;
+int water_start_time_m;
+
+bool water_snap_workC = true;
+bool water_track_workC = false;
+
+bool water_snap_workI = true;
+bool water_track_workI = false;
+bool water_snap_pauseI = false;
+bool water_track_pauseI = false;
+
+
+int light_start_time_h;
+int light_start_time_m;
+
+bool light_snap_workC = true;
+bool light_track_workC = false;
+
+bool light_snap_workI = true;
+bool light_track_workI = false;
+bool light_snap_pauseI = false;
+bool light_track_pauseI = false;
+
+
 // **** Main Structures for storing Data **** 
 
 
@@ -1168,14 +1193,13 @@ void init_sd_card(){
 void prepare_main_files(){
   Serial.println(" ");
   // Delete if needed
-//  deleteFile(SD, filePathCreator(0));
-//  deleteFile(SD, filePathCreator(5));
-//  deleteFile(SD, filePathCreator(6));
+//  deleteFile(SD, "/sersors_logger.txt");
+//  deleteFile(SD, "/actuators_logger.txt");
   
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
     Serial.println("Creating file...'/sersors_logger.txt'");
-    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2");Serial.println(" ");
+    writeFile(SD, "/sersors_logger.txt", "Date,Time,Temperatre,Humidity,Lighting,Watering,WaterTemperature,WaterLevel,CO2 \r\n");Serial.println(" ");
   }
   else {
     Serial.println("'/sersors_logger.txt' file already exists!");Serial.println(" ");
@@ -1184,7 +1208,7 @@ void prepare_main_files(){
   if(!SD.exists("/actuators_logger.txt")) {
     Serial.println("'/actuators_logger.txt' file doens't exist");
     Serial.println("Creating file...'/actuators_logger.txt'");
-    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState");Serial.println(" ");
+    writeFile(SD, "/actuators_logger.txt", "Date,Time,PumpState,AirHeaterState,AirHumiditerState,WaterHeaterState,FanState,OutletFanState,PhytolampState,WaterTankFillerState \r\n");Serial.println(" ");
   }
   else {
     Serial.println("'/actuators_logger.txt' file already exists!");
@@ -2847,29 +2871,6 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 
-int water_start_time_h;
-int water_start_time_m;
-
-bool water_snap_workC = true;
-bool water_track_workC = false;
-
-bool water_snap_workI = true;
-bool water_track_workI = false;
-bool water_snap_pauseI = false;
-bool water_track_pauseI = false;
-
-
-int light_start_time_h;
-int light_start_time_m;
-
-bool light_snap_workC = true;
-bool light_track_workC = false;
-
-bool light_snap_workI = true;
-bool light_track_workI = false;
-bool light_snap_pauseI = false;
-bool light_track_pauseI = false;
-
 void reset_light(){
   is_working_light = false;
   light_snap_workC = true;
@@ -2907,6 +2908,11 @@ bool compareTimes(int start_time_h, int start_time_m, int right_now_hour, int ri
 
 
 void TrackSystems(){
+  String right_now_time = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
+  String right_now_date = DateTimeStamp.substring(0, DateTimeStamp.indexOf(" "));
+  
+  appendFile(SD, "/sersors_logger.txt", right_now_date+","+right_now_time+","+String(CaseOne[0].system_val)+","+String(CaseOne[1].system_val)+","+String(CaseOne[2].system_val)+","+String(CaseOne[3].system_val)+","+String(CaseOne[4].system_val)+","+String(CaseTwo[0].system_val)+","+String(CaseTwo[1].system_val)+", \r\n");
+  
   
   // TEMPERAURE
   if (CaseOne[0].is_system_set){
