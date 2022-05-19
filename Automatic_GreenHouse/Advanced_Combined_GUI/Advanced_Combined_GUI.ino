@@ -1162,7 +1162,7 @@ void initHardTimeModule(){
 //     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
 
   }  
-  rtc.adjust(DateTime(__DATE__, __TIME__));  
+//  rtc.adjust(DateTime(__DATE__, __TIME__));  
 }
 
 
@@ -4022,13 +4022,6 @@ void loop() {
 
       if ((millis() - lastTime) > timerDelay) {
         
-        // Read the sersors reading
-        getSensorsReadings();
-        blinkBuildLED();
-        update_display();
-        // Update screen values
-  
-  
         // TRYING TO REACH WIFI SIGNAL
         int networks = WiFi.scanNetworks();
         if (networks){
@@ -4038,6 +4031,14 @@ void loop() {
             }
           }
         }
+
+        
+        // Read the sersors reading
+        getSensorsReadings();
+        blinkBuildLED();
+        update_display();
+        // Update screen values
+  
 
         TrackSystems();
         makeSnapShot(8, "r,"+String(int(is_working_temperature))+","+String(int(is_working_humidity))+","+String(int(is_working_carbon))+","+String(int(is_working_water_temp))+","+String(int(is_working_water_level))+","+String(int(is_working_light))+","+String(int(is_working_water))+",");
