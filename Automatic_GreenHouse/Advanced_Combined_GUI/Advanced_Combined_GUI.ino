@@ -1555,7 +1555,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
         // CASE TWO
         if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set,]
           CaseTwo[which_system-5].set_value(seq+1, stringToInt(number));
-          if (seq==4){CaseTwo[which_system-5].set_value(8, stringToInt(number));}
+          if (seq==4){Serial.println("!!!WARNING!!! PASSED ON READING FILE ");CaseTwo[which_system-5].set_value(8, stringToInt(number));}
         }
         else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set,]
           CaseTwo[which_system-5].set_value(seq+5, stringToInt(number));
@@ -2874,8 +2874,10 @@ void notFound(AsyncWebServerRequest *request) {
 
 void reset_light(){
   is_working_light = false;
+  
   light_snap_workC = true;
   light_track_workC = false;
+  
   light_snap_workI = true;
   light_track_workI = false;
   light_snap_pauseI = false;
@@ -2883,6 +2885,8 @@ void reset_light(){
 }
 
 void reset_water(){
+  is_working_water = false;
+  
   water_snap_workC = true;
   water_track_workC = false;
   

@@ -132,5 +132,8 @@ card_state_class.old_variable_name
 card_text_class.old_variable_name
 
 
-*/
+!CaseTwo[0].is_state_set && is_working_light && !CaseTwo[0].is_clock_set && !CaseTwo[0].is_inter_set
+!CaseTwo[1].is_state_set && is_working_water && !CaseTwo[1].is_clock_set && !CaseTwo[1].is_inter_set
 
+
+*/
