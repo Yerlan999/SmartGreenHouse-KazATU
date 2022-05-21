@@ -48,7 +48,7 @@ void setup() {
 
   // Make a new time object to set the date and time.
   // Sunday, September 22, 2013 at 01:38:50.
-  Time t(2022, 1, 31, 18, 00, 00);
+  Time t(__DATE__, __TIME__);
 
   // Set the time and date on the chip.
   rtc.time(t);

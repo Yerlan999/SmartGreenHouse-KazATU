@@ -67,8 +67,8 @@ String gui_control_mode = "web-based"; // "web-based" or "manual"
 const char* main_ssid = "Le petit dejeuner 2";
 const char* main_password = "DoesGodReallyExist";
 
-const char* other_ssid = "HUAWEI Y6 2019";
-const char* other_password = "mama1963";
+const char* other_ssid = "HUAWEI Y6 2019g";
+const char* other_password = "mama1963g";
 
 const char* another_ssid = "HUAWEI P8 lite 2017";
 const char* another_password = "11111111";
@@ -738,7 +738,7 @@ int value_changer_with_restrictions(String what, int where, int low_end, int hig
 int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
   
   int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
-  bool is_system_set = CaseOne[systems_pointer].get_value(3);
+  bool is_system_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
   
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -755,7 +755,7 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
   
   int starter_value = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(which);
-  bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(7);
+  bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
 
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
@@ -770,7 +770,7 @@ int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, in
 
 
 void editing_values(int where){
-//  Serial.println("Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
+//  Serial.println("(EV) Option of " + String(places_pointer) + " System of " + String(systems_pointer) + " with Editing Mode of " + String(editing_mode) + "Direction where: " + String(where));
 
   if (systems_pointer == 7 && levels_pointer == 0 && places_pointer == 1){
     timerDelay = value_changer_with_restrictions("time", where, 0, 1800)*1000;
@@ -839,15 +839,15 @@ void update_place(int where){
 }
 
 void update_system(int where){
-  if (places_pointer == 0){
+  if (places_pointer == 0 && levels_pointer == 0){
     if (where < 0 && systems_pointer < countof(L1system_titles)){
       systems_pointer++;
     }
     else if (where > 0 && systems_pointer > 0){
       systems_pointer--;
     };
-  
-    if (systems_pointer < countof(L1system_titles)-1){
+    //    [0-6(7)]               5
+    if (systems_pointer < countof(L1system_titles)-2){
       current_case = 0;
     }
     else{
@@ -869,7 +869,7 @@ void update_level(){
 
 void track_cursor(){
   Serial.println(" ");
-  Serial.println("On Level: " + String(levels_pointer)+ "; On System: " +String(systems_pointer) + "; On Place: " + String(places_pointer));
+  Serial.println("On Level: " + String(levels_pointer)+ "; On System: " +String(systems_pointer) + "; On Place: " + String(places_pointer)+ "; On Editing Mode " + String(editing_mode));
 }
 
 
@@ -956,23 +956,23 @@ char system_set_icon(){
 String current_title(){
   if (systems_pointer == 7 && levels_pointer == 0){
     return "Settings";
-  };
-  
-  switch (levels_pointer) {
-  case 0:
-    return L1system_titles[systems_pointer].system_name;  
-    break;
-  case 1:
-    return L2system_titles[systems_pointer].system_name; 
-    break;
-  case 2:
-    return L3system_titles[systems_pointer].system_name;
-    break;
-  case 3:
-    return L4system_titles[bool(systems_pointer-(countof(L1system_titles)-2))].system_name;
-    break;
-}
- 
+  }
+  else{
+    switch (levels_pointer) {
+      case 0:
+        return L1system_titles[systems_pointer].system_name;  
+        break;
+      case 1:
+        return L2system_titles[systems_pointer].system_name; 
+        break;
+      case 2:
+        return L3system_titles[systems_pointer].system_name;
+        break;
+      case 3:
+        return L4system_titles[bool(systems_pointer-(countof(L1system_titles)-2))].system_name;
+        break;
+    }
+  }
 }
 
 void update_title(){
@@ -995,7 +995,7 @@ void update_menu(){
   
   
   // LEVEL 1
-  if (levels_pointer == 0 && systems_pointer != 7){
+  else if (levels_pointer == 0 && systems_pointer != 7){
     // CASE 1
     if (systems_pointer < 5){
       lcd.setCursor(options[1].col+1, options[1].row);
@@ -1009,7 +1009,7 @@ void update_menu(){
   }
   
   // LEVEL 2
-  else if (levels_pointer == 1){
+  else if (levels_pointer == 1 && systems_pointer != 7){
     // CASE 1
     if (systems_pointer < 5){
       lcd.setCursor(options[1].col+1, options[1].row);
@@ -1029,7 +1029,7 @@ void update_menu(){
   }
 
   // LEVEL 3
-  else if (levels_pointer == 2){
+  else if (levels_pointer == 2 && systems_pointer != 7){
     // CASE 1
     if (systems_pointer < 5){
       lcd.setCursor(options[1].col+1, options[1].row);
@@ -1046,7 +1046,7 @@ void update_menu(){
   }
 
   // LEVEL 4
-  else if (levels_pointer == 3){
+  else if (levels_pointer == 3 && systems_pointer != 7){
     // CASE 2
     lcd.setCursor(options[1].col+1, options[1].row);
     lcd.print("state:" + String(CaseTwo[bool(systems_pointer-(countof(L1system_titles)-2))].system_state));
@@ -1153,16 +1153,16 @@ void initHardTimeModule(){
     while (1);
   }
  
-  if (rtc.lostPower()) {
-//    Serial.println("RTC lost power, lets set the time!");
-    // Задать время для модуля через время системы (ОС) при загрузке скетча
-    rtc.adjust(DateTime(__DATE__, __TIME__));
-    // Задать время для модуля вручную
-    // Январь 21, 2014 и 3 часа ночи:
-//     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
-
-  }  
-//  rtc.adjust(DateTime(__DATE__, __TIME__));  
+//  if (rtc.lostPower()) {
+////    Serial.println("RTC lost power, lets set the time!");
+//    // Задать время для модуля через время системы (ОС) при загрузке скетча
+//    rtc.adjust(DateTime(__DATE__, __TIME__));
+//    // Задать время для модуля вручную
+//    // Январь 21, 2014 и 3 часа ночи:
+////     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
+//
+//  }  
+  rtc.adjust(DateTime(__DATE__, __TIME__));  
 }
 
 
@@ -3307,7 +3307,7 @@ void setup() {
   // Инициализация WIFI
   initWiFi();
   
-  delay(1000);
+//  delay(1000);
 
 
 
@@ -4016,7 +4016,7 @@ void loop() {
     
       if (enc1.isTurn()) {                   // если был совершён поворот (индикатор поворота в любую сторону)
         update_display();
-    //    track_cursor(); 
+        track_cursor(); 
       }
 
 
@@ -4036,6 +4036,8 @@ void loop() {
         // Read the sersors reading
         getSensorsReadings();
         blinkBuildLED();
+        Serial.flush();
+        Serial1.flush();
         update_display();
         // Update screen values
   
