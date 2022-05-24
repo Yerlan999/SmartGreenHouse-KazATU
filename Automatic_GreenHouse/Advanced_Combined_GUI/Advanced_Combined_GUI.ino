@@ -9,25 +9,32 @@
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
 #include "GyverEncoder.h"
-#include "RTClib.h"
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+//#include "RTClib.h"
 #include "FS.h"
 #include "SD.h"
 #include <SPI.h>
 
-/* 
+/*
   CLK == S1
   DT == S2
-  SW == Key 
+  SW == Key
 */
 
 #define CLK 33 // S1
 #define DT 25  // S2
 #define SW 32  // Key
 #define countof(L1system_titles) (sizeof(L1system_titles) / sizeof(L1system_titles[0]))
+#define countof(a) (sizeof(a) / sizeof(a[0]))
 #define RXD2 16
 #define TXD2 17
 #define ONBOARD_LED  2
 #define SD_CS 5
+
+#define RSTt 2  // RST
+#define DATt 4  //DAT
+#define CLKt 15  //CLK
 
 
 // Назначение статического IP адреса
@@ -35,12 +42,12 @@ IPAddress local_IP(192, 168, 72, 248);
 IPAddress gateway(192, 168, 1, 1);
 
 IPAddress subnet(255, 255, 255, 255);
-IPAddress primaryDNS(8, 8, 8, 8);  
+IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4);
 
 WiFiMulti wifiMulti;
 
-// Объявление объекта NTP Client для получения времени 
+// Объявление объекта NTP Client для получения времени
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 
@@ -48,7 +55,11 @@ NTPClient timeClient(ntpUDP);
 Encoder enc1(CLK, DT, SW, true);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-RTC_DS3231 rtc;
+ThreeWire myWire(DATt, CLKt, RSTt);
+RtcDS1302<ThreeWire> Rtc(myWire);
+
+
+//RTC_DS3231 rtc;
 
 
 // Создание AsyncWebServer объекта на порте 80
@@ -78,7 +89,7 @@ const char* http_password = "micro";
 
 
 // Интервал обновления показании датчиков
-unsigned long lastTime = 0;  
+unsigned long lastTime = 0;
 unsigned long timerDelay = 30000;    // КАЖДЫЕ 30 секунд
 
 // Переменные для хранения и обработки значении времени для Веб-страницы
@@ -132,7 +143,7 @@ const char* WATER_PARAM_INPUT6 = "new-water-value-pause";
 const char* TIME_PARAM_INPUT = "new-update-value";
 const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
 
-        
+
     bool pump_state = false;
     bool air_heater_state = false;
     bool air_humiditer_state = false;
@@ -153,7 +164,7 @@ const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
   bool carbon_button_state = false;
   bool water_temp_button_state = false;
   bool water_level_button_state = false;
-  
+
   // Состояние карточек отображения показании
   bool is_temp_set = false;
   bool is_hum_set = false;
@@ -162,12 +173,12 @@ const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
   bool is_carbon_set = false;
   bool is_water_temp_set = false;
   bool is_water_level_set = false;
-  
-  
+
+
   // Заданные значения для системы
   String to = " >>> ";
   char set_symbol = '*';
-  
+
   String temp_set_value_s;
   String hum_set_value_s;
   String light_set_value_s;
@@ -175,8 +186,8 @@ const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
   String carbon_set_value_s;
   String water_temp_set_value_s;
   String water_level_set_value_s;
-  
-  
+
+
   float temp_set_value_f;
   float hum_set_value_f;
   float carbon_set_value_f;
@@ -184,7 +195,7 @@ const char* LED_BRIGHTNESS_INPUT = "new-brightness-value";
   float water_level_set_value_f;
   float light_set_value_f;
   float water_set_value_f;
-  
+
 
 
 // **** Main system variables ****
@@ -288,10 +299,10 @@ bool light_snap_pauseI = false;
 bool light_track_pauseI = false;
 
 
-// **** Main Structures for storing Data **** 
+// **** Main Structures for storing Data ****
 
 
-struct wifi_template{ 
+struct wifi_template{
   uint8_t num;
   const char* ssid;
   const char* password;
@@ -304,17 +315,17 @@ wifi_template wifi_dict[] {
 
 
 
-struct case_one_params{ 
-  
+struct case_one_params{
+
   int system_val; // 0
-  
+
   int system_set_val; // 1
-  
+
   bool system_state; // 2
-  
+
   bool is_system_set; // 3
   bool is_state_set; // 4
-  
+
   uint8_t system_num; // 5
 
 
@@ -333,7 +344,7 @@ struct case_one_params{
     }
     else if(which == 4){
       return int(this->is_state_set);
-    }  
+    }
   }
 
 
@@ -364,10 +375,10 @@ case_one_params CaseOne[] {
 };
 
 
-struct case_two_params{ 
+struct case_two_params{
 
   int system_val; // 0
-  
+
   int system_time_h;  // 1
   int system_time_m; // 2
   int system_dur1; // 3
@@ -375,22 +386,22 @@ struct case_two_params{
 
   int system_dur2; // 5
   int system_pause; // 6
-  
+
   bool system_state; // 7
-  
+
   bool is_clock_set; // 8
   bool is_inter_set; // 9
   bool is_state_set; // 10
-  
+
   uint8_t system_num; // 11
-  
+
 
   int get_value(int which){
-    
+
     if (which == 0){
       return this->system_val;
     }
-    
+
     else if(which == 8){
       return int(this->is_clock_set);
     }
@@ -400,7 +411,7 @@ struct case_two_params{
     else if(which == 10){
       return int(this->is_state_set);
     }
-    
+
     else if(which == 1){
       return this->system_time_h;
     }
@@ -413,10 +424,10 @@ struct case_two_params{
     else if(which == 4){
       return int(this->system_rep);
     }
-    
+
     else if(which == 7){
       return int(this->system_state);
-    }  
+    }
 
     else if(which == 5){
       return int(this->system_dur2);
@@ -426,7 +437,7 @@ struct case_two_params{
     }
   }
 
-  
+
   void set_value(int which, int new_value){
     if (which == 0){
       this->system_val = new_value;
@@ -442,7 +453,7 @@ struct case_two_params{
       this->is_state_set = bool(new_value);
     }
 
-       
+
     else if(which == 1){
       this->system_time_h = new_value;
     }
@@ -462,7 +473,7 @@ struct case_two_params{
     else if(which == 6){
       this->system_pause = new_value;
     }
-    
+
     else if(which == 7){
       this->system_state = bool(new_value);
     }
@@ -475,7 +486,7 @@ case_two_params CaseTwo[] {
 
 
 
-typedef struct { 
+typedef struct {
   uint8_t place;
   uint8_t row;
   uint8_t col;
@@ -488,7 +499,7 @@ const coordinates options[] {
 };
 
 
-typedef struct { 
+typedef struct {
   uint8_t place;
   uint8_t row;
   uint8_t col;
@@ -502,7 +513,7 @@ const Scoordinates Soptions[] {
 };
 
 
-typedef struct { 
+typedef struct {
   uint8_t system_num;
   String system_name;
 } L1systems;
@@ -516,7 +527,7 @@ const L1systems L1system_titles[] {
     {6, "Watering"},
 };
 
-typedef struct { 
+typedef struct {
   uint8_t system_num;
   String system_name;
 } L2systems;
@@ -530,7 +541,7 @@ const L2systems L2system_titles[] {
     {6, "Water Clock"},
 };
 
-typedef struct { 
+typedef struct {
   uint8_t system_num;
   String system_name;
 } L3systems;
@@ -544,7 +555,7 @@ const L3systems L3system_titles[] {
     {6, "Water Inter."},
 };
 
-typedef struct { 
+typedef struct {
   uint8_t system_num;
   String system_name;
 } L4systems;
@@ -554,7 +565,7 @@ const L4systems L4system_titles[] {
 };
 
 
-typedef struct { 
+typedef struct {
   uint8_t case_num;
   uint8_t case_level_deepness;
 } casedeepness;
@@ -578,7 +589,7 @@ int current_case_level_deepness = 2;
 
 
 bool getFeedBack(){
-  
+
   delay(500);
   if (Serial1.available() > 0){
     bool feedBack = Serial1.read();
@@ -587,7 +598,7 @@ bool getFeedBack(){
     bool grepper3 = Serial1.read();
     bool grepper4 = Serial1.read();
     bool grepper5 = Serial1.read();
-    
+
 //    Serial.print("FeedBack message: ");
 //    Serial.println(feedBack);
 
@@ -596,7 +607,7 @@ bool getFeedBack(){
     }
     else{
       return false;
-    }  
+    }
   }
 }
 
@@ -604,7 +615,7 @@ bool getFeedBack(){
 void blinkBuildLED(){
   digitalWrite(ONBOARD_LED,HIGH);
   delay(200);
-  digitalWrite(ONBOARD_LED,LOW);  
+  digitalWrite(ONBOARD_LED,LOW);
 }
 
 
@@ -612,7 +623,7 @@ void getSensorsReadings(){
 
     Serial1.println('S');
 //    delay(500);
-    
+
     if (Serial1.available() > 0){
       temperature = Serial1.read();
       humidity = Serial1.read();
@@ -621,24 +632,24 @@ void getSensorsReadings(){
 //      water_temperature = Serial1.read();
 //      water_level = Serial1.read();
 //      water = Serial1.read();
-      
+
       int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();//int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
-      
+
       // UPDATING SENSORS VALUES FROM ARDUINO MEGA
       CaseOne[0].set_value(0, temperature);
       CaseOne[1].set_value(0, humidity);
       CaseTwo[0].set_value(0, light);
- 
+
       Serial.println();
       Serial.println("================================ NEW INTERATION =============================================");
- 
+
       Serial.println();
       Serial.println("Recieved Sensors values: ");
       Serial.println();
       Serial.print("Temperature: ");
       Serial.println(temperature);
       Serial.print("Humidity: ");
-      Serial.println(humidity);    
+      Serial.println(humidity);
       Serial.print("Light: ");
       Serial.println(light);
     }
@@ -649,7 +660,7 @@ void getActuatorsReadings(){
 
     Serial1.println('A');
 //    delay(500);
-    
+
     if (Serial1.available() > 0){
       pump_state = Serial1.read();
       air_heater_state = Serial1.read();
@@ -661,14 +672,14 @@ void getActuatorsReadings(){
 //      water_tank_filler_state = Serial1.read();
 
       int garbage1 = Serial1.read();int garbage2 = Serial1.read();int garbage3 = Serial1.read();int garbage4 = Serial1.read();int garbage5 = Serial1.read();int garbage6 = Serial1.read();int garbage7 = Serial1.read();int garbage8 = Serial1.read();
-      
+
       Serial.println();
       Serial.println("Recieved Actuators values: ");
       Serial.println();
       Serial.print("Pump state: ");
       Serial.println(pump_state);
       Serial.print("Air heater state: ");
-      Serial.println(air_heater_state);    
+      Serial.println(air_heater_state);
       Serial.print("Air humiditer state: ");
       Serial.println(air_humiditer_state);
     }
@@ -676,9 +687,14 @@ void getActuatorsReadings(){
 
 
 void get_date_time(){
-  DateTime now = rtc.now();
+  RtcDateTime now = Rtc.GetDateTime();
   printDateTime(now);
   DateTimeStamp = datestring;
+  if (!now.IsValid()){
+    // Common Causes:
+    //    1) the battery on the device is low or even missing and the power line was disconnected
+    Serial.println("RTC lost confidence in the DateTime!");
+  }
 }
 
 void display_time(){
@@ -688,11 +704,11 @@ void display_time(){
 }
 
 int places_pointer_restrictor(){
-  
+
   if (levels_pointer == 0 && systems_pointer == 7){
     return 2;
   };
-  
+
   if (levels_pointer == 0){
     return 0;
   }
@@ -714,32 +730,32 @@ int places_pointer_restrictor(){
 
 
 int value_changer_with_restrictions(String what, int where, int low_end, int hight_end){
-  
+
   int starter_value;
-  
+
   if (what == "time"){
     starter_value = timerDelay/1000;
   }
   else if (what == "brightness"){
     starter_value = led_brightness;
   }
-  
+
   if (where < 0 && starter_value < hight_end){
     starter_value++;
   }
   else if (where > 0 && starter_value > low_end){
     starter_value--;
   };
-  
+
   return starter_value;
 }
 
 
 int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
-  
+
   int starter_value = CaseOne[systems_pointer].get_value(levels_pointer);
   bool is_system_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
-  
+
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
       starter_value++;
@@ -753,13 +769,13 @@ int value_changer_with_restrictionsONE(int where, int low_end, int hight_end){
 
 
 int value_changer_with_restrictionsTWO(int where, int low_end, int hight_end, int which){
-  
+
   int starter_value = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(which);
   bool is_system_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
 
   if (!is_system_set){
     if (where < 0 && starter_value < hight_end){
-      starter_value++; 
+      starter_value++;
     }
     else if (where > 0 && starter_value > low_end){
       starter_value--;
@@ -779,15 +795,15 @@ void editing_values(int where){
     led_brightness = value_changer_with_restrictions("brightness", where, 0, 255);
     Serial1.println(String(led_brightness));
   }
-  
-  // LEVEL 1 or LEVEL 2  
+
+  // LEVEL 1 or LEVEL 2
   if (levels_pointer == 1 || levels_pointer == 2){
     if (systems_pointer < 5){ // CASE 1
       CaseOne[systems_pointer].set_value(levels_pointer, value_changer_with_restrictionsONE(where, 0, 99));
     }
     else {
       // CASE 2 CLOCK AND INTERVAL MENUES
-      
+
       // CLOCK MENU
       if (levels_pointer == 1 && places_pointer == 1){
         if (editing_mode == 1){ // HOURS
@@ -802,17 +818,17 @@ void editing_values(int where){
       }
       else if (levels_pointer == 1 && places_pointer == 3){ // REPEAT
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(4, value_changer_with_restrictionsTWO(where, 0, 1, 4));
-      }      
-    
+      }
+
       // INTERVAL MENU
       if (levels_pointer == 2 && places_pointer == 1){ // DURATION 2
-       CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));  
+       CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(5, value_changer_with_restrictionsTWO(where, 0, 23, 5));
       }
       else if (levels_pointer == 2 && places_pointer == 2){ // PAUSE
-        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));  
+        CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(6, value_changer_with_restrictionsTWO(where, 0, 23, 6));
       }
     }
-    
+
   }
   // LEVEL 3 EXLUSIVE FOR CASE 2
   else{
@@ -859,11 +875,11 @@ void update_system(int where){
 void update_level(){
   if (places_pointer == 0 && systems_pointer != 7){
     if (levels_pointer < case_deepness[current_case].case_level_deepness){
-      levels_pointer++;  
+      levels_pointer++;
     }
     else{
       levels_pointer = 0;
-    }  
+    }
   }
 }
 
@@ -899,7 +915,7 @@ void toggle_editing_mode(){
     else if(editing_mode == 1 && systems_pointer > 4 && levels_pointer == 1){
       editing_mode = 0;
     }
-    
+
     else if (editing_mode == 1 && systems_pointer < 5){
       editing_mode = 0;
     }
@@ -929,7 +945,7 @@ void update_cursor(){
   else{
     lcd.setCursor(options[places_pointer].col, options[places_pointer].row);
   }
-  lcd.print(update_cursor_type());  
+  lcd.print(update_cursor_type());
 }
 
 char system_set_icon(){
@@ -937,8 +953,8 @@ char system_set_icon(){
     if (systems_pointer < 5){
       bool is_set = CaseOne[systems_pointer].get_value(levels_pointer+2);
       if (is_set){
-        return set_symbol;  
-      }    
+        return set_symbol;
+      }
     }
     else{
       bool is_set = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(levels_pointer+7);
@@ -960,10 +976,10 @@ String current_title(){
   else{
     switch (levels_pointer) {
       case 0:
-        return L1system_titles[systems_pointer].system_name;  
+        return L1system_titles[systems_pointer].system_name;
         break;
       case 1:
-        return L2system_titles[systems_pointer].system_name; 
+        return L2system_titles[systems_pointer].system_name;
         break;
       case 2:
         return L3system_titles[systems_pointer].system_name;
@@ -989,11 +1005,11 @@ void update_menu(){
     lcd.print("timing:" + String(timerDelay/1000));
 
     lcd.setCursor(Soptions[2].col+1, Soptions[2].row);
-    lcd.print("led bright:" + String(led_brightness));  
-    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");  
+    lcd.print("led bright:" + String(led_brightness));
+    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");
   }
-  
-  
+
+
   // LEVEL 1
   else if (levels_pointer == 0 && systems_pointer != 7){
     // CASE 1
@@ -1005,9 +1021,9 @@ void update_menu(){
     else{
       lcd.setCursor(options[1].col+1, options[1].row);
       lcd.print("curr value:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_val));
-    }    
+    }
   }
-  
+
   // LEVEL 2
   else if (levels_pointer == 1 && systems_pointer != 7){
     // CASE 1
@@ -1022,7 +1038,7 @@ void update_menu(){
 
       lcd.setCursor(options[2].col+1, options[2].row);
       lcd.print("dur:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1));
-      
+
       lcd.setCursor(options[3].col+1, options[3].row);
       lcd.print("repeat:" + String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep));
     }
@@ -1058,7 +1074,7 @@ void update_display(){
   update_cursor();
   update_title();
   update_menu();
-  display_time();  
+  display_time();
 }
 
 
@@ -1068,11 +1084,11 @@ void set_current_system(){
   Serial.println("SET ON System: " + String(systems_pointer) + " Level: " + String(levels_pointer) + " Place: " + String(places_pointer));
   // CASES 1
   if (systems_pointer < 5){
-    
+
     if (levels_pointer == 1){
       bool current_state = CaseOne[systems_pointer].get_value(3);
       bool other_state = CaseOne[systems_pointer].get_value(4);
-      
+
       if (current_state){
         CaseOne[systems_pointer].set_value(3, false);
         makeSnapShot(systems_pointer, "s,"+String(CaseOne[systems_pointer].system_set_val)+","+String(CaseOne[systems_pointer].is_system_set)+",");
@@ -1085,7 +1101,7 @@ void set_current_system(){
     else if (levels_pointer == 2){
       bool current_state = CaseOne[systems_pointer].get_value(4);
       bool other_state = CaseOne[systems_pointer].get_value(3);
-      
+
       if (current_state){
         CaseOne[systems_pointer].set_value(4, false);
         makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
@@ -1093,19 +1109,19 @@ void set_current_system(){
       else if (!other_state){
         CaseOne[systems_pointer].set_value(4, true);
         makeSnapShot(systems_pointer, "o,"+String(CaseOne[systems_pointer].system_state)+","+String(CaseOne[systems_pointer].is_state_set)+",");
-      }      
-  
+      }
+
     }
-  
+
   }
   // CASES 2
   else {
-   
+
     if (levels_pointer == 1){
       bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
       bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
       bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
+
       if (current_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, false);
         makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
@@ -1113,13 +1129,13 @@ void set_current_system(){
       else if (!other_state && !another_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(8, true);
         makeSnapShot(systems_pointer, "c,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_h)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_time_m)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur1)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_rep)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_clock_set)+"," );
-      }  
+      }
     }
     else if (levels_pointer == 2){
       bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
       bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
       bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
-      
+
       if (current_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, false);
         makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
@@ -1127,13 +1143,13 @@ void set_current_system(){
       else if (!other_state && !another_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(9, true);
         makeSnapShot(systems_pointer, "i,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_dur2)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_pause)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_inter_set)+"," );
-      }      
+      }
     }
     else if (levels_pointer == 3){
       bool current_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(10);
       bool other_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(8);
       bool another_state = CaseTwo[systems_pointer-(countof(L1system_titles)-2)].get_value(9);
-      
+
       if (current_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, false);
         makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
@@ -1141,28 +1157,55 @@ void set_current_system(){
       else if (!other_state && !another_state){
         CaseTwo[systems_pointer-(countof(L1system_titles)-2)].set_value(10, true);
         makeSnapShot(systems_pointer, "k,"+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].system_state)+","+String(CaseTwo[systems_pointer-(countof(L1system_titles)-2)].is_state_set)+"," );
-      }      
-    }      
+      }
+    }
   }
 }
 
 
 void initHardTimeModule(){
-  if (! rtc.begin()) {
-//    Serial.println("Couldn't find RTC");
-    while (1);
-  }
- 
-//  if (rtc.lostPower()) {
-////    Serial.println("RTC lost power, lets set the time!");
-//    // Задать время для модуля через время системы (ОС) при загрузке скетча
-//    rtc.adjust(DateTime(__DATE__, __TIME__));
-//    // Задать время для модуля вручную
-//    // Январь 21, 2014 и 3 часа ночи:
-////     rtc.adjust(DateTime(2022, 5, 2, 11, 45, 0));
-//
-//  }  
-  rtc.adjust(DateTime(__DATE__, __TIME__));  
+    Rtc.Begin();
+
+    RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+    printDateTime(compiled);
+    Serial.println();
+
+    if (!Rtc.IsDateTimeValid()) 
+    {
+        // Common Causes:
+        //    1) first time you ran and the device wasn't running yet
+        //    2) the battery on the device is low or even missing
+
+        Serial.println("RTC lost confidence in the DateTime!");
+        Rtc.SetDateTime(compiled);
+    }
+
+    if (Rtc.GetIsWriteProtected())
+    {
+        Serial.println("RTC was write protected, enabling writing now");
+        Rtc.SetIsWriteProtected(false);
+    }
+
+    if (!Rtc.GetIsRunning())
+    {
+        Serial.println("RTC was not actively running, starting now");
+        Rtc.SetIsRunning(true);
+    }
+
+    RtcDateTime now = Rtc.GetDateTime();
+    if (now < compiled) 
+    {
+        Serial.println("RTC is older than compile time!  (Updating DateTime)");
+        Rtc.SetDateTime(compiled);
+    }
+    else if (now > compiled) 
+    {
+        Serial.println("RTC is newer than compile time. (this is expected)");
+    }
+    else if (now == compiled) 
+    {
+        Serial.println("RTC is the same as compile time! (not expected but all is fine)");
+    }
 }
 
 
@@ -1170,14 +1213,14 @@ void initHardTimeModule(){
 void init_sd_card(){
   Serial.println(" ");
   // Initialize SD card
-  SD.begin(SD_CS);  
+  SD.begin(SD_CS);
   if(!SD.begin(SD_CS)) {
     Serial.println("Card Mount Failed!");Serial.println(" ");
   }
   else {
     Serial.println("Card reader initialized successfully!");Serial.println(" ");
   }
-  
+
   uint8_t cardType = SD.cardType();
   if(cardType == CARD_NONE) {
     Serial.println("No SD card attached!");Serial.println(" ");
@@ -1195,7 +1238,7 @@ void prepare_main_files(){
   // Delete if needed
 //  deleteFile(SD, "/sersors_logger.txt");
 //  deleteFile(SD, "/actuators_logger.txt");
-  
+
   if(!SD.exists("/sersors_logger.txt")) {
     Serial.println("'/sersors_logger.txt' file doens't exist");
     Serial.println("Creating file...'/sersors_logger.txt'");
@@ -1212,7 +1255,7 @@ void prepare_main_files(){
   }
   else {
     Serial.println("'/actuators_logger.txt' file already exists!");
-  }  
+  }
 }
 
 
@@ -1441,7 +1484,7 @@ void getDummySensorReadings(){
     water = dummy_water;
     carbon = dummy_carbon;
     water_temperature = dummy_water_temperature;
-    water_level = dummy_water_level;    
+    water_level = dummy_water_level;
 }
 
 
@@ -1466,13 +1509,13 @@ int stringToInt(String s)
 void display_wifi_info(){
   // Вывод IP адреса страницы и данных WiFi точки на LCD дисплей
   lcd.clear();
-  
-  lcd.setCursor(0, 0);  
+
+  lcd.setCursor(0, 0);
   lcd.print(WiFi.localIP());
-  
+
   lcd.setCursor(0, 1);
   lcd.print(WiFi.SSID());
-  
+
   lcd.setCursor(0, 2);
   if (WiFi.SSID() == main_ssid){
     lcd.print(main_password);
@@ -1481,7 +1524,7 @@ void display_wifi_info(){
     lcd.print(other_password);
   }
   else{
-    lcd.print(another_password); 
+    lcd.print(another_password);
   }
 }
 
@@ -1502,7 +1545,7 @@ void writeFile(fs::FS &fs, String path, String message) {
   } else {
     Serial.println("Write to file " + path + " failed!");
   }
-  file.close();    
+  file.close();
 }
 
 
@@ -1532,30 +1575,30 @@ void readFile(fs::FS &fs, String path, int which_system) {
     Serial.println("Failed to open file " + path + " for reading!");
     return;
   }
-  
+
   if (file.available()){
     int set_type = file.read();
     int trash_comma = file.read();
-      
+
     String list = file.readStringUntil('\r');
     Serial.print("(!)Head code: "); Serial.println(set_type);
     Serial.print("(!)Message content read: "); Serial.println(list);
-    
+
     String number;
     int seq = 0;
-      
+
     for (int i=0; i<list.length(); i++){
-      
+
       String character;
-      
-      if (list[i]==','){        
-        
+
+      if (list[i]==','){
+
         // Reseting system values
-        
+
         // CASE TWO
         if (set_type == 99){ // clock [c,hour,minute,dur1,rep,is_clock_set,]
           CaseTwo[which_system-5].set_value(seq+1, stringToInt(number));
-          if (seq==4){Serial.println("!!!WARNING!!! PASSED ON READING FILE ");CaseTwo[which_system-5].set_value(8, stringToInt(number));}
+          if (seq==4){CaseTwo[which_system-5].set_value(8, stringToInt(number));}
         }
         else if (set_type == 105){ // interval [i,dur2,pause,is_inter_set,]
           CaseTwo[which_system-5].set_value(seq+5, stringToInt(number));
@@ -1565,7 +1608,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
           CaseTwo[which_system-5].set_value(seq+7, stringToInt(number));
           if (seq==1){CaseTwo[which_system-5].set_value(10, stringToInt(number));}
         }
-      
+
         // CASE ONE
         else if (set_type == 115){ // set [s,system_set_val,is_system_set,]
           if (seq==0){CaseOne[which_system].set_value(1, stringToInt(number));}
@@ -1574,14 +1617,14 @@ void readFile(fs::FS &fs, String path, int which_system) {
         else if (set_type == 111){ // state [0,state,state_set,]
           if (seq==0){CaseOne[which_system].set_value(2, stringToInt(number));}
           if (seq==1){CaseOne[which_system].set_value(4, stringToInt(number));}
-        }        
+        }
 
         // settings
         else if (set_type == 103){
           if (seq==0){timerDelay = stringToInt(number);}
-          if (seq==1){led_brightness = stringToInt(number);}         
+          if (seq==1){led_brightness = stringToInt(number);}
         }
-        
+
         // relays state
         else if (set_type == 114){
           if (seq==0){is_working_temperature = bool(stringToInt(number));}
@@ -1590,7 +1633,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==3){is_working_water_temp = bool(stringToInt(number));}
           if (seq==4){is_working_water_level = bool(stringToInt(number));}
           if (seq==5){is_working_light = bool(stringToInt(number));}
-          if (seq==6){is_working_water = bool(stringToInt(number));}         
+          if (seq==6){is_working_water = bool(stringToInt(number));}
         }
 
         // clock and interval helper variables values
@@ -1606,93 +1649,92 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==8) {water_snap_workI = bool(stringToInt(number));}
           if (seq==9) {water_track_workI = bool(stringToInt(number));}
           if (seq==10) {water_snap_pauseI = bool(stringToInt(number));}
-          if (seq==11) {water_track_pauseI = bool(stringToInt(number));}       
-        }        
-        
+          if (seq==11) {water_track_pauseI = bool(stringToInt(number));}
+        }
+
         number = "";
         seq++;
       }
       else{
         character = list[i];
-        number+= character;  
+        number+= character;
       }
-      
+
     }
-    
+
   }
   file.close();
 
-  // START !!! Applying read system values !!!
-  Serial1.println(String(led_brightness)); 
-  
-  // TEMPERATURE SYSTEM
-  is_temp_set = CaseOne[0].is_system_set;
-  temp_button_state = CaseOne[0].is_system_set || (CaseOne[0].is_state_set && CaseOne[0].system_state);  
-  temp_set_value_s = String(CaseOne[0].system_set_val);
-    
 
-  // HUMIDITY SYSTEM  
-  is_hum_set = CaseOne[1].is_system_set;
-  hum_button_state = CaseOne[1].is_system_set || (CaseOne[1].is_state_set && CaseOne[1].system_state);  
-  hum_set_value_s = String(CaseOne[1].system_set_val);
-  
+  if (gui_control_mode == "web-based"){
+    // START !!! Applying read system values !!!
 
-  // CARBON SYSTEM 
-  is_carbon_set = CaseOne[2].is_system_set;
-  carbon_button_state = CaseOne[2].is_system_set || (CaseOne[2].is_state_set && CaseOne[2].system_state);  
-  carbon_set_value_s = String(CaseOne[2].system_set_val);
-  
-
-  // WATER TEMPERATURE SYSTEM  
-  is_water_temp_set = CaseOne[3].is_system_set;
-  water_temp_button_state = CaseOne[3].is_system_set || (CaseOne[3].is_state_set && CaseOne[3].system_state);  
-  water_temp_set_value_s = String(CaseOne[3].system_set_val);
+    // TEMPERATURE SYSTEM
+    is_temp_set = CaseOne[0].is_system_set;
+    temp_button_state = CaseOne[0].is_system_set || (CaseOne[0].is_state_set && CaseOne[0].system_state);
+    temp_set_value_s = String(CaseOne[0].system_set_val);
 
 
-  // WATER LEVEL SYSTEM  
-  is_water_level_set = CaseOne[4].is_system_set;
-  water_level_button_state = CaseOne[4].is_system_set || (CaseOne[4].is_state_set && CaseOne[4].system_state);  
-  water_level_set_value_s = String(CaseOne[4].system_set_val);
+    // HUMIDITY SYSTEM
+    is_hum_set = CaseOne[1].is_system_set;
+    hum_button_state = CaseOne[1].is_system_set || (CaseOne[1].is_state_set && CaseOne[1].system_state);
+    hum_set_value_s = String(CaseOne[1].system_set_val);
 
 
-  
-  // LIGHTING SYSTEM
-  is_light_set = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set;
-  light_button_state = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set || (CaseTwo[0].is_state_set && CaseTwo[0].system_state);
-  
-  if (CaseTwo[0].is_clock_set){
-    if (CaseTwo[0].system_rep){
-      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин" + " (пов.)";  
+    // CARBON SYSTEM
+    is_carbon_set = CaseOne[2].is_system_set;
+    carbon_button_state = CaseOne[2].is_system_set || (CaseOne[2].is_state_set && CaseOne[2].system_state);
+    carbon_set_value_s = String(CaseOne[2].system_set_val);
+
+
+    // WATER TEMPERATURE SYSTEM
+    is_water_temp_set = CaseOne[3].is_system_set;
+    water_temp_button_state = CaseOne[3].is_system_set || (CaseOne[3].is_state_set && CaseOne[3].system_state);
+    water_temp_set_value_s = String(CaseOne[3].system_set_val);
+
+
+    // WATER LEVEL SYSTEM
+    is_water_level_set = CaseOne[4].is_system_set;
+    water_level_button_state = CaseOne[4].is_system_set || (CaseOne[4].is_state_set && CaseOne[4].system_state);
+    water_level_set_value_s = String(CaseOne[4].system_set_val);
+
+
+
+    // LIGHTING SYSTEM
+    is_light_set = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set;
+    light_button_state = CaseTwo[0].is_clock_set || CaseTwo[0].is_inter_set || (CaseTwo[0].is_state_set && CaseTwo[0].system_state);
+
+    if (CaseTwo[0].is_clock_set){
+      if (CaseTwo[0].system_rep){
+        light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин" + " (пов.)";
+      }
+      else{
+        light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин";
+      }
     }
-    else{
-      light_set_value_s = "Начало с: " + String(CaseTwo[0].system_time_h)+ ":" + String(CaseTwo[0].system_time_m) + " прод: " + String(CaseTwo[0].system_dur1) + " мин";  
+    else if (CaseTwo[0].is_inter_set){
+      light_set_value_s = "В течение: " + String(CaseTwo[0].system_dur2) + " с паузой в: " + String(CaseTwo[0].system_pause) + " мин";
     }
-  }
-  else if (CaseTwo[0].is_inter_set){
-    light_set_value_s = "В течение: " + String(CaseTwo[0].system_dur2) + " с паузой в: " + String(CaseTwo[0].system_pause) + " мин";
-  }
 
 
-    
-  // WATERING SYSTEM
-  is_water_set = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set;
-  water_button_state = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set || (CaseTwo[1].is_state_set && CaseTwo[1].system_state);
-  
-  if (CaseTwo[1].is_clock_set){
-    if (CaseTwo[1].system_rep){
-      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин" + " (пов.)";  
+
+    // WATERING SYSTEM
+    is_water_set = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set;
+    water_button_state = CaseTwo[1].is_clock_set || CaseTwo[1].is_inter_set || (CaseTwo[1].is_state_set && CaseTwo[1].system_state);
+
+    if (CaseTwo[1].is_clock_set){
+      if (CaseTwo[1].system_rep){
+        water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин" + " (пов.)";
+      }
+      else{
+        water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин";
+      }
     }
-    else{
-      water_set_value_s = "Начало с: " + String(CaseTwo[1].system_time_h)+ ":" + String(CaseTwo[1].system_time_m) + " прод: " + String(CaseTwo[1].system_dur1) + " мин";  
+    else if (CaseTwo[1].is_inter_set){
+      water_set_value_s = "В течение: " + String(CaseTwo[1].system_dur2) + " с паузой в: " + String(CaseTwo[1].system_pause) + " мин";
     }
+    // END !!! Applying read system values !!!
   }
-  else if (CaseTwo[1].is_inter_set){
-    water_set_value_s = "В течение: " + String(CaseTwo[1].system_dur2) + " с паузой в: " + String(CaseTwo[1].system_pause) + " мин";
-  }
-
-
-  // END !!! Applying read system values !!!
-
 }
 
 
@@ -1742,7 +1784,7 @@ String filePathCreator(int which_system){
 }
 
 
-void makeSnapShot(int which_system, String values){  
+void makeSnapShot(int which_system, String values){
   writeFile(SD, filePathCreator(which_system), values);
 }
 
@@ -1752,6 +1794,11 @@ void readSnapShot(int which_system){
 }
 
 
+void read_all_files(){
+  for (int file_num = 0; file_num < 10; file_num++){
+    readSnapShot(file_num);
+  }
+}
 
 
 // ФУНКЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ WI-FI
@@ -1764,8 +1811,8 @@ void initWiFi() {
 
     WiFi.onEvent(Wifi_connected,SYSTEM_EVENT_STA_CONNECTED);
     WiFi.onEvent(Get_IPAddress, SYSTEM_EVENT_STA_GOT_IP);
-    WiFi.onEvent(Wifi_disconnected, SYSTEM_EVENT_STA_DISCONNECTED); 
-    
+    WiFi.onEvent(Wifi_disconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+
     WiFi.mode(WIFI_STA);
 
     wifiMulti.addAP(main_ssid, main_password);
@@ -1774,42 +1821,24 @@ void initWiFi() {
 
     if(wifiMulti.run() == WL_CONNECTED) {
       Serial.println(WiFi.SSID());
-      
-      // Reading system values if registered  
-      readSnapShot(0);
-      readSnapShot(1);
-      readSnapShot(2);
-      readSnapShot(3);
-      readSnapShot(4);
-      readSnapShot(5);
-      readSnapShot(6);
-      readSnapShot(7);
-      readSnapShot(8);
-      readSnapShot(9);
-      
+
       gui_control_mode = "web-based";
       Serial.println(" ");
       Serial.println("Web-Based GUI");
-      
+
+      // Reading system values if registered
+      read_all_files();
+
       display_wifi_info();
     }
     else{
-      
-      // Reading system values if registered
-      readSnapShot(0);
-      readSnapShot(1);
-      readSnapShot(2);
-      readSnapShot(3);
-      readSnapShot(4);
-      readSnapShot(5);
-      readSnapShot(6);
-      readSnapShot(7);
-      readSnapShot(8);
-      readSnapShot(9);
-      
+
       gui_control_mode = "manual";
       Serial.println(" ");
       Serial.println("Manual GUI");
+
+      // Reading system values if registered
+      read_all_files();
     }
 
     timeClient.begin();
@@ -1824,7 +1853,7 @@ void wifi_try_counter_incrementer(){
 }
 
 void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.println(" ");   
+  Serial.println(" ");
   Serial.println("Successfully connected to Access Point");
   Serial.println("Web-Based GUI");
   gui_control_mode = "web-based";
@@ -1846,22 +1875,13 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Disconnected from WIFI access point");
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.disconnected.reason);
-  
+
   // Reading system values if registered
-  readSnapShot(0);
-  readSnapShot(1);
-  readSnapShot(2);
-  readSnapShot(3);
-  readSnapShot(4);
-  readSnapShot(5);
-  readSnapShot(6);
-  readSnapShot(7);
-  readSnapShot(8);  
-  readSnapShot(9);
-  
+  read_all_files();
+
   gui_control_mode = "manual";
-  
-//  Serial.println("Reconnecting...");  
+
+//  Serial.println("Reconnecting...");
 //
 //  Serial.println(wifi_try_counter);
 //  WiFi.begin(wifi_dict[wifi_try_counter].ssid, wifi_dict[wifi_try_counter].password);
@@ -1870,53 +1890,43 @@ void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
 //    Serial.println("Web-Based GUI Again");
 //    gui_control_mode = "web-based";
 //    // Вывод IP адреса на LCD дисплей
-//    display_wifi_info();  
+//    display_wifi_info();
 //  }
-  
+
 }
 
 
 // ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ ЗНАЧЕНИИ ДАТЫ И ВРЕМЕНИ
 void getWiFiDateTime(){
-    
+
     while(!timeClient.update()) {
       timeClient.forceUpdate();
     }
     formattedDate = timeClient.getFormattedDate();
-    
+
     int splitT = formattedDate.indexOf("T");
     dayStamp = formattedDate.substring(0, splitT);
     // Extract time
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);    
+    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-4);
     DateTimeStamp = dayStamp + " " + timeStamp;
 //    Serial.println("Relying on Wifi Time...");
-//    Serial.println(DateTimeStamp);    
+//    Serial.println(DateTimeStamp);
 }
 
 
-void printDateTime(const DateTime& dt)
+void printDateTime(const RtcDateTime& dt)
 {
-
-    snprintf_P(datestring, 
+    
+    snprintf_P(datestring,
       countof(datestring),
       PSTR("%02u-%02u-%02u %02u:%02u"),
-      dt.year(),
-      dt.month(),
-      dt.day(),
-      dt.hour(),
-      dt.minute()
+      dt.Year(),
+      dt.Month(),
+      dt.Day(),
+      dt.Hour(),
+      dt.Minute()
       );
 //    Serial.print(datestring);
-}
-
-
-void getHardDateTime(){ 
-    DateTime now = rtc.now();
-    printDateTime(now);
-    DateTimeStamp = datestring;    
-//    Serial.println();
-//    Serial.println("Relying on DS1302 Module...");
-//    Serial.println(DateTimeStamp);
 }
 
 
@@ -1926,7 +1936,7 @@ String processor(const String& var){
 
   getDummySensorReadings();
   getWiFiDateTime();
-  
+
   // Значения датчиков для страницы;
   if(var == "TEMPERATURE"){
     return String(temperature);
@@ -1948,11 +1958,11 @@ String processor(const String& var){
   }
   else if(var == "WATER_LEVEL"){
     return String(water_level);
-  }    
+  }
   else if(var == "CARBON"){
     return String(carbon);
   }
-    
+
   // Вывод заданных значении
   else if(var == "TEMP_SET_VALUE"){
     if(is_temp_set){
@@ -1961,14 +1971,14 @@ String processor(const String& var){
     else{
       return String("");
     };
-  } 
+  }
   else if(var == "HUM_SET_VALUE"){
     if(is_hum_set){
       return String(to + hum_set_value_s);
     }
     else{
       return String("");
-    };  
+    };
   }
   else if(var == "LIGHT_SET_VALUE"){
     if(is_light_set){
@@ -2010,8 +2020,8 @@ String processor(const String& var){
       return String("");
     };
   }
-  
-  
+
+
   // Состояния текста кнопок задатчиков
   else if (var == "TEMP_SUB_BUT_TEXT"){
     if (temp_button_state){
@@ -2085,7 +2095,7 @@ String processor(const String& var){
     }
     return String(fan_button_state);
   }
-   
+
   // Состояния кнопок задатчиков
   else if (var == "TEMP_BUTTON_STATE"){
     if (temp_button_state){
@@ -2159,7 +2169,7 @@ String processor(const String& var){
     }
     return String(carbon_button_state);
   }
-      
+
   // Состояния карточек отоброжения значении датчиков
   else if (var == "IS_LIGHT_SET"){
     if (is_light_set){
@@ -2169,7 +2179,7 @@ String processor(const String& var){
       return String("card");
     }
     return String(is_light_set);
-  }  
+  }
   else if (var == "IS_HUM_SET"){
     if (is_hum_set){
       return String("card-set");
@@ -2196,7 +2206,7 @@ String processor(const String& var){
       return String("card");
     }
     return String(is_water_set);
-  }  
+  }
   else if (var == "IS_WATER_LEVEL_SET"){
     if (is_water_level_set){
       return String("card-set");
@@ -2214,7 +2224,7 @@ String processor(const String& var){
       return String("card");
     }
     return String(is_water_temp_set);
-  }  
+  }
   else if (var == "IS_CARBON_SET"){
     if (is_carbon_set){
       return String("card-set");
@@ -2224,14 +2234,14 @@ String processor(const String& var){
     }
     return String(is_carbon_set);
   }
-    
+
   else if (var == "UPDATE_SPAN"){
-    return String(timerDelay/1000);  
+    return String(timerDelay/1000);
   }
   else if (var == "LED_BRIGHTNESS"){
-    return String(led_brightness);  
+    return String(led_brightness);
   };
-  
+
   return String();
 }
 
@@ -2243,11 +2253,11 @@ const char index_html[] PROGMEM = R"rawliteral(
 <head>
   <title>KazATU PhytoFarm</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />  
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
-  
-  <style>      
+
+  <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
     p { font-size: 1.2rem;}
     body {  margin: 0;
@@ -2278,13 +2288,13 @@ const char index_html[] PROGMEM = R"rawliteral(
         -ms-user-select: none;
         user-select: none;
         -webkit-tap-highlight-color: rgba(0,0,0,0);
-      }  
+      }
     .buttonOFF:hover {background-color: #1f2e45}
     .buttonOFF:active {
         background-color: #1f2e45;
         box-shadow: 0 4px #666;
         transform: translateY(2px);
-      }  
+      }
 
     .buttonON {
         padding: 10px 20px;
@@ -2304,14 +2314,14 @@ const char index_html[] PROGMEM = R"rawliteral(
         -ms-user-select: none;
         user-select: none;
         -webkit-tap-highlight-color: rgba(0,0,0,0);
-      }  
+      }
     .buttonON:hover {background-color: #a61b36}
     .buttonON:active {
         background-color: #a61b36;
         box-shadow: 0 4px #666;
         transform: translateY(2px);
     }
-    
+
 .button-submmit {
   appearance: none;
   background-color: #FAFBFC;
@@ -2368,7 +2378,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 .button-submmit:-webkit-details-marker {
   display: none;
 }
-  
+
 
 </style>
 </head>
@@ -2378,10 +2388,10 @@ const char index_html[] PROGMEM = R"rawliteral(
     <h1>ФИТОКАМЕРА КАЗАТУ</h1>
     <p style="display:inline;"><i class="far fa-clock" style="color:#e1e437;"></i> Bремя: </p><p style="display:inline;"><span class="reading"><span id="datetime">%DATETIME%</span></span></p>
   </div>
- 
+
   <div class="content">
-  
-    <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ --> 
+
+    <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ -->
     <div class="cards">
         <div class=%IS_TEMP_SET%>
           <p><i class="fas fa-thermometer-half" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОЗДУХА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span><span>%TEMP_SET_VALUE%</span> &deg;C</span></p>
@@ -2399,19 +2409,19 @@ const char index_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_CARBON_SET%>
           <p><i class="fa fa-leaf" style="color:#059e8a;"></i> СОДЕРЖАНИЕ CO2</p><p><span class="reading"><span id="carbon">%CARBON%</span><span>%CARBON_SET_VALUE%</span> &percnt;</span></p>
-        </div>   
+        </div>
         <div class=%IS_WATER_TEMP_SET%>
           <p><i class="fas fa-water" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_temp">%WATER_TEMP%</span><span>%WATER_TEMP_SET_VALUE%</span> &deg;C</span></p>
-        </div>   
+        </div>
         <div class=%IS_WATER_LEVEL_SET%>
           <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> л.</span></p>
-        </div>       
+        </div>
     </div>
-    
+
     <br><br>
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОТОПЛЕНИЯ ВОЗДУХА -->
-    
+
     <form id="temp-form" class=%TEMP_BUTTON_STATE% action="/gettemp">
       Температура на : <input type="number" name="new-temp-value">
       <input id="temp-value" class="button-submmit" type="submit" value="Задать">
@@ -2420,11 +2430,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input type="hidden" name="new-temp-value-tog" value="toggle-temp">
       <input id="temp-on" class="button-submmit" type="submit" value=%TEMP_SUB_BUT_TEXT%>
     </form>
-    
+
     <br><br>
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ УВЛАЖНЕНИЯ ВОЗДУХА -->
-    
+
     <form id="hum-form" class=%HUM_BUTTON_STATE% action="/gethum">
       Влажность на : <input type="number" name="new-hum-value">
       <input id="hum-value" class="button-submmit" type="submit" value="Задать">
@@ -2433,11 +2443,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input type="hidden" name="new-hum-value-tog" value="toggle-hum">
       <input id="hum-on" class="button-submmit" type="submit" value=%HUM_SUB_BUT_TEXT%>
     </form>
-    
+
     <br><br>
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ СЛЕЖЕНИЯ ЗА СОДЕРЖАНИЕМ УГЛЕКИСЛОГО ГАЗА -->
-    
+
     <form id="carbon-form" class=%CARBON_BUTTON_STATE% action="/getcarbon">
       Углекислый газ на : <input type="number" name="new-carbon-value">
       <input id="carbon-value" class="button-submmit" type="submit" value="Задать">
@@ -2446,11 +2456,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input type="hidden" name="new-carbon-value-tog" value="toggle-carbon">
       <input id="carbon-on" class="button-submmit" type="submit" value=%CARBON_SUB_BUT_TEXT%>
     </form>
-    
+
     <br><br>
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ СЛЕЖЕНИЯ ЗА ТЕМПЕРАТУРОЙ ВОДЫ В БАКЕ -->
-    
+
     <form id="water-temp-form" class=%WATER_TEMP_BUTTON_STATE% action="/getwatertemp">
       Темп. воды на : <input type="number" name="new-water-temp-value">
       <input id="water-temp-value" class="button-submmit" type="submit" value="Задать">
@@ -2459,11 +2469,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input type="hidden" name="new-water-temp-value-tog" value="toggle-water-temp">
       <input id="water-temp-on" class="button-submmit" type="submit" value=%WATER_TEMP_SUB_BUT_TEXT%>
     </form>
-    
+
     <br><br>
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ СЛЕЖЕНИЯ ЗА УРОВНЕМ ВОДЫ В БАКЕ -->
-    
+
     <form id="water-level-form" class=%WATER_LEVEL_BUTTON_STATE% action="/getwaterlevel">
       Уров. воды на : <input type="number" name="new-water-level-value">
       <input id="water-level-value" class="button-submmit" type="submit" value="Задать">
@@ -2472,12 +2482,12 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input type="hidden" name="new-water-level-value-tog" value="toggle-water-level">
       <input id="water-level-on" class="button-submmit" type="submit" value=%WATER_LEVEL_SUB_BUT_TEXT%>
     </form>
-    
+
     <br><br>
 
 
 
-    
+
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ОСВЕЩЕНИЯ -->
 
     <div id="flip-light-control-top">
@@ -2494,7 +2504,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         Продолж. освещ: <input type="number" name="new-light-value-duration2">
         пауза: <input type="number" name="new-light-value-pause">
         <input id="light-value" class="button-submmit" type="submit" value="Задать">
-      </form>   
+      </form>
     </div>
 
     <form id="light-form-on" class=%LIGHT_BUTTON_STATE% action="/getlighttog">
@@ -2502,12 +2512,12 @@ const char index_html[] PROGMEM = R"rawliteral(
       <input id="light-on" class="button-submmit" type="submit" value=%LIGHT_SUB_BUT_TEXT%>
     </form>
 
-    
+
     <br><br>
 
 
     <!-- КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ПОЛИВА -->
-    
+
     <div id="flip-water-control-top">
       <form id="water-form" class=%WATER_BUTTON_STATE% action="/getwater">
         Начало полива: <input type="time" id="time" name="new-water-value-time">
@@ -2535,28 +2545,28 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     <br><br>
 
-      КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ВЕНТИЛЯЦИИ 
-      
+      КНОПКА ДЛЯ КОНТРОЛЯ СИСТЕМЫ ВЕНТИЛЯЦИИ
+
       <form id="fan-form-on" class=%FAN_BUTTON_STATE% action="/getfan">
         Вентилятор:<br>
         <input type="hidden" name="new-fan-value" value="toggle-fan">
         <input id="fan-on" class="button-submmit" type="submit" value=%FAN_SUB_BUT_TEXT%>
       </form>
-      
+
     -->
-    
+
     <br><br>
-    
+
     <button type="button" class="button-submmit"><a href="/settings">Настройки</a></button>
 
-  
+
   </div>
 
 
 <script>
 if (!!window.EventSource) {
  var source = new EventSource('/events');
- 
+
  source.addEventListener('open', function(e) {
   console.log("Events Connected");
  }, false);
@@ -2565,7 +2575,7 @@ if (!!window.EventSource) {
     console.log("Events Disconnected");
   }
  }, false);
- 
+
  source.addEventListener('message', function(e) {
 //  console.log("message", e.data);
  }, false);
@@ -2579,12 +2589,12 @@ if (!!window.EventSource) {
 //  console.log("temperature", e.data);
   document.getElementById("temp").innerHTML = e.data;
  }, false);
- 
+
  source.addEventListener('humidity', function(e) {
 //  console.log("humidity", e.data);
   document.getElementById("hum").innerHTML = e.data;
  }, false);
- 
+
  source.addEventListener('light', function(e) {
 //  console.log("light", e.data);
   document.getElementById("light").innerHTML = e.data;
@@ -2599,12 +2609,12 @@ source.addEventListener('refresher', function(e) {
   console.log("LOADED!!!");
   console.log(document.URL);
   console.log(document.URL.slice(0, 22));
-  
+
   if (document.URL.length > 24){
     window.location = '/';
   }
   else{
-    console.log("shorter than 22");  
+    console.log("shorter than 22");
   }
  }, false);
 
@@ -2620,26 +2630,26 @@ document.getElementById("flip-water-control-back").style.setProperty("display", 
 
 function flipper(flag){
   if (flag == "flip-light"){
-    console.log("CLICK ON LIGHT CONTROL TOOLS A"); 
+    console.log("CLICK ON LIGHT CONTROL TOOLS A");
     document.getElementById("flip-light-control-back").style.setProperty("display", "block");
     document.getElementById("flip-light-control-top").style.setProperty("display", "none");
   }
   else if (flag == "flipback-light"){
-    console.log("CLICK ON LIGHT CONTROL TOOLS B"); 
+    console.log("CLICK ON LIGHT CONTROL TOOLS B");
     document.getElementById("flip-light-control-top").style.setProperty("display", "block");
-    document.getElementById("flip-light-control-back").style.setProperty("display", "none");    
+    document.getElementById("flip-light-control-back").style.setProperty("display", "none");
   }
 
   else if (flag == "flip-water"){
-    console.log("CLICK ON WATER CONTROL TOOLS A"); 
-    document.getElementById("flip-water-control-back").style.setProperty("display", "block");    
+    console.log("CLICK ON WATER CONTROL TOOLS A");
+    document.getElementById("flip-water-control-back").style.setProperty("display", "block");
     document.getElementById("flip-water-control-top").style.setProperty("display", "none");
   }
   else if (flag == "flipback-water"){
-    console.log("CLICK ON WATER CONTROL TOOLS B"); 
+    console.log("CLICK ON WATER CONTROL TOOLS B");
     document.getElementById("flip-water-control-top").style.setProperty("display", "block");
-    document.getElementById("flip-water-control-back").style.setProperty("display", "none");    
-  }  
+    document.getElementById("flip-water-control-back").style.setProperty("display", "none");
+  }
 }
 
 
@@ -2662,10 +2672,10 @@ const char settings_html[] PROGMEM = R"rawliteral(
 <head>
   <title>KazATU PhytoFarm</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />  
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="icon" href="data:,">
-  
+
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
     p { font-size: 1.2rem;}
@@ -2676,7 +2686,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
     .card-set { background-color: #f7c3c3; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .cards { max-width: 800px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .reading { font-size: 1.4rem; }
-    
+
 .button-submmit {
   appearance: none;
   background-color: #FAFBFC;
@@ -2742,10 +2752,10 @@ const char settings_html[] PROGMEM = R"rawliteral(
     <h1>ФИТОКАМЕРА КАЗАТУ</h1>
     <p style="display:inline;"><i class="far fa-clock" style="color:#e1e437;"></i> Bремя: </p><p style="display:inline;"><span class="reading"><span id="datetime">%DATETIME%</span></span></p>
   </div>
- 
+
   <div class="content">
-  
-    <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ --> 
+
+    <!-- РАЗДЕЛ ОТОБРАЖЕНИЯ ПОКАЗАНИИ ДАТЧИКОВ -->
     <div class="cards">
         <div class=%IS_TEMP_SET%>
           <p><i class="fas fa-thermometer-half" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОЗДУХА</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span><span>%TEMP_SET_VALUE%</span> &deg;C</span></p>
@@ -2763,32 +2773,32 @@ const char settings_html[] PROGMEM = R"rawliteral(
         </div>
         <div class=%IS_CARBON_SET%>
           <p><i class="fa fa-leaf" style="color:#059e8a;"></i> СОДЕРЖАНИЕ CO2</p><p><span class="reading"><span id="carbon">%CARBON%</span><span>%CARBON_SET_VALUE%</span> &percnt;</span></p>
-        </div>   
+        </div>
         <div class=%IS_WATER_TEMP_SET%>
           <p><i class="fas fa-water" style="color:#f55442;"></i> ТЕМПЕРАТУРА ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_temp">%WATER_TEMP%</span><span>%WATER_TEMP_SET_VALUE%</span> &deg;C</span></p>
-        </div>   
+        </div>
         <div class=%IS_WATER_LEVEL_SET%>
           <p><i class="fas fa-ruler-vertical" style="color:#00add6;"></i> УРОВЕНЬ ВОДЫ В БАКЕ</p><p><span class="reading"><span id="water_level">%WATER_LEVEL%</span><span>%WATER_LEVEL_SET_VALUE%</span> л.</span></p>
-        </div>       
+        </div>
     </div>
-    
+
     <br><br>
 
     <form id="update-form" class="" action="/getupd">
       Интервал обновления(сек) : <input type="number" name="new-update-value" placeholder=%UPDATE_SPAN%>
       <input id="update-value" class="button-submmit" type="submit" value="Задать">
     </form>
-    
+
     <br><br>
 
     <form id="update-form" class="" action="/getupd">
       Яркость светодиодной ленты: <input type="number" name="new-brightness-value" placeholder=%LED_BRIGHTNESS%>
       <input id="update-value" class="button-submmit" type="submit" value="Задать">
     </form>
-    
+
     <br><br>
 
-   
+
     <button type="button" class="button-submmit"><a href="/">Главная</a></button>
 
   </div>
@@ -2799,7 +2809,7 @@ const char settings_html[] PROGMEM = R"rawliteral(
 <script>
 if (!!window.EventSource) {
  var source = new EventSource('/events');
- 
+
  source.addEventListener('open', function(e) {
   console.log("Events Connected");
  }, false);
@@ -2808,7 +2818,7 @@ if (!!window.EventSource) {
     console.log("Events Disconnected");
   }
  }, false);
- 
+
  source.addEventListener('message', function(e) {
   console.log("message", e.data);
  }, false);
@@ -2822,12 +2832,12 @@ if (!!window.EventSource) {
   console.log("temperature", e.data);
   document.getElementById("temp").innerHTML = e.data;
  }, false);
- 
+
  source.addEventListener('humidity', function(e) {
   console.log("humidity", e.data);
   document.getElementById("hum").innerHTML = e.data;
  }, false);
- 
+
  source.addEventListener('pressure', function(e) {
   console.log("pressure", e.data);
   document.getElementById("pres").innerHTML = e.data;
@@ -2835,7 +2845,7 @@ if (!!window.EventSource) {
 
  document.addEventListener('DOMContentLoaded', function(e){
   console.log("LOADED!!!");
-  
+
  }, false);
 
 
@@ -2849,12 +2859,12 @@ source.addEventListener('refresher', function(e) {
   console.log("LOADED!!!");
   console.log(document.URL);
   console.log(document.URL.slice(0, 31));
-  
+
   if (document.URL.length > 33){
     window.location = "/settings";
   }
   else{
-    console.log("shorter than 22");  
+    console.log("shorter than 22");
   }
  }, false);
 
@@ -2874,35 +2884,35 @@ void notFound(AsyncWebServerRequest *request) {
 
 void reset_light(){
   is_working_light = false;
-  
+
   light_snap_workC = true;
   light_track_workC = false;
-  
+
   light_snap_workI = true;
   light_track_workI = false;
   light_snap_pauseI = false;
-  light_track_pauseI = false;  
+  light_track_pauseI = false;
 }
 
 void reset_water(){
   is_working_water = false;
-  
+
   water_snap_workC = true;
   water_track_workC = false;
-  
+
   water_snap_workI = true;
   water_track_workI = false;
   water_snap_pauseI = false;
-  water_track_pauseI = false; 
+  water_track_pauseI = false;
 }
 
 bool compareTimes(int start_time_h, int start_time_m, int right_now_hour, int right_now_minute, int duration){
-  int time_laps_inMins = (right_now_hour - start_time_h)*60 + (right_now_minute - start_time_m);  
-  
+  int time_laps_inMins = (right_now_hour - start_time_h)*60 + (right_now_minute - start_time_m);
+
   Serial.println(" ");
   Serial.print("Time Laps: ");
   Serial.println(time_laps_inMins);
-  
+
   if (time_laps_inMins >= duration){
     return true;
   }
@@ -2915,19 +2925,27 @@ bool compareTimes(int start_time_h, int start_time_m, int right_now_hour, int ri
 void TrackSystems(){
   String right_now_time = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
   String right_now_date = DateTimeStamp.substring(0, DateTimeStamp.indexOf(" "));
-  
+
   appendFile(SD, "/sersors_logger.txt", right_now_date+","+right_now_time+","+String(CaseOne[0].system_val)+","+String(CaseOne[1].system_val)+","+String(CaseOne[2].system_val)+","+String(CaseOne[3].system_val)+","+String(CaseOne[4].system_val)+","+String(CaseTwo[0].system_val)+","+String(CaseTwo[1].system_val)+", \r\n");
-  
-  
+
+  Serial.println("#################### DEBUGGING #############################");
+  Serial.print("IS LIGHTING CLOCK SET?: ");
+  Serial.println(CaseTwo[0].is_clock_set);
+
+  Serial.print("IS LIGHTING SET?: ");
+  Serial.println(CaseTwo[0].is_state_set);
+
+  Serial.println("############################################################");
+
   // TEMPERAURE
   if (CaseOne[0].is_system_set){
     if ((CaseOne[0].system_set_val > CaseOne[0].system_val) && !is_working_temperature){
       Serial1.println("a");
-      is_working_temperature = true;              
+      is_working_temperature = true;
     }
     else if ((CaseOne[0].system_set_val > CaseOne[0].system_val) && is_working_temperature){
       Serial.println(" ");
-      Serial.println("CONTINUE CONTROL ON TEMPERATURE");       
+      Serial.println("CONTINUE CONTROL ON TEMPERATURE");
     }
     else{
       Serial1.println("b");
@@ -2936,23 +2954,23 @@ void TrackSystems(){
   }
   else if ((CaseOne[0].is_state_set && CaseOne[0].system_state) && !is_working_temperature){
     Serial1.println("a");
-    is_working_temperature = true; 
+    is_working_temperature = true;
   }
   else if (!CaseOne[0].is_state_set && is_working_temperature){
     Serial1.println("b");
     is_working_temperature = false;
   };
-  
+
 
   // HUMIDITY
   if (CaseOne[1].is_system_set){
     if ((CaseOne[1].system_set_val > CaseOne[1].system_val) && !is_working_humidity){
       Serial1.println("g");
-      is_working_humidity = true;              
+      is_working_humidity = true;
     }
     else if ((CaseOne[1].system_set_val > CaseOne[1].system_val) && is_working_humidity){
       Serial.println(" ");
-      Serial.println("CONTINUE CONTROL ON HUMIDITY");      
+      Serial.println("CONTINUE CONTROL ON HUMIDITY");
     }
     else{
       Serial1.println("h");
@@ -2961,7 +2979,7 @@ void TrackSystems(){
   }
   else if ((CaseOne[1].is_state_set && CaseOne[1].system_state) && !is_working_humidity){
     Serial1.println("g");
-    is_working_humidity = true; 
+    is_working_humidity = true;
   }
   else if (!CaseOne[1].is_state_set && is_working_humidity){
     Serial1.println("h");
@@ -2973,11 +2991,11 @@ void TrackSystems(){
   if (CaseOne[2].is_system_set){
     if ((CaseOne[2].system_set_val < CaseOne[2].system_val) && !is_working_carbon){
       Serial1.println("i");
-      is_working_carbon = true;              
+      is_working_carbon = true;
     }
     else if ((CaseOne[2].system_set_val < CaseOne[2].system_val) && is_working_carbon){
       Serial.println(" ");
-      Serial.println("CONTINUE CONTROL ON CARBON");       
+      Serial.println("CONTINUE CONTROL ON CARBON");
     }
     else{
       Serial1.println("j");
@@ -2986,7 +3004,7 @@ void TrackSystems(){
   }
   else if ((CaseOne[2].is_state_set && CaseOne[2].system_state) && !is_working_carbon){
     Serial1.println("i");
-    is_working_carbon = true; 
+    is_working_carbon = true;
   }
   else if (!CaseOne[2].is_state_set && is_working_carbon){
     Serial1.println("j");
@@ -2998,11 +3016,11 @@ void TrackSystems(){
   if (CaseOne[3].is_system_set){
     if ((CaseOne[3].system_set_val > CaseOne[3].system_val) && !is_working_water_temp){
       Serial1.println("k");
-      is_working_water_temp = true;              
+      is_working_water_temp = true;
     }
     else if((CaseOne[3].system_set_val > CaseOne[3].system_val) && is_working_water_temp){
       Serial.println(" ");
-      Serial.println("CONTINUE CONTROL ON WATER TEMPEATURE");    
+      Serial.println("CONTINUE CONTROL ON WATER TEMPEATURE");
     }
     else{
       Serial1.println("l");
@@ -3011,19 +3029,19 @@ void TrackSystems(){
   }
   else if ((CaseOne[3].is_state_set && CaseOne[3].system_state) && !is_working_water_temp){
     Serial1.println("k");
-    is_working_water_temp = true; 
+    is_working_water_temp = true;
   }
   else if (!CaseOne[3].is_state_set && is_working_water_temp){
     Serial1.println("l");
     is_working_water_temp = false;
   };
 
-  
+
   // WATER LEVEL
   if (CaseOne[4].is_system_set){
     if ((CaseOne[4].system_set_val > CaseOne[4].system_val) && !is_working_water_level){
       Serial1.println("m");
-      is_working_water_level = true;              
+      is_working_water_level = true;
     }
     else if ((CaseOne[4].system_set_val > CaseOne[4].system_val) && is_working_water_level){
       Serial.println(" ");
@@ -3036,7 +3054,7 @@ void TrackSystems(){
   }
   else if ((CaseOne[4].is_state_set && CaseOne[4].system_state) && !is_working_water_level){
     Serial1.println("m");
-    is_working_water_level = true; 
+    is_working_water_level = true;
   }
   else if (!CaseOne[4].is_state_set && is_working_water_level){
     Serial1.println("n");
@@ -3053,32 +3071,33 @@ void TrackSystems(){
     is_working_light = true;
     reset_light();
   }
-  else if (!CaseTwo[0].is_state_set && is_working_light && !CaseTwo[0].is_clock_set && !CaseTwo[0].is_inter_set){
+  else if (is_working_light && (!(CaseTwo[0].is_state_set && CaseTwo[0].system_state) || !CaseTwo[0].is_clock_set || !CaseTwo[0].is_inter_set)){
     Serial.println(" ");
     Serial.println("Turning OFF LIGHTS (TOGGLE)");
     Serial1.println("d");
+    is_working_light = false;
     reset_light();
   }
-  
+
   else if (CaseTwo[0].is_clock_set){
     Serial.println(" ");
     Serial.println("CLOCK LIGHTS IS SET");
-        
+
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
-  
-    
+
+
     if (right_now_hour >= CaseTwo[0].system_time_h && ((right_now_minute - CaseTwo[0].system_time_m) >= 0) && (right_now_minute >= CaseTwo[0].system_time_m)){
       Serial.println(" ");
       Serial.println("LIGHT (CLOCK) IS MET TIME REQUIREMENTS");
       if (light_snap_workC){
         light_start_time_h = right_now_hour;
         light_start_time_m = right_now_minute;
-        
+
         light_snap_workC = false;
         light_track_workC = true;
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Started tracking! (clock)");
         Serial1.println("c");
@@ -3092,38 +3111,38 @@ void TrackSystems(){
         is_working_light = false;
         if (CaseTwo[0].system_rep){
           light_snap_workC = true;
-          light_track_workC = false;        
+          light_track_workC = false;
         }
         else{
           light_snap_workC = true;
-          light_track_workC = false; 
+          light_track_workC = false;
           CaseTwo[0].set_value(8, false);
-          
+
           is_light_set = false;
           light_button_state = false;
           events.send("Refresh the page","refresher",millis());
-        }  
+        }
       }
     }
-  
-  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");    
+
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
   }
-  
+
   else if (CaseTwo[0].is_inter_set){
     Serial.println(" ");
     Serial.println("INTERVAL LIGHTS IS SET");
-        
+
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
-    
+
     if (light_snap_workI){
       light_start_time_h = right_now_hour;
       light_start_time_m = right_now_minute;
-      
+
       light_snap_workI = false;
       light_track_workI = true;
-    
+
       Serial.println(" ");
       Serial.println("(!!!)Started tracking! (interval)");
       Serial1.println("c");
@@ -3132,35 +3151,35 @@ void TrackSystems(){
     // tracking time
     if (light_track_workI){
       if (compareTimes(light_start_time_h, light_start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_dur2)){
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of duration! (interval)");
         Serial1.println("d");
         is_working_light = false;
         light_track_workI = false;
-        light_snap_pauseI = true;          
+        light_snap_pauseI = true;
       }
     }
     else if (light_snap_pauseI){
       light_start_time_h = right_now_hour;
       light_start_time_m = right_now_minute;
-      
+
       Serial.println(" ");
       Serial.println("(!!!)Started pausing! (interval)");
-      light_snap_pauseI = false; 
-      light_track_pauseI = true;     
+      light_snap_pauseI = false;
+      light_track_pauseI = true;
     }
     // tracking pause
     else if(light_track_pauseI){
       if (compareTimes(light_start_time_h, light_start_time_m, right_now_hour, right_now_minute, CaseTwo[0].system_pause)){
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of pause! (interval)");
         light_snap_workI = true;
-        light_track_pauseI = false;  
-      }    
+        light_track_pauseI = false;
+      }
     }
-    
+
   makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
   };
 
@@ -3174,32 +3193,33 @@ void TrackSystems(){
     is_working_water = true;
     reset_water();
   }
-  else if (!CaseTwo[1].is_state_set && is_working_water && !CaseTwo[1].is_clock_set && !CaseTwo[1].is_inter_set){
+  else if (is_working_water && (!(CaseTwo[1].is_state_set && CaseTwo[1].system_state) || !CaseTwo[1].is_clock_set || !CaseTwo[1].is_inter_set)){
     Serial.println(" ");
     Serial.println("Turning OFF WATER (TOGGLE)");
     Serial1.println("d");
+    is_working_water = false;
     reset_water();
   }
-  
+
   else if (CaseTwo[1].is_clock_set){
     Serial.println(" ");
     Serial.println("CLOCK WATER IS SET");
-        
+
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
-  
-    
+
+
     if (right_now_hour >= CaseTwo[1].system_time_h && ((right_now_minute - CaseTwo[1].system_time_m) >= 0) && (right_now_minute >= CaseTwo[1].system_time_m)){
       Serial.println(" ");
       Serial.println("WATER (CLOCK) IS MET TIME REQUIREMENTS");
       if (water_snap_workC){
         water_start_time_h = right_now_hour;
         water_start_time_m = right_now_minute;
-        
+
         water_snap_workC = false;
         water_track_workC = true;
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Started tracking! (clock)");
         Serial1.println("c");
@@ -3213,38 +3233,38 @@ void TrackSystems(){
         is_working_water = false;
         if (CaseTwo[1].system_rep){
           water_snap_workC = true;
-          water_track_workC = false;        
+          water_track_workC = false;
         }
         else{
           water_snap_workC = true;
-          water_track_workC = false; 
+          water_track_workC = false;
           CaseTwo[1].set_value(8, false);
-          
+
           is_water_set = false;
           water_button_state = false;
           events.send("Refresh the page","refresher",millis());
-        }  
+        }
       }
     }
-  
-  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");    
+
+  makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
   }
-  
+
   else if (CaseTwo[1].is_inter_set){
     Serial.println(" ");
     Serial.println("INTERVAL WATER IS SET");
-        
+
     String right_now = DateTimeStamp.substring(DateTimeStamp.indexOf(" ")+1, -1);
     int right_now_minute = stringToInt(right_now.substring(right_now.indexOf(":")+1, -1));
     int right_now_hour = stringToInt(right_now.substring(0, right_now.indexOf(":")));
-    
+
     if (water_snap_workI){
       water_start_time_h = right_now_hour;
       water_start_time_m = right_now_minute;
-      
+
       water_snap_workI = false;
       water_track_workI = true;
-    
+
       Serial.println(" ");
       Serial.println("(!!!)Started tracking! (interval)");
       Serial1.println("c");
@@ -3253,33 +3273,33 @@ void TrackSystems(){
     // tracking time
     if (water_track_workI){
       if (compareTimes(water_start_time_h, water_start_time_m, right_now_hour, right_now_minute, CaseTwo[1].system_dur2)){
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of duration! (interval)");
         Serial1.println("d");
         is_working_water = false;
         water_track_workI = false;
-        water_snap_pauseI = true;          
+        water_snap_pauseI = true;
       }
     }
     else if (water_snap_pauseI){
       water_start_time_h = right_now_hour;
       water_start_time_m = right_now_minute;
-      
+
       Serial.println(" ");
       Serial.println("(!!!)Started pausing! (interval)");
-      water_snap_pauseI = false; 
-      water_track_pauseI = true;     
+      water_snap_pauseI = false;
+      water_track_pauseI = true;
     }
     // tracking pause
     else if(water_track_pauseI){
       if (compareTimes(water_start_time_h, water_start_time_m, right_now_hour, right_now_minute, CaseTwo[1].system_pause)){
-        
+
         Serial.println(" ");
         Serial.println("(!!!)Completed tracking by min of pause! (interval)");
         water_snap_workI = true;
-        water_track_pauseI = false;  
-      }    
+        water_track_pauseI = false;
+      }
     }
 
   makeSnapShot(9, "v,"+String(int(light_snap_workC))+","+String(int(light_track_workC))+","+String(int(light_snap_workI))+","+String(int(light_track_workI))+","+String(int(light_snap_pauseI))+","+String(int(light_track_pauseI))+","+String(int(water_snap_workC))+","+String(int(water_track_workC))+","+String(int(water_snap_workI))+","+String(int(water_track_workI))+","+String(int(water_snap_pauseI))+","+String(int(water_track_pauseI))+",");
@@ -3293,14 +3313,14 @@ void TrackSystems(){
 void setup() {
   Serial.begin(baud, SERIAL_8N1);
   Serial1.begin(baud, SERIAL_8N1, RXD2, TXD2);  // От и К Arduino
-  
+
   pinMode(ONBOARD_LED,OUTPUT);
 
-  // Инициализация Модуля SD Памяти 
+  // Инициализация Модуля SD Памяти
   init_sd_card();
   prepare_main_files();
 
-  
+
   // Инициализация Модуля Реального Времени
   initHardTimeModule();
 
@@ -3310,7 +3330,7 @@ void setup() {
 
   // Инициализация WIFI
   initWiFi();
-  
+
 //  delay(1000);
 
 
@@ -3325,7 +3345,7 @@ void setup() {
   server.on("/logout", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(401);
   });
-  
+
   // Страница настроек
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", settings_html, processor);
@@ -3335,7 +3355,7 @@ void setup() {
   server.on("/getupd", HTTP_GET, [](AsyncWebServerRequest *request){
     String new_update_span;
     String new_brightness_value;
-    
+
     if (request->hasParam(TIME_PARAM_INPUT)) {
         new_update_span = request->getParam(TIME_PARAM_INPUT)->value();
         if (new_update_span != ""){
@@ -3348,21 +3368,21 @@ void setup() {
         new_brightness_value = request->getParam(LED_BRIGHTNESS_INPUT)->value();
         if (new_brightness_value != ""){
           Serial1.println(new_brightness_value); // Setting BRIGHTNESS OF LED
-          Serial.println(" "); 
+          Serial.println(" ");
           Serial.println("BRIGHTNESS HAS VALUE");
           Serial.println(new_brightness_value);
           new_brightness_value = stringToInt(new_brightness_value);
           led_brightness = stringToInt(new_brightness_value);
         }
     }
-    
-    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");     
+
+    makeSnapShot(7, "g,"+String(timerDelay)+","+String(led_brightness)+",");
     request->send_P(200, "text/html", settings_html, processor);
   });
 
 
 
-  
+
   // Задание значения для СИСТЕМЫ ОСВЕЩЕНИЯ  -- ЗАДАТЧИК
   server.on("/getlight", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_time;
@@ -3370,21 +3390,21 @@ void setup() {
     String light_message_duration2;
     String light_message_repeat;
     String light_message_pause;
-    
-      
+
+
     // Контроль ОСВЕЩЕНИЯ
     if (request->hasParam(LIGHT_PARAM_INPUT1) && request->hasParam(LIGHT_PARAM_INPUT2)) {
         light_message_time = request->getParam(LIGHT_PARAM_INPUT1)->value();
         light_message_duration1 = request->getParam(LIGHT_PARAM_INPUT2)->value();
-           
+
         if (light_message_time != "" && light_message_duration1 != ""){
-          
+
           if (!light_button_state && !is_light_set){
-//            Serial1.println('L');  
+//            Serial1.println('L');
           }
-          
+
           if (getFeedBack()){
-          
+
             // HAVING SET VALUE FOR LIGHTENING
             if (request->hasParam(LIGHT_PARAM_INPUT4)){
               light_repeat = true;
@@ -3394,7 +3414,7 @@ void setup() {
               light_repeat = false;
               light_set_value_s = "Начало с: " + light_message_time + " прод: " + light_message_duration1 + " мин";
             }
-                  
+
             if (!light_button_state){
               light_button_state = true;
             }
@@ -3406,28 +3426,28 @@ void setup() {
           CaseTwo[0].set_value(2, stringToInt(light_message_time.substring(-1, light_message_time.indexOf(":")+1)));
           CaseTwo[0].set_value(3, stringToInt(light_message_duration1));
           CaseTwo[0].set_value(4, light_repeat);
-            
+
           CaseTwo[0].set_value(9, false);
           CaseTwo[0].set_value(10, false);
           CaseTwo[0].set_value(8, true);
 
-          makeSnapShot(5, "c,"+light_message_time.substring(0, light_message_time.indexOf(":"))+","+light_message_time.substring(-1, light_message_time.indexOf(":")+1)+","+light_message_duration1+","+String(int(light_repeat))+","+String(CaseTwo[0].get_value(8))+",");            
-        }   
+          makeSnapShot(5, "c,"+light_message_time.substring(0, light_message_time.indexOf(":"))+","+light_message_time.substring(-1, light_message_time.indexOf(":")+1)+","+light_message_duration1+","+String(int(light_repeat))+","+String(CaseTwo[0].get_value(8))+",");
+        }
     }
     else if (request->hasParam(LIGHT_PARAM_INPUT5) && request->hasParam(LIGHT_PARAM_INPUT6)) {
         light_message_duration2 = request->getParam(LIGHT_PARAM_INPUT5)->value();
         light_message_pause = request->getParam(LIGHT_PARAM_INPUT6)->value();
-     
+
         if (light_message_pause != "" && light_message_duration2 != ""){
-          
+
           if (!light_button_state && !is_light_set){
-//            Serial1.println('L');  
+//            Serial1.println('L');
           }
           if (getFeedBack()){
             // HAVING SET VALUE FOR LIGHTENING
             light_set_value_s = "В течение: " + light_message_duration2 + " с паузой в: " + light_message_pause + " мин";
           }
-          
+
           if (!light_button_state){
             light_button_state = true;
           }
@@ -3437,12 +3457,12 @@ void setup() {
         }
         CaseTwo[0].set_value(5, stringToInt(light_message_duration2));
         CaseTwo[0].set_value(6, stringToInt(light_message_pause));
-          
+
         CaseTwo[0].set_value(8, false);
         CaseTwo[0].set_value(10, false);
         CaseTwo[0].set_value(9, true);
 
-        makeSnapShot(5, "i,"+light_message_duration2+","+light_message_pause+","+String(CaseTwo[0].get_value(9))+",");        
+        makeSnapShot(5, "i,"+light_message_duration2+","+light_message_pause+","+String(CaseTwo[0].get_value(9))+",");
     };
         request->send_P(200, "text/html", index_html, processor);
   });
@@ -3451,15 +3471,15 @@ void setup() {
   // Задание значения для СИСТЕМЫ ОСВЕЩЕНИЯ -- ВКЛ/ВЫКЛ
   server.on("/getlighttog", HTTP_GET, [](AsyncWebServerRequest *request){
     String light_message_toggle;
-              
+
     if (request->hasParam(LIGHT_PARAM_INPUT3)) {
         light_message_toggle = request->getParam(LIGHT_PARAM_INPUT3)->value();
     }
 
 //    Serial1.println('L');
-      
+
     if (getFeedBack()){
-    
+
       if(light_message_toggle = "toggle-light"){
         if (light_button_state){
             light_button_state = false;
@@ -3471,12 +3491,12 @@ void setup() {
       }
     }
     CaseTwo[0].set_value(7, int(light_button_state));
-    
+
     CaseTwo[0].set_value(8, false);
     CaseTwo[0].set_value(9, false);
     CaseTwo[0].set_value(10, light_button_state);
 
-    makeSnapShot(5, "k,"+String(int(light_button_state))+","+String(CaseTwo[0].get_value(10))+",");     
+    makeSnapShot(5, "k,"+String(int(light_button_state))+","+String(CaseTwo[0].get_value(10))+",");
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -3492,20 +3512,20 @@ void setup() {
     String water_message_repeat;
     String water_message_pause;
 
-      
+
     // Контроль ПОЛИВА
     if (request->hasParam(WATER_PARAM_INPUT1) && request->hasParam(WATER_PARAM_INPUT2)) {
         water_message_time = request->getParam(WATER_PARAM_INPUT1)->value();
         water_message_duration1 = request->getParam(WATER_PARAM_INPUT2)->value();
-           
+
         if (water_message_time != "" && water_message_duration1 != ""){
-          
+
           if (!water_button_state && !is_water_set){
-//            Serial1.println('W');  
+//            Serial1.println('W');
           }
-          
+
           if (getFeedBack()){
-          
+
             // HAVING SET VALUE FOR WATERING
             if (request->hasParam(WATER_PARAM_INPUT4)){
               water_repeat = true;
@@ -3515,7 +3535,7 @@ void setup() {
               water_repeat = false;
               water_set_value_s = "Начало с: " + water_message_time + " прод: " + water_message_duration1 + " мин";
             }
-                  
+
             if (!water_button_state){
               water_button_state = true;
             }
@@ -3527,25 +3547,25 @@ void setup() {
           CaseTwo[1].set_value(2, stringToInt(water_message_time.substring(-1, water_message_time.indexOf(":")+1)));
           CaseTwo[1].set_value(3, stringToInt(water_message_duration1));
           CaseTwo[1].set_value(4, water_repeat);
-            
+
           CaseTwo[1].set_value(9, false);
           CaseTwo[1].set_value(10, false);
           CaseTwo[1].set_value(8, true);
 
           makeSnapShot(6, "c,"+water_message_time.substring(0, water_message_time.indexOf(":"))+","+water_message_time.substring(-1, water_message_time.indexOf(":")+1)+","+water_message_duration1+","+String(int(water_repeat))+","+String(CaseTwo[1].get_value(8))+",");
-        }   
+        }
     }
     else if (request->hasParam(WATER_PARAM_INPUT5) && request->hasParam(WATER_PARAM_INPUT6)){
         water_message_pause = request->getParam(WATER_PARAM_INPUT6)->value();
         water_message_duration2 = request->getParam(WATER_PARAM_INPUT5)->value();
-        
+
         if (water_message_pause != "" && water_message_duration2 != ""){
-          
+
           if (!water_button_state && !is_water_set){
-//            Serial1.println('W');  
+//            Serial1.println('W');
           }
           if (getFeedBack()){
-            
+
             // HAVING SET VALUE FOR WATERING
             water_set_value_s = "В течение: " + water_message_duration2 + " с паузой в: " + water_message_pause + " мин";
             if (!water_button_state){
@@ -3553,17 +3573,17 @@ void setup() {
             }
             if (!is_water_set){
               is_water_set = true;
-            }            
-          }             
+            }
+          }
         }
         CaseTwo[1].set_value(5, stringToInt(water_message_duration2));
         CaseTwo[1].set_value(6, stringToInt(water_message_pause));
-          
+
         CaseTwo[1].set_value(8, false);
         CaseTwo[1].set_value(10, false);
         CaseTwo[1].set_value(9, true);
 
-        makeSnapShot(6, "i,"+water_message_duration2+","+water_message_pause+","+String(CaseTwo[1].get_value(9))+",");    
+        makeSnapShot(6, "i,"+water_message_duration2+","+water_message_pause+","+String(CaseTwo[1].get_value(9))+",");
     }
         request->send_P(200, "text/html", index_html, processor);
   });
@@ -3572,15 +3592,15 @@ void setup() {
   // Задание значения для СИСТЕМЫ ПОЛИВА -- ВКЛ/ВЫКЛ
   server.on("/getwatertog", HTTP_GET, [](AsyncWebServerRequest *request){
     String water_message_toggle;
-              
+
     if (request->hasParam(WATER_PARAM_INPUT3)) {
         water_message_toggle = request->getParam(WATER_PARAM_INPUT3)->value();
     }
 
 //    Serial1.println('W');
-      
+
     if (getFeedBack()){
-    
+
       if(water_message_toggle = "toggle-water"){
         if (water_button_state){
             water_button_state = false;
@@ -3592,12 +3612,12 @@ void setup() {
       }
     }
     CaseTwo[1].set_value(7, int(water_button_state));
-    
+
     CaseTwo[1].set_value(8, false);
     CaseTwo[1].set_value(9, false);
     CaseTwo[1].set_value(10, water_button_state);
 
-    makeSnapShot(6, "k,"+String(int(water_button_state))+","+String(CaseTwo[1].get_value(10))+",");     
+    makeSnapShot(6, "k,"+String(int(water_button_state))+","+String(CaseTwo[1].get_value(10))+",");
     request->send_P(200, "text/html", index_html, processor);
   });
 
@@ -3608,44 +3628,44 @@ void setup() {
   // Задание значения для СИСТЕМЫ ОТОПЛЕНИЯ ВОЗДУХА
   server.on("/gettemp", HTTP_GET, [](AsyncWebServerRequest *request){
       String temp_message;
-      
+
       // Контроль ТЕМПЕРАТУРЫ
       if (request->hasParam(TEMP_PARAM_INPUT1)) {
         temp_message = request->getParam(TEMP_PARAM_INPUT1)->value();
-        
+
         if (temp_message != ""){
-    
+
           // HAVING SET VALUE ON TEMPERATURE
           temp_set_value_s = temp_message;
           temp_set_value_f = stringToFloat(temp_message);
-          
+
           if (!temp_button_state && !is_temp_set){
-//            Serial1.println('T');  
+//            Serial1.println('T');
           }
-           
+
           if (getFeedBack()){
             if (!temp_button_state){
               temp_button_state = true;
             }
             if (!is_temp_set){
-              is_temp_set = true;  
-            }    
+              is_temp_set = true;
+            }
           }
         }
       CaseOne[0].set_value(1, stringToInt(temp_message));
       CaseOne[0].set_value(3, true);
-      
-      makeSnapShot(0, "s,"+temp_message+","+"1,");  
+
+      makeSnapShot(0, "s,"+temp_message+","+"1,");
       }
-          
+
       else if (request->hasParam(TEMP_PARAM_INPUT2)) {
           temp_message = request->getParam(TEMP_PARAM_INPUT2)->value();
 
 //          Serial1.println('T');
-           
+
           if (getFeedBack()){
-          
-            if (temp_message == "toggle-temp"){     
+
+            if (temp_message == "toggle-temp"){
               if (temp_button_state){
                 temp_button_state = false;
                 is_temp_set = false;
@@ -3653,62 +3673,62 @@ void setup() {
               else{
                 temp_button_state = true;
               }
-            }      
+            }
           temp_set_value_f = 0.00;
           }
-   
+
       CaseOne[0].set_value(2, int(temp_button_state));
       CaseOne[0].set_value(4, temp_button_state);
       CaseOne[0].set_value(3, is_temp_set);
-            
-      makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");   
+
+      makeSnapShot(0, "o,"+String(int(temp_button_state))+","+String(int(temp_button_state))+",");
       };
-      
+
       request->send_P(200, "text/html", index_html, processor);
   });
 
-  
+
   // Задание значения для СИСТЕМЫ УВЛАЖНЕНИЯ ВОЗДУХА
   server.on("/gethum", HTTP_GET, [](AsyncWebServerRequest *request){
       String hum_message;
-      
+
       // Контроль ВЛАЖНОСТИ
       if (request->hasParam(HUM_PARAM_INPUT1)) {
         hum_message = request->getParam(HUM_PARAM_INPUT1)->value();
-        
+
         if (hum_message != ""){
-    
+
           // HAVING SET VALUE ON HUMIDITY
           hum_set_value_s = hum_message;
           hum_set_value_f = stringToFloat(hum_message);
-          
+
           if (!hum_button_state && !is_hum_set){
 //            Serial1.println('H');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
-           
+
           if (getFeedBack()){
             if (!hum_button_state){
               hum_button_state = true;
             }
             if (!is_hum_set){
-              is_hum_set = true;  
-            }    
+              is_hum_set = true;
+            }
           }
         }
       CaseOne[1].set_value(1, stringToInt(hum_message));
       CaseOne[1].set_value(3, true);
-      
-      makeSnapShot(1, "s,"+hum_message+","+"1,");        
+
+      makeSnapShot(1, "s,"+hum_message+","+"1,");
       }
-          
+
       else if (request->hasParam(HUM_PARAM_INPUT2)) {
           hum_message = request->getParam(HUM_PARAM_INPUT2)->value();
 
 //          Serial1.println('H');
-           
+
           if (getFeedBack()){
-          
-            if (hum_message == "toggle-hum"){     
+
+            if (hum_message == "toggle-hum"){
               if (hum_button_state){
                 hum_button_state = false;
                 is_hum_set = false;
@@ -3716,62 +3736,62 @@ void setup() {
               else{
                 hum_button_state = true;
               }
-            }      
+            }
           hum_set_value_f = 0.00;
           }
-          
+
       CaseOne[1].set_value(2, int(hum_button_state));
       CaseOne[1].set_value(4, hum_button_state);
       CaseOne[1].set_value(3, is_hum_set);
-      
-      makeSnapShot(1, "o,"+String(int(hum_button_state))+","+String(int(hum_button_state))+",");      
+
+      makeSnapShot(1, "o,"+String(int(hum_button_state))+","+String(int(hum_button_state))+",");
       };
-      
+
       request->send_P(200, "text/html", index_html, processor);
   });
 
-  
+
   // Задание значения для СИСТЕМЫ СЛЕЖЕНИЯ ЗА СОДЕРЖАНИЕМ УГЛЕКИСЛОГО ГАЗА
   server.on("/getcarbon", HTTP_GET, [](AsyncWebServerRequest *request){
       String carbon_message;
-      
+
       // Контроль CO2
       if (request->hasParam(CARBON_PARAM_INPUT1)) {
         carbon_message = request->getParam(CARBON_PARAM_INPUT1)->value();
-        
+
         if (carbon_message != ""){
-    
+
           // HAVING SET VALUE ON CO2
           carbon_set_value_s = carbon_message;
           carbon_set_value_f = stringToFloat(carbon_message);
-          
+
           if (!carbon_button_state && !is_carbon_set){
 //            Serial1.println('C');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
-           
+
           if (getFeedBack()){
             if (!carbon_button_state){
               carbon_button_state = true;
             }
             if (!is_carbon_set){
-              is_carbon_set = true;  
-            }    
+              is_carbon_set = true;
+            }
           }
         }
       CaseOne[2].set_value(1, stringToInt(carbon_message));
       CaseOne[2].set_value(3, true);
-      
-      makeSnapShot(2, "s,"+carbon_message+","+"1,");                  
+
+      makeSnapShot(2, "s,"+carbon_message+","+"1,");
       }
-          
+
       else if (request->hasParam(CARBON_PARAM_INPUT2)) {
           carbon_message = request->getParam(CARBON_PARAM_INPUT2)->value();
 
 //          Serial1.println('C');
-           
+
           if (getFeedBack()){
-          
-            if (carbon_message == "toggle-carbon"){     
+
+            if (carbon_message == "toggle-carbon"){
               if (carbon_button_state){
                 carbon_button_state = false;
                 is_carbon_set = false;
@@ -3779,62 +3799,62 @@ void setup() {
               else{
                 carbon_button_state = true;
               }
-            }      
+            }
           carbon_set_value_f = 0.00;
           }
-      
+
       CaseOne[2].set_value(2, int(carbon_button_state));
       CaseOne[2].set_value(4, carbon_button_state);
       CaseOne[2].set_value(3, is_carbon_set);
-      
-      makeSnapShot(2, "o,"+String(int(carbon_button_state))+","+String(int(carbon_button_state))+",");          
+
+      makeSnapShot(2, "o,"+String(int(carbon_button_state))+","+String(int(carbon_button_state))+",");
       };
-      
+
       request->send_P(200, "text/html", index_html, processor);
   });
 
-  
+
   // Задание значения для СИСТЕМЫ СЛЕЖЕНИЯ ЗА ТЕМПЕРАТУРОЙ ВОДЫ В БАКЕ
   server.on("/getwatertemp", HTTP_GET, [](AsyncWebServerRequest *request){
       String water_temp_message;
-      
+
       // Контроль ТЕМПЕРАТУРЫ ВОДЫ
       if (request->hasParam(WATER_TEMP_PARAM_INPUT1)) {
         water_temp_message = request->getParam(WATER_TEMP_PARAM_INPUT1)->value();
-        
+
         if (water_temp_message != ""){
-    
+
           // HAVING SET VALUE ON WATER TEMPERATURE
           water_temp_set_value_s = water_temp_message;
           water_temp_set_value_f = stringToFloat(water_temp_message);
-          
+
           if (!water_temp_button_state && !is_water_temp_set){
 //            Serial1.println('X');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
-           
+
           if (getFeedBack()){
             if (!water_temp_button_state){
               water_temp_button_state = true;
             }
             if (!is_water_temp_set){
-              is_water_temp_set = true;  
-            }    
+              is_water_temp_set = true;
+            }
           }
-        }  
+        }
       CaseOne[3].set_value(1, stringToInt(water_temp_message));
       CaseOne[3].set_value(3, true);
-      
-      makeSnapShot(3, "s,"+water_temp_message+","+"1,");                        
+
+      makeSnapShot(3, "s,"+water_temp_message+","+"1,");
       }
-          
+
       else if (request->hasParam(WATER_TEMP_PARAM_INPUT2)) {
           water_temp_message = request->getParam(WATER_TEMP_PARAM_INPUT2)->value();
 
 //          Serial1.println('X');
-           
+
           if (getFeedBack()){
-          
-            if (water_temp_message == "toggle-water-temp"){     
+
+            if (water_temp_message == "toggle-water-temp"){
               if (water_temp_button_state){
                 water_temp_button_state = false;
                 is_water_temp_set = false;
@@ -3842,60 +3862,60 @@ void setup() {
               else{
                 water_temp_button_state = true;
               }
-            }      
+            }
           water_temp_set_value_f = 0.00;
           }
       CaseOne[3].set_value(2, int(water_temp_button_state));
       CaseOne[3].set_value(4, water_temp_button_state);
       CaseOne[3].set_value(3, is_water_temp_set);
-      
-      makeSnapShot(3, "o,"+String(int(water_temp_button_state))+","+String(int(water_temp_button_state))+",");                
+
+      makeSnapShot(3, "o,"+String(int(water_temp_button_state))+","+String(int(water_temp_button_state))+",");
       };
       request->send_P(200, "text/html", index_html, processor);
   });
 
-  
+
   // Задание значения для СИСТЕМЫ СЛЕЖЕНИЯ ЗА УРОВНЕМ ВОДЫ В БАКЕ
   server.on("/getwaterlevel", HTTP_GET, [](AsyncWebServerRequest *request){
       String water_level_message;
-      
+
       // Контроль УРОВНЯ ВОДЫ
       if (request->hasParam(WATER_LEVEL_PARAM_INPUT1)) {
         water_level_message = request->getParam(WATER_LEVEL_PARAM_INPUT1)->value();
-        
+
         if (water_level_message != ""){
-    
+
           // HAVING SET VALUE ON WATER TEMPERATURE
           water_level_set_value_s = water_level_message;
           water_level_set_value_f = stringToFloat(water_level_message);
-          
+
           if (!water_level_button_state && !is_water_level_set){
 //            Serial1.println('Y');                   // !!! NEW VALUE FOR ARDUINO !!!
           }
-           
+
           if (getFeedBack()){
             if (!water_level_button_state){
               water_level_button_state = true;
             }
             if (!is_water_level_set){
-              is_water_level_set = true;  
-            }    
+              is_water_level_set = true;
+            }
           }
-        }  
+        }
       CaseOne[4].set_value(1, stringToInt(water_level_message));
       CaseOne[4].set_value(3, true);
-      
-      makeSnapShot(4, "s,"+water_level_message+","+"1,");                            
+
+      makeSnapShot(4, "s,"+water_level_message+","+"1,");
       }
-          
+
       else if (request->hasParam(WATER_LEVEL_PARAM_INPUT2)) {
           water_level_message = request->getParam(WATER_LEVEL_PARAM_INPUT2)->value();
 
 //          Serial1.println('Y');
-           
+
           if (getFeedBack()){
-          
-            if (water_level_message == "toggle-water-level"){     
+
+            if (water_level_message == "toggle-water-level"){
               if (water_level_button_state){
                 water_level_button_state = false;
                 is_water_level_set = false;
@@ -3903,46 +3923,46 @@ void setup() {
               else{
                 water_level_button_state = true;
               }
-            }      
+            }
           water_level_set_value_f = 0.00;
           }
-      
+
       CaseOne[4].set_value(2, int(water_level_button_state));
       CaseOne[4].set_value(4, water_level_button_state);
       CaseOne[4].set_value(3, is_water_level_set);
-      
-      makeSnapShot(4, "o,"+String(int(water_level_button_state))+","+String(int(water_level_button_state))+",");                      
+
+      makeSnapShot(4, "o,"+String(int(water_level_button_state))+","+String(int(water_level_button_state))+",");
       };
-      
+
       request->send_P(200, "text/html", index_html, processor);
   });
 
-  
+
 
   // Задание значения для СИСТЕМЫ ВОЗДУХООБМЕНА !!! НЕ ИСПОЛЬЗУЕТСЯ (ПОКА) !!!
 //  server.on("/getfan", HTTP_GET, [](AsyncWebServerRequest *request){
-//      String fan_message; 
-//      // Контроль ВЕНТИЛЯТОРА          
+//      String fan_message;
+//      // Контроль ВЕНТИЛЯТОРА
 //      if (request->hasParam(FAN_PARAM_INPUT)) {
 //          fan_message = request->getParam(FAN_PARAM_INPUT)->value();
 //      }
 //      Serial1.println('F');
-//      if (getFeedBack()){     
-//        if (fan_message == "toggle-fan"){     
+//      if (getFeedBack()){
+//        if (fan_message == "toggle-fan"){
 //          if (fan_button_state){
 //            fan_button_state = false;
 //          }
 //          else{
 //            fan_button_state = true;
 //          }
-//        }     
+//        }
 //      }
 //      request->send_P(200, "text/html", index_html, processor);
 //  });
 
 
 
-    
+
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
 //      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
@@ -3960,45 +3980,45 @@ void setup() {
     Serial.println("Everything is OK");
   }
   else{
-    update_display();    
+    update_display();
   }
 
 }
 
 
 void loop() {
-    
-    if (gui_control_mode == "manual"){ 
-    
+
+    if (gui_control_mode == "manual"){
+
       // обязательная функция отработки. Должна постоянно опрашиваться
       enc1.tick();
-      
+
       if (enc1.isRight()){                  // если был поворот направо
     //    Serial.println("Right");
         update_place(1);
-      };         
-      
+      };
+
       if (enc1.isLeft()){                   // если был поворот налево
     //    Serial.println("Left");
         update_place(-1);
       };
-      
+
       if (enc1.isRightH()){
     //    Serial.println("Right holded");
         update_system(1);
-       
+
       };                                    // если было удержание + поворот направо
-    
+
       if (enc1.isLeftH()){
     //    Serial.println("Left holded");
         update_system(-1);
-        
+
       };                                    // если было удержание + поворот налева
-      
+
       if (enc1.isPress()){
     //    Serial.println("Press");            // нажатие на кнопку (+ дебаунс)
       };
-      
+
       if (enc1.isRelease()){
     //    Serial.println("Release");          // отпускание кнопки (+ дебаунс)
         update_level();
@@ -4006,37 +4026,37 @@ void loop() {
         toggle_editing_mode();
         update_display();
       };
-      
+
       if (enc1.isHolded()){
     //    Serial.println("Holded");           // если была удержана и энк не поворачивался
         set_current_system();
         update_display();
       };
-      
+
     //  if (enc1.isHold()){
     //    Serial.println("Hold");            // возвращает состояние кнопки
     //  };
-    
-    
+
+
       if (enc1.isTurn()) {                   // если был совершён поворот (индикатор поворота в любую сторону)
         update_display();
-        track_cursor(); 
+        track_cursor();
       }
 
 
       if ((millis() - lastTime) > timerDelay) {
-        
+
         // TRYING TO REACH WIFI SIGNAL
         int networks = WiFi.scanNetworks();
         if (networks){
           for (int i = 0; i < networks; i++){
             if (WiFi.SSID(i) == main_ssid || WiFi.SSID(i) == other_ssid || WiFi.SSID(i) == another_ssid){
-              initWiFi();  
+              initWiFi();
             }
           }
         }
 
-        
+
         // Read the sersors reading
         getSensorsReadings();
         blinkBuildLED();
@@ -4044,63 +4064,64 @@ void loop() {
         Serial1.flush();
         update_display();
         // Update screen values
-  
+
 
         TrackSystems();
         makeSnapShot(8, "r,"+String(int(is_working_temperature))+","+String(int(is_working_humidity))+","+String(int(is_working_carbon))+","+String(int(is_working_water_temp))+","+String(int(is_working_water_level))+","+String(int(is_working_light))+","+String(int(is_working_water))+",");
-        lastTime = millis();   
+        lastTime = millis();
       }
-  
+
   }
-  else{ // WEB BASED MODE 
+  else{ // WEB BASED MODE
 
     // Сверка значении датчиков и обновление страницы каждые timerDelay секунд (настраиваемые).
     if ((millis() - lastTime) > timerDelay) {
-      
+
       // Получение данных о времени и значении с датчиковы
       getWiFiDateTime();
       getSensorsReadings();
-      
+
       dummy_temperature = temperature;
       dummy_humidity = humidity;
       dummy_light = light;
-  
-      // Вывод IP адреса и времени на LCD дисплей  
+      Serial.flush();
+      Serial1.flush();
+      // Вывод IP адреса и времени на LCD дисплей
       display_wifi_info();
-      lcd.setCursor(1, 3);  
+      lcd.setCursor(1, 3);
       lcd.print(DateTimeStamp);
-  
-  
+
+
   //  ********************************  ДЕБАГГИНГ  ***********************************
-  
+
   //    Serial.println(temp_set_value_f);
   //    if (temp_set_value_f != 0){
   //      if (temp_set_value_f <= temperature){
-  //       
+  //
   //        Serial1.println('b');
   //        temp_button_state = false;
   //        is_temp_set = false;
-  //        events.send("Refresh the page","refresher",millis());        
+  //        events.send("Refresh the page","refresher",millis());
   //      }
   //      else{
   //        Serial1.println('d');
   //      }
   //    }
-      
+
   //  ********************************  ДЕБАГГИНГ  ***********************************
-  
-      
+
+
       // Отправка и Обновление значении на Веб-странице
-      events.send("ping",NULL,millis());    
+      events.send("ping",NULL,millis());
       events.send(String(DateTimeStamp).c_str(),"datetime",millis());
       events.send(String(temperature).c_str(),"temperature",millis());
       events.send(String(humidity).c_str(),"humidity",millis());
       events.send(String(light).c_str(),"light",millis());
-      
+
       TrackSystems();
       makeSnapShot(8, "r,"+String(int(is_working_temperature))+","+String(int(is_working_humidity))+","+String(int(is_working_carbon))+","+String(int(is_working_water_temp))+","+String(int(is_working_water_level))+","+String(int(is_working_light))+","+String(int(is_working_water))+",");
       lastTime = millis();
-    }    
+    }
   }
 
     // ***** MAIN CONTROL FORM ESP32 AND COMMANDS SENDING TO ARDUINO MEGA  *****

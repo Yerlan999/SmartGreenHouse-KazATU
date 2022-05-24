@@ -14,9 +14,9 @@ namespace {
 // datasheet:
 //
 //   http://datasheets.maximintegrated.com/en/ds/DS1302.pdf
-const int kCePin   = 5;  // Chip Enable
-const int kIoPin   = 6;  // Input/Output
-const int kSclkPin = 7;  // Serial Clock
+const int kCePin   = 4;  // Chip Enable
+const int kIoPin   = 2;  // Input/Output
+const int kSclkPin = 13;  // Serial Clock
 
 // Create a DS1302 object.
 DS1302 rtc(kCePin, kIoPin, kSclkPin);
