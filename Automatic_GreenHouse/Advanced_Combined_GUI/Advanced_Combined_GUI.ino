@@ -9,9 +9,8 @@
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
 #include "GyverEncoder.h"
-#include <ThreeWire.h>  
+#include <ThreeWire.h>
 #include <RtcDS1302.h>
-//#include "RTClib.h"
 #include "FS.h"
 #include "SD.h"
 #include <SPI.h>
@@ -57,9 +56,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 ThreeWire myWire(DATt, CLKt, RSTt);
 RtcDS1302<ThreeWire> Rtc(myWire);
-
-
-//RTC_DS3231 rtc;
 
 
 // Создание AsyncWebServer объекта на порте 80
@@ -1170,7 +1166,7 @@ void initHardTimeModule(){
     printDateTime(compiled);
     Serial.println();
 
-    if (!Rtc.IsDateTimeValid()) 
+    if (!Rtc.IsDateTimeValid())
     {
         // Common Causes:
         //    1) first time you ran and the device wasn't running yet
@@ -1193,16 +1189,16 @@ void initHardTimeModule(){
     }
 
     RtcDateTime now = Rtc.GetDateTime();
-    if (now < compiled) 
+    if (now < compiled)
     {
         Serial.println("RTC is older than compile time!  (Updating DateTime)");
         Rtc.SetDateTime(compiled);
     }
-    else if (now > compiled) 
+    else if (now > compiled)
     {
         Serial.println("RTC is newer than compile time. (this is expected)");
     }
-    else if (now == compiled) 
+    else if (now == compiled)
     {
         Serial.println("RTC is the same as compile time! (not expected but all is fine)");
     }
@@ -1605,7 +1601,7 @@ void readFile(fs::FS &fs, String path, int which_system) {
           if (seq==2){CaseTwo[which_system-5].set_value(9, stringToInt(number));}
         }
         else if (set_type == 107){ // state [k,state,state_set,]
-          CaseTwo[which_system-5].set_value(seq+7, stringToInt(number));
+          if (seq==0){CaseTwo[which_system-5].set_value(7, stringToInt(number));}
           if (seq==1){CaseTwo[which_system-5].set_value(10, stringToInt(number));}
         }
 
@@ -1916,7 +1912,7 @@ void getWiFiDateTime(){
 
 void printDateTime(const RtcDateTime& dt)
 {
-    
+
     snprintf_P(datestring,
       countof(datestring),
       PSTR("%02u-%02u-%02u %02u:%02u"),
@@ -2929,6 +2925,8 @@ void TrackSystems(){
   appendFile(SD, "/sersors_logger.txt", right_now_date+","+right_now_time+","+String(CaseOne[0].system_val)+","+String(CaseOne[1].system_val)+","+String(CaseOne[2].system_val)+","+String(CaseOne[3].system_val)+","+String(CaseOne[4].system_val)+","+String(CaseTwo[0].system_val)+","+String(CaseTwo[1].system_val)+", \r\n");
 
   Serial.println("#################### DEBUGGING #############################");
+  Serial.println("################# IN TRACKING SYSTEMS ######################");
+
   Serial.print("IS LIGHTING CLOCK SET?: ");
   Serial.println(CaseTwo[0].is_clock_set);
 
